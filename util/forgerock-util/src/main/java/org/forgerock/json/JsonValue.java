@@ -1408,10 +1408,14 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
     /**
      * Performs a deep comparison of this JSON value with another JSON value, and returns whether the two objects
      * are identical.  Fails fast in that a {@code false} is returned as soon as a difference is detected.
-     *
+     * <p>
+     *     <b>Note:</b> Only values recognisable as JSON primitives ({@link Map}, {@link List}, {@link Number},
+     *     {@link Boolean}, {@link String} and {@code null}) are supported.
+     * </p>
      * @param other another value.
      * @return whether the two objects are equal.
-     * @throws NullPointerException if either of {@code value} or {@code other} are {@code null}.
+     * @throws NullPointerException if {@code other} is {@code null}.
+     * @throws IllegalArgumentException if this or the {@code other} value contains non-JSON primitive values.
      */
     public boolean isEqualTo(JsonValue other) {
         return JsonPatch.isEqual(this, other);

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.util.Function;
+import org.forgerock.util.i18n.LocalizableString;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -591,6 +592,16 @@ public class JsonValueTest {
         } catch (Exception caught) {
             assertThat(caught).isSameAs(exception);
         }
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentForNonJsonPrimitivesInArgument() {
+        json("fred").isEqualTo(json(new LocalizableString("fred")));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentForNonJsonPrimitivesInValue() {
+        json(new LocalizableString("fred")).isEqualTo(json("fred"));
     }
 
     private JsonPointer ptr(final String pointer) {
