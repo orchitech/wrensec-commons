@@ -304,6 +304,11 @@ public class OpenApiTransformerTest {
                 {json(object(field("type", "integer"))), new LocalizableModelImpl().type("integer"), null},
                 {json(object(field("type", "number"))), new LocalizableModelImpl().type("number"), null},
                 {json(object(field("type", "null"))), new ModelImpl().type("null"), null},
+                {json(object(field("type", "any"))), new ModelImpl().type("any"), null},
+                // array of non-"null" types defaults to "any"
+                {json(object(field("type", array("string", "object")))), new ModelImpl().type("any"), null},
+                // array of two types has "null" type removed, and single remaining type will be used
+                {json(object(field("type", array("string", "null")))), new LocalizableModelImpl().type("string"), null},
                 {json(object(field("type", "string"))), new LocalizableModelImpl().type("string"), null},
                 {json(object(
                         field("type", "string"),
@@ -412,6 +417,29 @@ public class OpenApiTransformerTest {
                 {json(null), null, null},
                 {json(object(field("type", "not_a_json_schema_type"))), null, TransformerException.class},
                 {json(object(field("type", "null"))), null, null},
+                {json(object(
+                        field("type", "any"))),
+                        new Supplier<Property>() {
+                            @Override
+                            public Property get() {
+                                final LocalizableObjectProperty o = new LocalizableObjectProperty();
+                                o.setType("any");
+                                return o;
+                            }
+                        }.get(), null},
+                // array of non-"null" types defaults to "any"
+                {json(object(
+                        field("type", array("string", "object")))),
+                        new Supplier<Property>() {
+                            @Override
+                            public Property get() {
+                                final LocalizableObjectProperty o = new LocalizableObjectProperty();
+                                o.setType("any");
+                                return o;
+                            }
+                        }.get(), null},
+                // array of two types has "null" type removed, and single remaining type will be used
+                {json(object(field("type", array("object", "null")))), new LocalizableObjectProperty(), null},
                 {json(object(field("type", "object"))), new LocalizableObjectProperty(), null},
                 {json(object(
                         field("type", "object"),

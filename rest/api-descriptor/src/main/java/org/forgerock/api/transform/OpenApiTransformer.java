@@ -719,7 +719,7 @@ public class OpenApiTransformer {
 
                 final Schema responsePayload;
                 if (resourceSchema.getSchema() != null
-                        && !"array".equals(resourceSchema.getSchema().get("type").asString())) {
+                        && !"array".equals(getType(resourceSchema.getSchema()))) {
                     // make query-response schema an array of values
                     responsePayload = Schema.schema().schema(
                             json(object(
@@ -1190,7 +1190,7 @@ public class OpenApiTransformer {
      */
     @VisibleForTesting
     Model buildModel(final JsonValue schema) {
-        final String type = schema.get("type").asString();
+        final String type = getType(schema);
         if (type == null) {
             if (schema.isDefined("allOf")) {
                 return buildAllOfModel(schema);
@@ -1204,6 +1204,7 @@ public class OpenApiTransformer {
             return buildObjectModel(schema);
         case "array":
             return buildArrayModel(schema);
+        case "any":
         case "null":
             return new ModelImpl().type(type);
         case "boolean":
@@ -1463,8 +1464,9 @@ public class OpenApiTransformer {
     }
 
     private LocalizableProperty toLocalizableProperty(final JsonValue schema, final String format) {
-        final String type = schema.get("type").asString();
+        final String type = getType(schema);
         switch (type) {
+        case "any":
         case "object": {
             final LocalizableObjectProperty property = new LocalizableObjectProperty();
             property.setProperties(buildProperties(schema));
@@ -1472,6 +1474,7 @@ public class OpenApiTransformer {
             if (schema.get("default").isNotNull()) {
                 property.setDefault(schema.get("default").getObject());
             }
+            property.setType(type);
             return property;
         }
         case "array": {
@@ -1595,6 +1598,28 @@ public class OpenApiTransformer {
             return value.asList(String.class);
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Swagger 2.0 does not support a JSON Schema type field that is an array of types, nor does it support the
+     * "null" type, so this method makes a best effort to choose a single type under all circumstances. When there
+     * are multiple types to choose from, other than "null", the type "any" will be returned.
+     *
+     * @param schema Schema
+     * @return A single JSON Schema type
+     */
+    private String getType(final JsonValue schema) {
+        final JsonValue value = schema.get("type");
+        if (value.isList()) {
+            final List<String> list = value.asList(String.class);
+            list.remove("null");
+            if (list.size() == 1) {
+                return list.get(0);
+            }
+            logger.trace("Simplifying array of types {} to 'any' type", value);
+            return "any";
+        }
+        return value.asString();
     }
 
     /**
