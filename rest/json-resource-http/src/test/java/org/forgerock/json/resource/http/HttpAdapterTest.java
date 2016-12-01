@@ -17,6 +17,7 @@ package org.forgerock.json.resource.http;
 
 import static io.swagger.models.Scheme.HTTP;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.api.models.ApiDescription.apiDescription;
 import static org.forgerock.api.models.Paths.paths;
 import static org.forgerock.api.models.Read.read;
@@ -24,18 +25,26 @@ import static org.forgerock.api.models.Resource.resource;
 import static org.forgerock.api.models.Schema.schema;
 import static org.forgerock.api.models.VersionedPath.UNVERSIONED;
 import static org.forgerock.api.models.VersionedPath.versionedPath;
+import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
+import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
 import static org.forgerock.json.resource.Applications.simpleCrestApplication;
+import static org.forgerock.json.resource.Resources.newInternalConnectionFactory;
+import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
+import static org.forgerock.services.context.ClientContext.newInternalClientContext;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.times;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.List;
 
+import org.forgerock.api.annotations.Handler;
+import org.forgerock.api.annotations.SingletonProvider;
 import org.forgerock.api.models.ApiDescription;
 import org.forgerock.http.ApiProducer;
 import org.forgerock.http.protocol.Entity;
@@ -44,9 +53,19 @@ import org.forgerock.http.protocol.Response;
 import org.forgerock.http.routing.UriRouterContext;
 import org.forgerock.http.swagger.SwaggerApiProducer;
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.resource.ActionRequest;
+import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.ConnectionFactory;
+import org.forgerock.json.resource.PatchRequest;
+import org.forgerock.json.resource.ReadRequest;
+import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.ResourceResponse;
+import org.forgerock.json.resource.Resources;
+import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.SingletonResourceProvider;
+import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.services.context.AttributesContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
@@ -57,6 +76,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import io.swagger.models.Info;
@@ -192,9 +212,109 @@ public class HttpAdapterTest {
         assertThat(apiRequest.getResourcePath()).isEqualTo("subpath");
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testHandleApiRequestForNullApiDescriptor() throws Exception {
+        // Given
+        // need to return non-null to mimic a router behind HttpAdapter with some descriptors
+        given(connection.api(any(ApiProducer.class))).willReturn(API_DESCRIPTION);
+        // but the one we're interested in (a sub-path) is not described
+        given(connection.handleApiRequest(any(Context.class), any(org.forgerock.json.resource.Request.class)))
+                .willReturn(null);
+        Request request = new Request();
+        adapter.api(mock(ApiProducer.class));
+
+        // When
+        assertThat(adapter.handleApiRequest(new RootContext(), request)).isNull();
+    }
+
+    @DataProvider
+    public static Object[][] runtimeExceptions() {
+        // @Checkstyle:off
+        return new Object[][] {
+                { new NullPointerException() },
+                { new IllegalStateException() },
+                { new UnsupportedOperationException() }
+        };
+        // @Checkstyle:on
+    }
+
+    @Test(dataProvider = "runtimeExceptions")
+    public void testRuntimeExceptionAreForwardedDuringHandleApiRequestOfRouter(final RuntimeException e)
+            throws Exception {
+        // Given
+        Router router = new Router();
+
+        // Force router to have a description
+        router.addRoute(requestUriMatcher(STARTS_WITH, "desc"), Resources.newHandler(new Desc()));
+
+        // Then another handler without description
+        DescribableRequestHandler handler = mock(DescribableRequestHandler.class);
+        router.addRoute(requestUriMatcher(STARTS_WITH, "users"), handler);
+
+        adapter = new HttpAdapter(simpleCrestApplication(newInternalConnectionFactory(router), "frapi:test", "1.0"),
+                null);
+
+        // Emulate a handler without description
+        given(handler.api(any(ApiProducer.class))).willReturn(null);
+        given(handler.handleApiRequest(any(Context.class), any(org.forgerock.json.resource.Request.class)))
+                .willThrow(e);
+
+        // Avoid NPE
+        ApiProducer apiProducer = mock(ApiProducer.class);
+        given(apiProducer.addApiInfo(any())).willReturn(new Swagger());
+
+        // Init the router API
+        adapter.api(apiProducer);
+
+        // When
+        try {
+            UriRouterContext context = uriRouterContext(newInternalClientContext(new RootContext()))
+                    .remainingUri("/users")
+                    .build();
+            adapter.handleApiRequest(context, new Request());
+            failBecauseExceptionWasNotThrown(e.getClass());
+        } catch (RuntimeException thrown) {
+            assertThat(thrown).isSameAs(e);
+        }
+    }
+
     private interface DescribableConnection extends Connection,
             Describable<ApiDescription, org.forgerock.json.resource.Request> {
         // for mocking
+    }
+
+    private interface DescribableRequestHandler extends RequestHandler,
+            Describable<ApiDescription, org.forgerock.json.resource.Request> {
+        // for mocking
+    }
+
+    @SingletonProvider(@Handler(title = "test", mvccSupported = false))
+    private static class Desc implements SingletonResourceProvider {
+
+        @Override
+        public Promise<ActionResponse, ResourceException> actionInstance(final Context context,
+                final ActionRequest request) {
+            return null;
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> patchInstance(final Context context,
+                final PatchRequest request) {
+            return null;
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> readInstance(final Context context,
+                final ReadRequest request) {
+            return null;
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> updateInstance(final Context context,
+                final UpdateRequest request) {
+            return null;
+        }
     }
 
 }
