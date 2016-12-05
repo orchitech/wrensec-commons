@@ -83,6 +83,7 @@ import org.forgerock.guava.common.base.Optional;
 import org.forgerock.guava.common.cache.CacheBuilder;
 import org.forgerock.guava.common.cache.CacheLoader;
 import org.forgerock.guava.common.cache.LoadingCache;
+import org.forgerock.guava.common.util.concurrent.UncheckedExecutionException;
 import org.forgerock.http.ApiProducer;
 import org.forgerock.http.Handler;
 import org.forgerock.http.header.AcceptLanguageHeader;
@@ -898,7 +899,9 @@ final class HttpAdapter implements Handler, Describable<Swagger, org.forgerock.h
                 descriptor = descriptorCache.get("");
             }
         } catch (ExecutionException e) {
-            throw new IllegalStateException("Cannot get connection", e);
+            throw new UnsupportedOperationException("Cannot get connection", e);
+        } catch (UncheckedExecutionException e) {
+            throw (RuntimeException) e.getCause();
         }
         if (descriptor != null && descriptor.getHost() == null) {
             return SwaggerUtils.clone(descriptor).host(context.asContext(ClientContext.class).getLocalAddress());

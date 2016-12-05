@@ -19,6 +19,7 @@ package org.forgerock.http.swagger;
 import static org.forgerock.http.protocol.Entity.APPLICATION_JSON_CHARSET_UTF_8;
 import static org.forgerock.http.protocol.Response.newResponsePromise;
 import static org.forgerock.http.protocol.Responses.newInternalServerError;
+import static org.forgerock.http.protocol.Responses.newNotFound;
 
 import java.net.URI;
 
@@ -69,16 +70,21 @@ public class OpenApiRequestFilter implements Filter {
             return next.handle(context, request);
         }
 
-        Swagger result = ((Describable<Swagger, Request>) next).handleApiRequest(context, request);
-        if (result == null) {
-            return newResponsePromise(new Response(Status.NOT_IMPLEMENTED));
-        }
         try {
+            Swagger result = ((Describable<Swagger, Request>) next).handleApiRequest(context, request);
+            if (result == null) {
+                return newResponsePromise(new Response(Status.NOT_IMPLEMENTED));
+            }
+
             result = setUriDetailsIfNotPresent(context, result);
             ObjectWriter writer = Json.makeLocalizingObjectWriter(OBJECT_MAPPER, request);
             Response chfResponse = new Response(Status.OK).setEntity(writer.writeValueAsBytes(result));
             chfResponse.getHeaders().put(ContentTypeHeader.NAME, APPLICATION_JSON_CHARSET_UTF_8);
             return newResponsePromise(chfResponse);
+        } catch (IllegalStateException e) {
+            // This exception marks that the request couldn't be routed to an acceptable handler
+            logger.trace("Cannot route {} to an acceptable handler", request.getUri() , e);
+            return newResponsePromise(newNotFound());
         } catch (RuntimeException | JsonProcessingException | MalformedHeaderException e) {
             logger.error("Exception caught while generating OpenAPI descriptor", e);
             return newResponsePromise(newInternalServerError(e));

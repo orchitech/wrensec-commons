@@ -497,6 +497,17 @@ public class AbstractRouterTest {
     }
 
     @SuppressWarnings("unchecked")
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldThrowExceptionWhenNoRouteMatchTheApiRequest() throws Exception {
+        // Given
+        router.api(new StringApiProducer());
+        request.setUri("/test");
+
+        // When
+        router.handleApiRequest(context, request);
+    }
+
+    @SuppressWarnings("unchecked")
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void shouldThrowExceptionForNoApiSupport() throws Exception {
         // Given
@@ -508,16 +519,13 @@ public class AbstractRouterTest {
         given(routeOneMatcher.evaluate(context, request)).willReturn(routeOneRouteMatch);
         given(routeTwoMatcher.evaluate(context, request)).willReturn(routeTwoRouteMatch);
 
-        setupRouteMatch(routeOneRouteMatch, routeTwoRouteMatch, true);
-        setupRouteMatch(routeTwoRouteMatch, routeOneRouteMatch, false);
+        setupIncomparableRouteMatch(routeOneRouteMatch, routeTwoRouteMatch);
+        setupIncomparableRouteMatch(routeTwoRouteMatch, routeOneRouteMatch);
 
         request.setUri("/test");
 
         // When
-        String api = router.handleApiRequest(context, request);
-
-        // Then
-        assertThat(api).isEqualTo("one");
+        router.handleApiRequest(context, request);
     }
 
     private void setupRouteMatch(RouteMatch thisRouteMatch, RouteMatch thatRouteMatch,

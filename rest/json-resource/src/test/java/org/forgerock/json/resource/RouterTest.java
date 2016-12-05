@@ -34,6 +34,9 @@ import static org.mockito.Mockito.verify;
 import org.forgerock.api.models.ApiDescription;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.descriptor.Describable;
+import org.forgerock.services.routing.IncomparableRouteMatchException;
+import org.forgerock.services.routing.RouteMatch;
+import org.forgerock.services.routing.RouteMatcher;
 import org.forgerock.util.promise.Promise;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeClass;
@@ -331,22 +334,6 @@ public class RouterTest {
         }
     }
 
-    @Test(dataProvider = "testData", expectedExceptions = UnsupportedOperationException.class)
-    public void handleApiRequestNoMatchThrowsUnsupportedOperationException(String remainingUri, boolean unused) {
-
-        //Given
-        Context context = newRouterContext(mock(Context.class), remainingUri);
-        Request request = mock(Request.class);
-        given(request.getResourcePath()).willReturn("users/demo");
-        given(request.getRequestType()).willReturn(RequestType.API);
-        given(request.getResourcePathObject()).willReturn(ResourcePath.valueOf("users/demo"));
-
-        //When
-        router.handleApiRequest(context, request);
-
-        //Then throw
-    }
-
     @Test
     public void handleCreateShouldReturn404ResponseExceptionIfNoRouteFound() {
 
@@ -509,7 +496,7 @@ public class RouterTest {
         }
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void handleApiRequestShouldThrowsIfNoRouteFound() {
 
         //Given
@@ -519,6 +506,25 @@ public class RouterTest {
         given(request.getResourcePath()).willReturn("users/demo");
         given(request.getRequestType()).willReturn(RequestType.API);
         given(request.getResourcePathObject()).willReturn(ResourcePath.resourcePath("users/demo"));
+
+        //When
+        router.handleApiRequest(context, request);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void handleApiRequestShouldThrowsIfCannotMatch() throws Exception {
+
+        //Given
+        Context context = mock(Context.class);
+        Request request = mock(Request.class);
+        RouteMatch match = mock(RouteMatch.class);
+        RouteMatcher<Request> matcher = mock(RouteMatcher.class);
+
+        given(matcher.evaluate(context, request)).willReturn(match);
+        given(match.isBetterMatchThan(null)).willThrow(IncomparableRouteMatchException.class);
+
+        router.addRoute(matcher, routeOneHandler);
 
         //When
         router.handleApiRequest(context, request);

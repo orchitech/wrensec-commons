@@ -245,7 +245,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection>
             return ((Describable<ApiDescription, Request>) connection)
                     .handleApiRequest(context, request);
         }
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Connection is not describable");
     }
 
     @Override
