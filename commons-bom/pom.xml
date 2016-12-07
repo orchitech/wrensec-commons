@@ -631,4 +631,8 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+  <scm>
+    <tag>21.x</tag>
+  </scm>
 </project>

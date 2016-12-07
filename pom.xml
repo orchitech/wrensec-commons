@@ -55,7 +55,7 @@
     <connection>scm:git:ssh://git@stash.forgerock.org:7999/commons/forgerock-commons.git</connection>
     <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/commons/forgerock-commons.git</developerConnection>
     <url>https://stash.forgerock.org/projects/COMMONS/repos/forgerock-commons/browse</url>
-    <tag>HEAD</tag>
+    <tag>21.x</tag>
   </scm>
 
   <properties>
