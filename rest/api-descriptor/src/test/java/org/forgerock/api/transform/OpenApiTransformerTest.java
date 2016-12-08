@@ -25,18 +25,20 @@ import static org.forgerock.api.models.Reference.reference;
 import static org.forgerock.api.models.Resource.resource;
 import static org.forgerock.api.models.Schema.schema;
 import static org.forgerock.api.models.VersionedPath.versionedPath;
-import static org.forgerock.api.transform.OpenApiTransformer.DEFINITIONS_REF;
 import static org.forgerock.json.JsonValue.array;
 import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import io.swagger.models.refs.RefType;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.iterable.Extractor;
 import org.forgerock.api.ApiTestUtil;
@@ -45,7 +47,9 @@ import org.forgerock.api.enums.PatchOperation;
 import org.forgerock.api.enums.QueryType;
 import org.forgerock.api.enums.ReadPolicy;
 import org.forgerock.api.enums.WritePolicy;
+import org.forgerock.api.jackson.JacksonUtils;
 import org.forgerock.api.models.ApiDescription;
+import org.forgerock.api.models.ApiError;
 import org.forgerock.api.models.Definitions;
 import org.forgerock.api.models.Reference;
 import org.forgerock.api.models.Resource;
@@ -211,11 +215,14 @@ public class OpenApiTransformerTest {
     @Test
     public void testBuildPatchRequestPayload() {
         final OpenApiTransformer transformer = new OpenApiTransformer();
-        final Schema schema = transformer.buildPatchRequestPayload(new PatchOperation[]{PatchOperation.ADD});
+        final Schema schema = transformer.buildPatchRequestPayload(
+                new PatchOperation[]{PatchOperation.ADD, PatchOperation.REMOVE});
 
         final List<Object> enumList = schema.getSchema().get(
                 new JsonPointer("/items/properties/operation/enum")).asList();
-        assertThat(enumList).contains("add");
+        assertThat(enumList).containsOnly("add", "remove");
+        assertThat(schema.getSchema().get("id").asString())
+                .isEqualTo("frapi:models:Patch:add_remove");
     }
 
     @Test
@@ -390,6 +397,30 @@ public class OpenApiTransformerTest {
                         field("description", "This is a cool description"),
                         field("allOf", array()))),
                  null, TransformerException.class},
+                {jsonValueForSchema(PojoOuter.class),
+                        new Supplier<Model>() {
+                            @Override
+                            public Model get() {
+                                // this one has a 'title' because it is the first encounter of PojoInner class
+                                final LocalizableRefProperty pojoProp1 = new LocalizableRefProperty(
+                                        "urn:jsonschema:org:forgerock:api:transform:PojoInner");
+                                pojoProp1.description(PojoOuter.DESCRIPTION_1);
+                                pojoProp1.title(PojoInner.TITLE);
+
+                                // there is no 'title', because this second encounter was always a JSON Reference
+                                final LocalizableRefProperty pojoProp2 = new LocalizableRefProperty(
+                                        "urn:jsonschema:org:forgerock:api:transform:PojoInner");
+                                pojoProp2.description(PojoOuter.DESCRIPTION_2);
+
+                                final LocalizableModelImpl model = new LocalizableModelImpl();
+                                model.type("object");
+                                model.title(PojoOuter.TITLE);
+                                model.addProperty("pojoProp1", pojoProp1);
+                                model.addProperty("pojoProp2", pojoProp2);
+                                return model;
+                            }
+                        }.get(), null
+                },
         };
     }
 
@@ -700,8 +731,9 @@ public class OpenApiTransformerTest {
     @Test
     public void testGetDefinitionsReference() {
         final OpenApiTransformer transformer = new OpenApiTransformer();
-        assertThat(transformer.getDefinitionsReference(reference().value(DEFINITIONS_REF + "myDef").build()))
-                .isEqualTo("myDef");
+        final String reference = transformer.getDefinitionsReference(
+                reference().value(RefType.DEFINITION.getInternalPrefix() + "myDef").build());
+        assertThat(reference).isEqualTo("myDef");
         assertThat(transformer.getDefinitionsReference((Reference) null)).isNull();
     }
 
@@ -741,6 +773,45 @@ public class OpenApiTransformerTest {
                 .hasOnlyElementsOfType(SerializableParameter.class)
                 .extracting(enumValues())
                 .has(countPolicies(expected), atIndex(0));
+    }
+
+    @Test
+    public void testBuildErrorSchema() {
+        final OpenApiTransformer transformer = new OpenApiTransformer();
+
+        final ApiError apiError = ApiError.apiError()
+                .code(404)
+                .description("404 description")
+                .build();
+        final JsonValue apiErrorSchema = transformer.buildErrorSchema(apiError);
+
+        final ApiError apiErrorWithCause = ApiError.apiError()
+                .code(404)
+                .description("404 description")
+                .schema(Schema.schema()
+                        .schema(json(object(field("type", "object"))))
+                        .build())
+                .build();
+        final JsonValue apiErrorWithCauseSchema = transformer.buildErrorSchema(apiErrorWithCause);
+
+        final String id = "frapi:models:ApiError";
+        final JsonPointer causePointer = new JsonPointer("/properties/cause");
+
+        assertThat(apiErrorSchema.get("id").asString()).isEqualTo(id);
+        assertThat(apiErrorSchema.get(causePointer)).isNull();
+
+        assertThat(apiErrorWithCauseSchema.get("id").asString()).startsWith(id).isNotEqualTo(id);
+        assertThat(apiErrorWithCauseSchema.get(causePointer)).isNotNull();
+    }
+
+    private static JsonValue jsonValueForSchema(final Class<?> type) {
+        try {
+            final JsonSchema schema = JacksonUtils.schemaFor(type);
+            final byte[] bytes = JacksonUtils.OBJECT_MAPPER.writeValueAsBytes(schema);
+            return json(JacksonUtils.OBJECT_MAPPER.readValue(bytes, Object.class));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to serialize JSON", e);
+        }
     }
 
     private static Condition<List<String>> countPolicies(final String[] expected) {
