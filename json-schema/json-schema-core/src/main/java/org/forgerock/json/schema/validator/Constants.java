@@ -232,6 +232,22 @@ public final class Constants {
      */
     public static final String DEFAULT = "default";
     /**
+     * The {@code type} field name.
+     * @see <a href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.21">
+     *     JSON schema draft 03 - description</a>
+     * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.1">
+     *     JSON schema draft 04 - title and description</a>
+     */
+    public static final String TITLE = "title";
+    /**
+     * The {@code type} field name.
+     * @see <a href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.22">
+     *     JSON schema draft 03 - description</a>
+     * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.1">
+     *     JSON schema draft 04 - title and description</a>
+     */
+    public static final String DESCRIPTION = "description";
+    /**
      * The {@code format} field name.
      * @see <a href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.23">JSON schema draft 03 - format</a>
      * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-7">

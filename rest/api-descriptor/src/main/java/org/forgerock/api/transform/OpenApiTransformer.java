@@ -25,12 +25,9 @@ import static org.forgerock.api.util.PathUtil.buildPath;
 import static org.forgerock.api.util.PathUtil.buildPathParameters;
 import static org.forgerock.api.util.PathUtil.mergeParameters;
 import static org.forgerock.api.util.ValidationUtil.isEmpty;
-import static org.forgerock.json.JsonValue.array;
-import static org.forgerock.json.JsonValue.field;
-import static org.forgerock.json.JsonValue.fieldIfNotNull;
-import static org.forgerock.json.JsonValue.json;
-import static org.forgerock.json.JsonValue.object;
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.json.JsonValueFunctions.listOf;
+import static org.forgerock.json.schema.validator.Constants.*;
 import static org.forgerock.util.Reject.checkNotNull;
 
 import java.util.ArrayList;
@@ -44,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import io.swagger.models.refs.RefType;
 import org.forgerock.api.enums.CountPolicy;
 import org.forgerock.api.enums.PagingMode;
 import org.forgerock.api.enums.PatchOperation;
@@ -101,6 +97,7 @@ import io.swagger.models.parameters.RefParameter;
 import io.swagger.models.properties.AbstractNumericProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
+import io.swagger.models.refs.RefType;
 
 /**
  * Transforms an {@link ApiDescription} into an OpenAPI/Swagger model.
@@ -738,9 +735,39 @@ public class OpenApiTransformer {
                     // make query-response schema an array of values
                     responsePayload = Schema.schema().schema(
                             json(object(
-                                    field("type", "array"),
-                                    field("items", resourceSchema.getSchema())
-                            ))).build();
+                                    field(TYPE, TYPE_OBJECT),
+                                    field(TITLE, localizable("common.query.title")),
+                                    field(PROPERTIES, object(
+                                            field("result", object(
+                                                    field(TYPE, TYPE_ARRAY),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.result")),
+                                                    field(ITEMS, resourceSchema.getSchema()))),
+                                            field("resultCount", object(
+                                                    field(TYPE, TYPE_INTEGER),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.resultCount")),
+                                                    field(DEFAULT, "0"))),
+                                            field("pagedResultsCookie", object(
+                                                    field(TYPE, array(TYPE_NULL, TYPE_STRING)),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.pagedResultsCookie")))),
+                                            field("totalPagedResultsPolicy", object(
+                                                    field(TYPE, TYPE_STRING),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.totalPagedResultsPolicy")),
+                                                    field(DEFAULT, "NONE"))),
+                                            field("totalPagedResults", object(
+                                                    field(TYPE, TYPE_INTEGER),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.totalPagedResults")),
+                                                    field("default", "-1"))),
+                                            field("remainingPagedResults", object(
+                                                    field(TYPE, TYPE_INTEGER),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.remainingPagedResults")),
+                                                    field(DEFAULT, "-1"))))))))
+                            .build();
                 } else {
                     // already an array or a reference (TODO might not be an array)
                     responsePayload = resourceSchema;
@@ -803,6 +830,17 @@ public class OpenApiTransformer {
                 addOperation(operation, "get", pathName, queryPathFragment, resourceVersion, tag, pathMap);
             }
         }
+    }
+
+    /**
+     * Constructs a LocalizableString where the value should be the key in the 'ApiDescription' bundle.
+     *
+     * @param value resource bundle key to the 'ApiDescription' bundle.
+     * @return LocalizableString where the value is prefixed with the I18N_PREFIX constant and uses the local
+     * classloader of this class.
+     */
+    private static LocalizableString localizable(String value) {
+        return new LocalizableString(I18N_PREFIX + value, OpenApiTransformer.class.getClassLoader());
     }
 
     /**
@@ -1110,30 +1148,26 @@ public class OpenApiTransformer {
         }
 
         return json(object(
-                field("id", id),
-                field("type", "object"),
-                field("required", array("code", "message")),
-                field("properties", object(
+                field(ID, id),
+                field(TYPE, TYPE_OBJECT),
+                field(REQUIRED, array("code", "message")),
+                field(TITLE, localizable("common.error.title")),
+                field(PROPERTIES, object(
                         field("code", object(
-                                field("type", "integer"),
-                                field("title", "Code"),
-                                field("description", "3-digit apiError code,"
-                                        + " corresponding to HTTP status codes.")
+                                field(TYPE, TYPE_INTEGER),
+                                field(DESCRIPTION, localizable("common.error.properties.code"))
                         )),
                         field("message", object(
-                                field("type", "string"),
-                                field("title", "Message"),
-                                field("description", "ApiError message.")
+                                field(TYPE, TYPE_STRING),
+                                field(DESCRIPTION, localizable("common.error.properties.message"))
                         )),
                         field("reason", object(
-                                field("type", "string"),
-                                field("title", "Reason"),
-                                field("description", "Short description corresponding to apiError code.")
+                                field(TYPE, TYPE_STRING),
+                                field(DESCRIPTION, localizable("common.error.properties.reason"))
                         )),
                         field("detail", object(
-                                field("type", "string"),
-                                field("title", "Detail"),
-                                field("description", "Detailed apiError message.")
+                                field(TYPE, TYPE_STRING),
+                                field(DESCRIPTION, localizable("common.error.properties.detail"))
                         )),
                         fieldIfNotNull("cause", errorCauseSchema)
                 ))
@@ -1170,21 +1204,27 @@ public class OpenApiTransformer {
         final String id = FRAPI_PREFIX + "models:Patch:" + operations;
 
         final JsonValue schemaValue = json(object(
-                field("id", id),
-                field("title", "Patch Array"),
-                field("type", "array"),
-                field("items", object(
-                        field("title", "Patch"),
-                        field("type", "object"),
-                        field("properties", object(
+                field(ID, id),
+                field(TITLE, localizable("common.patch.title")),
+                field(TYPE, TYPE_ARRAY),
+                field(ITEMS, object(
+                        field(TITLE, localizable("common.patch.items.title")),
+                        field(TYPE, TYPE_OBJECT),
+                        field(PROPERTIES, object(
                                 field("operation", object(
-                                        field("type", "string"),
-                                        field("enum", enumArray),
-                                        field("required", true)
-                                )),
-                                field("field", object(field("type", "string"))),
-                                field("from", object(field("type", "string"))),
-                                field("value", object(field("type", "string")))
+                                        field(TYPE, TYPE_STRING),
+                                        field(ENUM, enumArray),
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.operation")),
+                                        field(REQUIRED, true))),
+                                field("field", object(
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.field")),
+                                        field(TYPE, TYPE_STRING))),
+                                field("from", object(
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.from")),
+                                        field(TYPE, TYPE_STRING))),
+                                field("value", object(
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.value")),
+                                        field(TYPE, TYPE_STRING)))
                         ))
                 ))
         ));
