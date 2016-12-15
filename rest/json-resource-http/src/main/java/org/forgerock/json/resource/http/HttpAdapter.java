@@ -15,7 +15,6 @@
  */
 package org.forgerock.json.resource.http;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.forgerock.api.commons.CommonsApi.COMMONS_API_DESCRIPTION;
 import static org.forgerock.guava.common.base.Optional.absent;
@@ -69,8 +68,6 @@ import static org.forgerock.json.resource.http.HttpUtils.staticContextFactory;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
