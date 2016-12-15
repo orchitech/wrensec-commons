@@ -190,7 +190,7 @@ public class HttpAdapterTest {
                 .willReturn(API_DESCRIPTION);
         Request request = new Request();
         UriRouterContext context = new UriRouterContext(new AttributesContext(new RootContext()),
-                "", "subpath", Collections.<String, String>emptyMap());
+                "", "subpath/%7Bparam%7D", Collections.<String, String>emptyMap());
         adapter.api(new SwaggerApiProducer(new Info(), "/base/path", "localhost:8080", HTTP));
 
         // When
@@ -198,7 +198,7 @@ public class HttpAdapterTest {
 
         // Then
         assertThat(swagger).isNotNull();
-        assertThat(swagger.getPaths()).containsKey("/subpath/mypath");
+        assertThat(swagger.getPaths()).containsKey("/subpath/{param}/mypath");
         assertThat(swagger.getBasePath()).isEqualTo("/base/path");
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<org.forgerock.json.resource.Request> requestCaptor
@@ -207,9 +207,10 @@ public class HttpAdapterTest {
         List<Context> contexts = contextCaptor.getAllValues();
         Context apiRequestContext = contexts.get(contexts.size() - 1);
         assertThat(apiRequestContext.containsContext(UriRouterContext.class)).isTrue();
-        assertThat(apiRequestContext.asContext(UriRouterContext.class).getRemainingUri()).isEqualTo("subpath");
+        assertThat(apiRequestContext.asContext(UriRouterContext.class).getRemainingUri())
+                .isEqualTo("subpath/%7Bparam%7D");
         org.forgerock.json.resource.Request apiRequest = requestCaptor.getAllValues().get(contexts.size() - 1);
-        assertThat(apiRequest.getResourcePath()).isEqualTo("subpath");
+        assertThat(apiRequest.getResourcePath()).isEqualTo("subpath/%7Bparam%7D");
     }
 
     @SuppressWarnings("unchecked")
