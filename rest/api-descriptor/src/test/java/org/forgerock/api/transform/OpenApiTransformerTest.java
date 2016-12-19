@@ -291,7 +291,17 @@ public class OpenApiTransformerTest {
                                 return o;
                             }
                         }.get(), null},
-                {json(object(field("type", "array"))), new LocalizableArrayModel(), null},
+                {json(object(field("type", "array"))),
+                        new Supplier<Model>() {
+                            @Override
+                            public Model get() {
+                                final ArrayModel o = new LocalizableArrayModel();
+                                final LocalizableObjectProperty itemsProperty = new LocalizableObjectProperty();
+                                itemsProperty.setType("any");
+                                o.setItems(itemsProperty);
+                                return o;
+                            }
+                        }.get(), null},
                 {json(object(
                         field("type", "array"),
                         field("items", object(field("type", "string"))),
@@ -490,7 +500,18 @@ public class OpenApiTransformerTest {
                                 return o;
                             }
                         }.get(), null},
-                {json(object(field("type", "array"))), new LocalizableArrayProperty(), null},
+                {json(object(field("type", "array"))),
+                        new Supplier<Property>() {
+                            @Override
+                            public Property get() {
+                                final LocalizableArrayProperty o = new LocalizableArrayProperty();
+                                final LocalizableObjectProperty itemsProperty = new LocalizableObjectProperty();
+                                itemsProperty.setType("any");
+                                o.setItems(itemsProperty);
+                                return o;
+                            }
+                        }.get(), null},
+                {json(object(field("type", "array"), field("items", null))), null, TransformerException.class},
                 {json(object(
                         field("type", "array"),
                         field("items", object(field("type", "string"))),
@@ -753,7 +774,7 @@ public class OpenApiTransformerTest {
     @Test(dataProvider = "countPolicies")
     public void testTotalPagedResultPolicyIsProperlyFilled(CountPolicy[] policies, String[] expected) throws Exception {
         Resource resource = resource()
-                .resourceSchema(schema().schema(json(null)).build())
+                .resourceSchema(schema().schema(json(object(field("type", "object")))).build())
                 .title("test")
                 .mvccSupported(false)
                 .query(query().queryId("test").countPolicies(policies).type(QueryType.ID).build())

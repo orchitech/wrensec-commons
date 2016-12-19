@@ -1401,7 +1401,7 @@ public class OpenApiTransformer {
         final LocalizableArrayModel model = new LocalizableArrayModel();
         setTitleAndDescriptionFromSchema(model, schema);
         model.setProperties(buildProperties(schema));
-        model.setItems(buildProperty(schema.get("items")));
+        model.setItems(buildItemsProperty(schema));
 
         // TODO external-docs URLs
 
@@ -1569,7 +1569,7 @@ public class OpenApiTransformer {
         }
         case "array": {
             final LocalizableArrayProperty property = new LocalizableArrayProperty();
-            property.setItems(buildProperty(schema.get("items")));
+            property.setItems(buildItemsProperty(schema));
             property.setMinItems(schema.get("minItems").asInteger());
             property.setMaxItems(schema.get("maxItems").asInteger());
             property.setUniqueItems(schema.get("uniqueItems").asBoolean());
@@ -1673,6 +1673,26 @@ public class OpenApiTransformer {
         default:
             throw new TransformerException("Unsupported JSON schema type: " + type);
         }
+    }
+
+    /**
+     * Builds a property representing an array-items type, using the "items" field, and if the "items" field is missing,
+     * constructs a property of type "any".
+     *
+     * @param schema JSON schema
+     * @return Property representing array-items type
+     */
+    private Property buildItemsProperty(final JsonValue schema) {
+        if (!schema.isDefined("items")) {
+            final LocalizableObjectProperty property = new LocalizableObjectProperty();
+            property.setType("any");
+            return property;
+        }
+        final JsonValue items = schema.get("items");
+        if (items.isNull()) {
+            throw new TransformerException("JSON-array 'items' field cannot be null: " + schema);
+        }
+        return buildProperty(items);
     }
 
     /**
