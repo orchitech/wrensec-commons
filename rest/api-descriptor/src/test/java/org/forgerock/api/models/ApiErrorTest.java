@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2016 ForgeRock AS.
+ * Copyright 2016-2017 ForgeRock AS.
  */
 
 package org.forgerock.api.models;
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
 import org.forgerock.api.ApiValidationException;
+import org.forgerock.api.commons.CommonsApi;
 import org.forgerock.util.i18n.LocalizableString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -78,6 +79,23 @@ public class ApiErrorTest {
                 .build();
 
         assertThat(apiError.getSchema()).isNotNull();
+    }
+
+    @Test
+    public void testErrorRefsFromAnnotation() throws Exception {
+        final ApiError expected = ApiError.apiError()
+                .reference(Reference.reference().value(CommonsApi.Errors.BAD_REQUEST.getReference()).build())
+                .build();
+        final Action action = Action.action().name("test").detailsFromAnnotation(
+                HasApiErrorAnnotation.class.getAnnotation(org.forgerock.api.annotations.Operation.class),
+                CommonsApi.COMMONS_API_DESCRIPTION, HasApiErrorAnnotation.class).build();
+
+        assertThat(action.getApiErrors()).isNotNull().containsExactly(expected);
+    }
+
+    @org.forgerock.api.annotations.Operation(errorRefs = "frapi:common#/errors/badRequest")
+    private static class HasApiErrorAnnotation {
+        // empty
     }
 
 }
