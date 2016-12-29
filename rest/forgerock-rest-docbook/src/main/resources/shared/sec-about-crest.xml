@@ -1122,8 +1122,64 @@ UTF8STRING     = UTF-8 string possibly containing white-space
      </programlisting>
 
      <para>
-      Note that white space, double quotes (<literal>"</literal>), parentheses,
+      <replaceable>JsonValue</replaceable> components of filter expressions follow
+      <link
+       xlink:href="https://tools.ietf.org/html/rfc7159"
+       xlink:show="new"
+      >RFC 7159: <citetitle>The JavaScript Object Notation (JSON)
+       Data Interchange Format</citetitle></link>.
+      In particular, as described in section 7 of the RFC,
+      the escape character in strings is the backslash character.
+      For example, to match the identifier <literal>test\</literal>,
+      use <literal>_id eq 'test\\'</literal>.
+      In the JSON resource, the <literal>\</literal> is escaped the same way:
+      <literal>"_id":"test\\"</literal>.
+     </para>
+
+     <para>
+      When using a query filter in a URL,
+      be aware that the filter expression is part of a query string parameter.
+      A query string parameter must be URL encoded as described in
+      <link
+       xlink:href="https://tools.ietf.org/html/rfc3986"
+       xlink:show="new"
+      >RFC 3986: <citetitle>Uniform Resource Identifier (URI):
+       Generic Syntax</citetitle></link>
+      For example, white space, double quotes (<literal>"</literal>), parentheses,
       and exclamation characters need URL encoding in HTTP query strings.
+      The following rules apply to URL query components:
+     </para>
+
+     <programlisting language="none">
+query       = *( pchar / "/" / "?" )
+pchar       = unreserved / pct-encoded / sub-delims / ":" / "@"
+unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
+pct-encoded = "%" HEXDIG HEXDIG
+sub-delims  = "!" / "$" / "&amp;" / "'" / "(" / ")"
+                  / "*" / "+" / "," / ";" / "="
+     </programlisting>
+
+     <para>
+      <literal>ALPHA</literal>, <literal>DIGIT</literal>, and <literal>HEXDIG</literal>
+      are core rules of
+      <link
+       xlink:href="https://tools.ietf.org/html/rfc5234"
+       xlink:show="new"
+      >RFC 5234: <citetitle>Augmented BNF for Syntax Specifications</citetitle></link>:
+     </para>
+
+     <programlisting language="none">
+ALPHA       =  %x41-5A / %x61-7A   ; A-Z / a-z
+DIGIT       =  %x30-39             ; 0-9
+HEXDIG      =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+     </programlisting>
+
+     <para>
+      As a result, a backslash escape character
+      in a <replaceable>JsonValue</replaceable> component
+      is percent-encoded in the URL query string parameter as <literal>%5C</literal>.
+      To encode the query filter expression <literal>_id eq 'test\\'</literal>,
+      use <literal>_id+eq+'test%5C%5C'</literal>, for example.
      </para>
 
      <para>
