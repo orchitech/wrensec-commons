@@ -465,13 +465,13 @@ abstract class AbstractJwtSessionModule<C extends JwtSessionCookie> {
             jwtParameters.put(AuthenticationFramework.ATTRIBUTE_AUTH_CONTEXT, getContextMap(messageInfo));
         }
 
-        if (map.containsKey(SKIP_SESSION_PARAMETER_NAME) && ((Boolean) map.get(SKIP_SESSION_PARAMETER_NAME))) {
-            LOG.debug("Skipping creating session as jwtParameters contains, {}", SKIP_SESSION_PARAMETER_NAME);
+        if (isLogoutRequest(messageInfo)) {
+            deleteSessionJwtCookie(messageInfo);
             return AuthStatus.SEND_SUCCESS;
         }
 
-        if (isLogoutRequest(messageInfo)) {
-            deleteSessionJwtCookie(messageInfo);
+        if (map.containsKey(SKIP_SESSION_PARAMETER_NAME) && ((Boolean) map.get(SKIP_SESSION_PARAMETER_NAME))) {
+            LOG.debug("Skipping creating session as jwtParameters contains, {}", SKIP_SESSION_PARAMETER_NAME);
             return AuthStatus.SEND_SUCCESS;
         }
 
