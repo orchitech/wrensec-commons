@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2016 ForgeRock AS.
+ * Copyright 2016-2017 ForgeRock AS.
  */
 package org.forgerock.api.commons;
 
@@ -25,8 +25,91 @@ public final class CommonsApi {
     /** The api description of "frapi:common" which only contains errors so far. */
     public static final ApiDescription COMMONS_API_DESCRIPTION = buildCommonsApi();
 
+    /** JSON Reference to {@link Errors#BAD_REQUEST} in an API Description. */
+    public static final String BAD_REQUEST_REF = Errors.BAD_REQUEST.getReference();
+
+    /** JSON Reference to {@link Errors#UNAUTHORIZED} in an API Description. */
+    public static final String UNAUTHORIZED_REF = Errors.UNAUTHORIZED.getReference();
+
+    /** JSON Reference to {@link Errors#PAYMENT_REQUIRED} in an API Description. */
+    public static final String PAYMENT_REQUIRED_REF = Errors.PAYMENT_REQUIRED.getReference();
+
+    /** JSON Reference to {@link Errors#FORBIDDEN} in an API Description. */
+    public static final String FORBIDDEN_REF = Errors.FORBIDDEN.getReference();
+
+    /** JSON Reference to {@link Errors#NOT_FOUND} in an API Description. */
+    public static final String NOT_FOUND_REF = Errors.NOT_FOUND.getReference();
+
+    /** JSON Reference to {@link Errors#METHOD_NOT_ALLOWED} in an API Description. */
+    public static final String METHOD_NOT_ALLOWED_REF = Errors.METHOD_NOT_ALLOWED.getReference();
+
+    /** JSON Reference to {@link Errors#NOT_ACCEPTABLE} in an API Description. */
+    public static final String NOT_ACCEPTABLE_REF = Errors.NOT_ACCEPTABLE.getReference();
+
+    /** JSON Reference to {@link Errors#PROXY_AUTH_REQUIRED} in an API Description. */
+    public static final String PROXY_AUTH_REQUIRED_REF = Errors.PROXY_AUTH_REQUIRED.getReference();
+
+    /** JSON Reference to {@link Errors#REQUEST_TIMEOUT} in an API Description. */
+    public static final String REQUEST_TIMEOUT_REF = Errors.REQUEST_TIMEOUT.getReference();
+
+    /** JSON Reference to {@link Errors#CONFLICT} in an API Description. */
+    public static final String CONFLICT_REF = Errors.CONFLICT.getReference();
+
+    /** JSON Reference to {@link Errors#GONE} in an API Description. */
+    public static final String GONE_REF = Errors.GONE.getReference();
+
+    /** JSON Reference to {@link Errors#LENGTH_REQUIRED} in an API Description. */
+    public static final String LENGTH_REQUIRED_REF = Errors.LENGTH_REQUIRED.getReference();
+
+    /** JSON Reference to {@link Errors#VERSION_MISMATCH} in an API Description. */
+    public static final String VERSION_MISMATCH_REF = Errors.VERSION_MISMATCH.getReference();
+
+    /** JSON Reference to {@link Errors#PRECONDITION_FAILED} in an API Description. */
+    public static final String PRECONDITION_FAILED_REF = Errors.PRECONDITION_FAILED.getReference();
+
+    /** JSON Reference to {@link Errors#REQUEST_ENTITY_TOO_LARGE} in an API Description. */
+    public static final String REQUEST_ENTITY_TOO_LARGE_REF = Errors.REQUEST_ENTITY_TOO_LARGE.getReference();
+
+    /** JSON Reference to {@link Errors#REQUEST_URI_TOO_LARGE} in an API Description. */
+    public static final String REQUEST_URI_TOO_LARGE_REF = Errors.REQUEST_URI_TOO_LARGE.getReference();
+
+    /** JSON Reference to {@link Errors#UNSUPPORTED_MEDIA_TYPE} in an API Description. */
+    public static final String UNSUPPORTED_MEDIA_TYPE_REF = Errors.UNSUPPORTED_MEDIA_TYPE.getReference();
+
+    /** JSON Reference to {@link Errors#RANGE_NOT_SATISFIABLE} in an API Description. */
+    public static final String RANGE_NOT_SATISFIABLE_REF = Errors.RANGE_NOT_SATISFIABLE.getReference();
+
+    /** JSON Reference to {@link Errors#EXPECTATION_FAILED} in an API Description. */
+    public static final String EXPECTATION_FAILED_REF = Errors.EXPECTATION_FAILED.getReference();
+
+    /** JSON Reference to {@link Errors#VERSION_REQUIRED} in an API Description. */
+    public static final String VERSION_REQUIRED_REF = Errors.VERSION_REQUIRED.getReference();
+
+    /** JSON Reference to {@link Errors#PRECONDITION_REQUIRED} in an API Description. */
+    public static final String PRECONDITION_REQUIRED_REF = Errors.PRECONDITION_REQUIRED.getReference();
+
+    /** JSON Reference to {@link Errors#INTERNAL_SERVER_ERROR} in an API Description. */
+    public static final String INTERNAL_SERVER_ERROR_REF = Errors.INTERNAL_SERVER_ERROR.getReference();
+
+    /** JSON Reference to {@link Errors#NOT_SUPPORTED} in an API Description. */
+    public static final String NOT_SUPPORTED_REF = Errors.NOT_SUPPORTED.getReference();
+
+    /** JSON Reference to {@link Errors#BAD_GATEWAY} in an API Description. */
+    public static final String BAD_GATEWAY_REF = Errors.BAD_GATEWAY.getReference();
+
+    /** JSON Reference to {@link Errors#UNAVAILABLE} in an API Description. */
+    public static final String UNAVAILABLE_REF = Errors.UNAVAILABLE.getReference();
+
+    /** JSON Reference to {@link Errors#GATEWAY_TIMEOUT} in an API Description. */
+    public static final String GATEWAY_TIMEOUT_REF = Errors.GATEWAY_TIMEOUT.getReference();
+
+    /** JSON Reference to {@link Errors#HTTP_VERSION_NOT_SUPPORTED} in an API Description. */
+    public static final String HTTP_VERSION_NOT_SUPPORTED_REF = Errors.HTTP_VERSION_NOT_SUPPORTED.getReference();
+
     /** Common api errors. */
     public enum Errors {
+        // NOTE: if you add to this enum, please also define a corresponding _REF above
+
         /** The "bad request" error. */
         BAD_REQUEST                (400, "badRequest"),
         /** The "unauthorized" error. */
