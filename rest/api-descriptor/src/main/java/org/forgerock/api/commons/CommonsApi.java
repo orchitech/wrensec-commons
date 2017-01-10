@@ -25,86 +25,89 @@ public final class CommonsApi {
     /** The api description of "frapi:common" which only contains errors so far. */
     public static final ApiDescription COMMONS_API_DESCRIPTION = buildCommonsApi();
 
+    /** Base-prefix for common API error definition JSON references. */
+    private static final String BASE_ERRORS_REF = "frapi:common#/errors/";
+
     /** JSON Reference to {@link Errors#BAD_REQUEST} in an API Description. */
-    public static final String BAD_REQUEST_REF = Errors.BAD_REQUEST.getReference();
+    public static final String BAD_REQUEST_REF = BASE_ERRORS_REF + "badRequest";
 
     /** JSON Reference to {@link Errors#UNAUTHORIZED} in an API Description. */
-    public static final String UNAUTHORIZED_REF = Errors.UNAUTHORIZED.getReference();
+    public static final String UNAUTHORIZED_REF = BASE_ERRORS_REF + "unauthorized";
 
     /** JSON Reference to {@link Errors#PAYMENT_REQUIRED} in an API Description. */
-    public static final String PAYMENT_REQUIRED_REF = Errors.PAYMENT_REQUIRED.getReference();
+    public static final String PAYMENT_REQUIRED_REF = BASE_ERRORS_REF + "paymentRequired";
 
     /** JSON Reference to {@link Errors#FORBIDDEN} in an API Description. */
-    public static final String FORBIDDEN_REF = Errors.FORBIDDEN.getReference();
+    public static final String FORBIDDEN_REF = BASE_ERRORS_REF + "forbidden";
 
     /** JSON Reference to {@link Errors#NOT_FOUND} in an API Description. */
-    public static final String NOT_FOUND_REF = Errors.NOT_FOUND.getReference();
+    public static final String NOT_FOUND_REF = BASE_ERRORS_REF + "notFound";
 
     /** JSON Reference to {@link Errors#METHOD_NOT_ALLOWED} in an API Description. */
-    public static final String METHOD_NOT_ALLOWED_REF = Errors.METHOD_NOT_ALLOWED.getReference();
+    public static final String METHOD_NOT_ALLOWED_REF = BASE_ERRORS_REF + "methodNotAllowed";
 
     /** JSON Reference to {@link Errors#NOT_ACCEPTABLE} in an API Description. */
-    public static final String NOT_ACCEPTABLE_REF = Errors.NOT_ACCEPTABLE.getReference();
+    public static final String NOT_ACCEPTABLE_REF = BASE_ERRORS_REF + "notAcceptable";
 
     /** JSON Reference to {@link Errors#PROXY_AUTH_REQUIRED} in an API Description. */
-    public static final String PROXY_AUTH_REQUIRED_REF = Errors.PROXY_AUTH_REQUIRED.getReference();
+    public static final String PROXY_AUTH_REQUIRED_REF = BASE_ERRORS_REF + "proxyAuthRequired";
 
     /** JSON Reference to {@link Errors#REQUEST_TIMEOUT} in an API Description. */
-    public static final String REQUEST_TIMEOUT_REF = Errors.REQUEST_TIMEOUT.getReference();
+    public static final String REQUEST_TIMEOUT_REF = BASE_ERRORS_REF + "requestTimeout";
 
     /** JSON Reference to {@link Errors#CONFLICT} in an API Description. */
-    public static final String CONFLICT_REF = Errors.CONFLICT.getReference();
+    public static final String CONFLICT_REF = BASE_ERRORS_REF + "conflict";
 
     /** JSON Reference to {@link Errors#GONE} in an API Description. */
-    public static final String GONE_REF = Errors.GONE.getReference();
+    public static final String GONE_REF = BASE_ERRORS_REF + "gone";
 
     /** JSON Reference to {@link Errors#LENGTH_REQUIRED} in an API Description. */
-    public static final String LENGTH_REQUIRED_REF = Errors.LENGTH_REQUIRED.getReference();
+    public static final String LENGTH_REQUIRED_REF = BASE_ERRORS_REF + "lengthRequired";
 
     /** JSON Reference to {@link Errors#VERSION_MISMATCH} in an API Description. */
-    public static final String VERSION_MISMATCH_REF = Errors.VERSION_MISMATCH.getReference();
+    public static final String VERSION_MISMATCH_REF = BASE_ERRORS_REF + "versionMismatch";
 
     /** JSON Reference to {@link Errors#PRECONDITION_FAILED} in an API Description. */
-    public static final String PRECONDITION_FAILED_REF = Errors.PRECONDITION_FAILED.getReference();
+    public static final String PRECONDITION_FAILED_REF = BASE_ERRORS_REF + "preconditionFailed";
 
     /** JSON Reference to {@link Errors#REQUEST_ENTITY_TOO_LARGE} in an API Description. */
-    public static final String REQUEST_ENTITY_TOO_LARGE_REF = Errors.REQUEST_ENTITY_TOO_LARGE.getReference();
+    public static final String REQUEST_ENTITY_TOO_LARGE_REF = BASE_ERRORS_REF + "requestEntityTooLarge";
 
     /** JSON Reference to {@link Errors#REQUEST_URI_TOO_LARGE} in an API Description. */
-    public static final String REQUEST_URI_TOO_LARGE_REF = Errors.REQUEST_URI_TOO_LARGE.getReference();
+    public static final String REQUEST_URI_TOO_LARGE_REF = BASE_ERRORS_REF + "requestUriTooLarge";
 
     /** JSON Reference to {@link Errors#UNSUPPORTED_MEDIA_TYPE} in an API Description. */
-    public static final String UNSUPPORTED_MEDIA_TYPE_REF = Errors.UNSUPPORTED_MEDIA_TYPE.getReference();
+    public static final String UNSUPPORTED_MEDIA_TYPE_REF = BASE_ERRORS_REF + "unsupportedMediaType";
 
     /** JSON Reference to {@link Errors#RANGE_NOT_SATISFIABLE} in an API Description. */
-    public static final String RANGE_NOT_SATISFIABLE_REF = Errors.RANGE_NOT_SATISFIABLE.getReference();
+    public static final String RANGE_NOT_SATISFIABLE_REF = BASE_ERRORS_REF + "rangeNotSatisfiable";
 
     /** JSON Reference to {@link Errors#EXPECTATION_FAILED} in an API Description. */
-    public static final String EXPECTATION_FAILED_REF = Errors.EXPECTATION_FAILED.getReference();
+    public static final String EXPECTATION_FAILED_REF = BASE_ERRORS_REF + "expectationFailed";
 
     /** JSON Reference to {@link Errors#VERSION_REQUIRED} in an API Description. */
-    public static final String VERSION_REQUIRED_REF = Errors.VERSION_REQUIRED.getReference();
+    public static final String VERSION_REQUIRED_REF = BASE_ERRORS_REF + "versionRequired";
 
     /** JSON Reference to {@link Errors#PRECONDITION_REQUIRED} in an API Description. */
-    public static final String PRECONDITION_REQUIRED_REF = Errors.PRECONDITION_REQUIRED.getReference();
+    public static final String PRECONDITION_REQUIRED_REF = BASE_ERRORS_REF + "preconditionRequired";
 
     /** JSON Reference to {@link Errors#INTERNAL_SERVER_ERROR} in an API Description. */
-    public static final String INTERNAL_SERVER_ERROR_REF = Errors.INTERNAL_SERVER_ERROR.getReference();
+    public static final String INTERNAL_SERVER_ERROR_REF = BASE_ERRORS_REF + "internalServerError";
 
     /** JSON Reference to {@link Errors#NOT_SUPPORTED} in an API Description. */
-    public static final String NOT_SUPPORTED_REF = Errors.NOT_SUPPORTED.getReference();
+    public static final String NOT_SUPPORTED_REF = BASE_ERRORS_REF + "notSupported";
 
     /** JSON Reference to {@link Errors#BAD_GATEWAY} in an API Description. */
-    public static final String BAD_GATEWAY_REF = Errors.BAD_GATEWAY.getReference();
+    public static final String BAD_GATEWAY_REF = BASE_ERRORS_REF + "badGateway";
 
     /** JSON Reference to {@link Errors#UNAVAILABLE} in an API Description. */
-    public static final String UNAVAILABLE_REF = Errors.UNAVAILABLE.getReference();
+    public static final String UNAVAILABLE_REF = BASE_ERRORS_REF + "unavailable";
 
     /** JSON Reference to {@link Errors#GATEWAY_TIMEOUT} in an API Description. */
-    public static final String GATEWAY_TIMEOUT_REF = Errors.GATEWAY_TIMEOUT.getReference();
+    public static final String GATEWAY_TIMEOUT_REF = BASE_ERRORS_REF + "gatewayTimeout";
 
     /** JSON Reference to {@link Errors#HTTP_VERSION_NOT_SUPPORTED} in an API Description. */
-    public static final String HTTP_VERSION_NOT_SUPPORTED_REF = Errors.HTTP_VERSION_NOT_SUPPORTED.getReference();
+    public static final String HTTP_VERSION_NOT_SUPPORTED_REF = BASE_ERRORS_REF + "httpVersionNotSupported";
 
     /** Common api errors. */
     public enum Errors {
@@ -173,7 +176,7 @@ public final class CommonsApi {
         private Errors(int errorCode, String camelCaseName) {
             this.code = errorCode;
             this.camelCaseName = camelCaseName;
-            this.reference = "frapi:common#/errors/" + camelCaseName;
+            this.reference = BASE_ERRORS_REF + camelCaseName;
             this.translationKey = "error." + camelCaseName + ".description";
         }
 

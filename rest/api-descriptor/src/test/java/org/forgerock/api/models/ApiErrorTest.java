@@ -93,7 +93,7 @@ public class ApiErrorTest {
         assertThat(action.getApiErrors()).isNotNull().containsExactly(expected);
     }
 
-    @org.forgerock.api.annotations.Operation(errorRefs = "frapi:common#/errors/badRequest")
+    @org.forgerock.api.annotations.Operation(errorRefs = CommonsApi.BAD_REQUEST_REF)
     private static class HasApiErrorAnnotation {
         // empty
     }
