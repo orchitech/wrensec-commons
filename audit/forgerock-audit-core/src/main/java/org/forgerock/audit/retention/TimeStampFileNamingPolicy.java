@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.audit.retention;
 
@@ -118,8 +118,11 @@ public class TimeStampFileNamingPolicy implements FileNamingPolicy {
      */
     @Override
     public List<File> listFiles() {
-        List<File> fileList =
-                new LinkedList<>(Arrays.asList(initialFile.getParentFile().listFiles(timestampFilenameFilter)));
+        final File[] files = initialFile.getParentFile().listFiles(timestampFilenameFilter);
+        if (files == null) {
+            return Collections.emptyList();
+        }
+        final List<File> fileList = new LinkedList<>(Arrays.asList(files));
         // make sure the files are sorted from oldest to newest.
         Collections.sort(fileList, Collections.reverseOrder(lastModifiedTimeFileComparator));
         return fileList;
