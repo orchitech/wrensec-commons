@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.http.routing;
@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 
 import org.forgerock.services.context.Context;
@@ -79,14 +78,16 @@ public class UriRouterContextTest {
         assertThat(context2.getOriginalUri()).isEqualTo(originalUri2);
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
-    public void shouldFailWhenTryingToDefineMoreThanOneOriginalUri() throws URISyntaxException {
-        final URI originalUri = new URI("http://www.example.com");
+    public void shouldGetTheClosestOriginalUri() {
+        final URI originalUri = URI.create("http://www.example.com");
         UriRouterContext parent = uriRouterContext(new RootContext()).originalUri(originalUri).build();
 
-        new UriRouterContext(parent, null, null, Collections.<String, String>emptyMap(),
-                new URI("http://www.forgerock.org"));
+        UriRouterContext newUriRouterContext = new UriRouterContext(parent, null, null,
+                Collections.<String, String>emptyMap(), URI.create("http://www.forgerock.org"));
+
+        assertThat(newUriRouterContext.getOriginalUri()).isEqualTo(URI.create("http://www.forgerock.org"));
     }
 
 }
