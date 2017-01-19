@@ -37,37 +37,37 @@ public class KeyStoreBuilderTest {
      *     <li>keytool -keystore keystore.jceks -storetype JCEKS -genkey -alias key</li>
      *     <li>keytool -keystore keystore.jks -storetype JKS -genkey -alias key</li>
      * </ul>
-     * @return The {@link KeyStoreType} and generated key store filenames.
+     * @return The keystore type string and generated key store filenames.
      */
     @DataProvider
     private Object[][] fileBasedKeyStoresWithFileName() {
         return new Object[][] {
-                {KeyStoreType.JKS, "/keystore.jks"},
-                {KeyStoreType.JCEKS, "/keystore.jceks"},
-                {KeyStoreType.PKCS12, "/keystore.pfx"}
+                {"JKS", "/keystore.jks"},
+                {"JCEKS", "/keystore.jceks"},
+                {"PKCS12", "/keystore.pfx"}
         };
     }
 
     @DataProvider
     private Object[][] fileBasedKeyStoresWithNoneFileName() {
-        return new Object[][] {
-                {KeyStoreType.JKS, "none"},
-                {KeyStoreType.JCEKS, "none"},
-                {KeyStoreType.PKCS12, "none"}
+        return new Object[][]{
+                {"JKS", "none"},
+                {"JCEKS", "none"},
+                {"PKCS12", "none"}
         };
     }
 
     @DataProvider
     private Object[][] fileBasedKeyStoresWithFileNameAndProviders() {
         return new Object[][] {
-                {KeyStoreType.JKS, "/keystore.jks", "SUN"},
-                {KeyStoreType.JCEKS, "/keystore.jceks", "SunJCE"},
-                {KeyStoreType.PKCS12, "/keystore.pfx", "SunJSSE"}
+                {"JKS", "/keystore.jks", "SUN"},
+                {"JCEKS", "/keystore.jceks", "SunJCE"},
+                {"PKCS12", "/keystore.pfx", "SunJSSE"}
         };
     }
 
     @Test(dataProvider = "fileBasedKeyStoresWithFileName")
-    public void shouldLoadExistingKeyStore(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldLoadExistingKeyStore(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given
         final String absoluteFileName =
@@ -85,7 +85,7 @@ public class KeyStoreBuilderTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStoresWithFileNameAndProviders")
-    public void shouldLoadExistingKeyStoreWithGivenProvider(final KeyStoreType keyStoreType,
+    public void shouldLoadExistingKeyStoreWithGivenProvider(final String keyStoreType,
             final String keyStoreFileName, final String keyStoreProvider) throws Exception {
         // given
         final String absoluteFileName =
@@ -104,7 +104,7 @@ public class KeyStoreBuilderTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStoresWithFileName")
-    public void shouldLoadExistingKeyStoreUsingFileParameter(final KeyStoreType keyStoreType,
+    public void shouldLoadExistingKeyStoreUsingFileParameter(final String keyStoreType,
             final String keyStoreFileName) throws Exception {
         // given
         final File keyStoreFile =
@@ -122,7 +122,7 @@ public class KeyStoreBuilderTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStoresWithFileNameAndProviders")
-    public void shouldLoadExistingKeyStoreWithGivenProviderUsingFileParameter(final KeyStoreType keyStoreType,
+    public void shouldLoadExistingKeyStoreWithGivenProviderUsingFileParameter(final String keyStoreType,
             final String keyStoreFileName, final String keyStoreProvider) throws Exception {
         // given
         final File keystoreFile =
@@ -141,7 +141,7 @@ public class KeyStoreBuilderTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStoresWithNoneFileName")
-    public void shouldLoadKeyStoreWithNullInputStream(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldLoadKeyStoreWithNullInputStream(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given nothing
 

@@ -44,7 +44,7 @@ public final class KeyStoreBuilder {
 
     private static final String NONE = "none";
 
-    private KeyStoreType type = KeyStoreType.JKS;
+    private String type = "JKS";
     private KeyStore.LoadStoreParameter loadStoreParameter;
     private InputStream inputStream;
     private Provider provider;
@@ -94,10 +94,26 @@ public final class KeyStoreBuilder {
     /**
      * Specifies the type of keystore to load. Defaults to JKS.
      *
+     * @deprecated Use withKeyStoreType(String) instead.
+     *
+     * Use of the KeyStoreType enum is deprecated as it restricts the keystore type to those specified in the
+     * enum. Library consumers may want to specify the keystore type at runtime.
+     *
      * @param type the type of keystore to load. May not be null.
      * @return the same builder instance.
      */
     public KeyStoreBuilder withKeyStoreType(final KeyStoreType type) {
+        this.type = checkNotNull(type).toString();
+        return this;
+    }
+
+    /**
+     * Specifies the type of keystore to load. Defaults to JKS.
+     *
+     * @param type the type of keystore to load. May not be null.
+     * @return the same builder instance.
+     */
+    public KeyStoreBuilder withKeyStoreType(final String type) {
         this.type = checkNotNull(type);
         return this;
     }
@@ -175,8 +191,8 @@ public final class KeyStoreBuilder {
     public KeyStore build() {
         try {
             final KeyStore keyStore = provider != null
-                    ? KeyStore.getInstance(type.toString(), provider)
-                    : KeyStore.getInstance(type.toString());
+                    ? KeyStore.getInstance(type, provider)
+                    : KeyStore.getInstance(type);
             if (inputStream != null && loadStoreParameter != null) {
                 throw new IllegalStateException("Can not specify a load store parameter and an input stream");
             } else if (loadStoreParameter != null) {
