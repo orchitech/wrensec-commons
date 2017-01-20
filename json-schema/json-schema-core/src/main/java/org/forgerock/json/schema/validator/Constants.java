@@ -69,7 +69,6 @@ public final class Constants {
      * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#appendix-A">
      *     JSON schema draft 04 - any</a>
      */
-    @Deprecated
     public static final String TYPE_ANY = "any";
     /**
      * The {@code type} field name.
