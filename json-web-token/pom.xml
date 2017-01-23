@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyrighted [year] [name of copyright owner]".
 
-  Copyright 2011-2016 ForgeRock AS. All rights reserved.
+  Copyright 2011-2017 ForgeRock AS. All rights reserved.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -49,23 +49,6 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Export-Package>
-                            org.forgerock.json.jose.builders;version=${project.version},
-                            org.forgerock.json.jose.jwt;version=${project.version},
-                            org.forgerock.json.jose.jwk;version=${project.version},
-                            org.forgerock.json.jose.jws;version=${project.version},
-                            org.forgerock.json.jose.jwe;version=${project.version},
-                            org.forgerock.json.jose.common;version=${project.version},
-                            org.forgerock.json.jose.exceptions;version=${project.version},
-                            org.forgerock.json.jose.jwe.handlers.compression;version=${project.version},
-                            org.forgerock.json.jose.jwe.handlers.encryption;version=${project.version},
-                            org.forgerock.json.jose.jws.handlers;version=${project.version},
-                            org.forgerock.json.jose.utils;version=${project.version}
-                        </Export-Package>
-                    </instructions>
-                </configuration>
             </plugin>
         </plugins>
     </build>

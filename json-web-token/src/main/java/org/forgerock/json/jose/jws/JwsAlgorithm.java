@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2016 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jws;
@@ -62,12 +62,14 @@ public enum JwsAlgorithm implements Algorithm {
         this.algorithmType = algorithmType;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getAlgorithm() {
         return algorithm;
+    }
+
+    @Override
+    public String getJwaAlgorithmName() {
+        return name();
     }
 
     /**
@@ -112,7 +114,19 @@ public enum JwsAlgorithm implements Algorithm {
     }
 
     /**
-     * Gets the JwsAlgorithm constant that matches the given Java Cryptographic algorithm name.
+     * See {@link #parseAlgorithm(String)}}.
+     * @deprecated Replaced by {@link #parseAlgorithm(String)}
+     *
+     * @param algorithm The Java Cryptographic string algorithm name.
+     * @return The matching JwsAlgorithm.
+     */
+    @Deprecated
+    public static JwsAlgorithm getJwsAlgorithm(String algorithm) {
+        return parseAlgorithm(algorithm);
+    }
+
+    /**
+     * Parses the given algorithm string to find the matching Java Cryptographic algorithm name.
      * <p>
      * If the given algorithm name does not match the algorithm name of any of the constants, then an
      * IllegalArgumentException will be thrown.
@@ -120,7 +134,7 @@ public enum JwsAlgorithm implements Algorithm {
      * @param algorithm The Java Cryptographic string algorithm name.
      * @return The matching JwsAlgorithm.
      */
-    public static JwsAlgorithm getJwsAlgorithm(String algorithm) {
+    public static JwsAlgorithm parseAlgorithm(String algorithm) {
         for (JwsAlgorithm jwsAlgorithm : JwsAlgorithm.values()) {
             if (algorithm.equalsIgnoreCase(jwsAlgorithm.getAlgorithm())) {
                 return jwsAlgorithm;

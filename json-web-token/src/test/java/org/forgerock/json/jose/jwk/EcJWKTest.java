@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
+import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -125,4 +126,24 @@ public class EcJWKTest {
         assertThat(ecJwk.toECPrivateKey()).isEqualTo(ecPrivateKey);
     }
 
+    @Test
+    public void testExportToJWK() {
+        //Given
+        EcJWK jwk = EcJWK.parse(ecJwkAsJsonValue);
+        String x = EcJWK.encodeCoordinate(ecPublicKey.getParams().getCurve().getField().getFieldSize(), expectedX);
+        String y = EcJWK.encodeCoordinate(ecPublicKey.getParams().getCurve().getField().getFieldSize(), expectedY);
+        String d = EcJWK.encodeCoordinate(ecPublicKey.getParams().getCurve().getField().getFieldSize(), expectedD);
+
+        //When
+        JsonValue jwkAsJson = jwk.toJsonValue();
+
+        //Then
+        assertEquals(jwkAsJson.get("kty").asString(), expectedKty);
+        assertEquals(jwkAsJson.get("crv").asString(), expectedCurve.getStandardName());
+        assertEquals(jwkAsJson.get("x").asString(), x);
+        assertEquals(jwkAsJson.get("y").asString(), y);
+        assertEquals(jwkAsJson.get("d").asString(), d);
+        assertEquals(jwkAsJson.get("use").asString(), expectedUse.toString());
+        assertEquals(jwkAsJson.get("kid").asString(), expectedKid);
+    }
 }

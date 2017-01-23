@@ -11,15 +11,15 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014 ForgeRock AS.
+* Copyright 2014-2017 ForgeRock AS.
 */
 package org.forgerock.jaspi.modules.openid.resolvers;
 
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
 import org.forgerock.jaspi.modules.openid.exceptions.InvalidIssException;
 import org.forgerock.jaspi.modules.openid.exceptions.InvalidSignatureException;
 import org.forgerock.jaspi.modules.openid.exceptions.JwtExpiredException;
-import org.forgerock.jaspi.modules.openid.helpers.JWKSetParser;
+import org.forgerock.json.jose.jwk.store.JwksStore;
 import org.forgerock.json.jose.jws.JwsHeader;
 import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jws.handlers.SigningHandler;
@@ -27,61 +27,28 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.testng.Assert.assertTrue;
 
 public class JWKOpenIdResolverImplTest {
 
     JWKOpenIdResolverImpl testResolver;
-    JWKSetParser mockParser;
     SigningHandler signingHandler;
-    URL mockURL;
+    JwksStore jwksStore;
 
     @BeforeMethod
     public void setUp() throws FailedToLoadJWKException, MalformedURLException {
         signingHandler = mock(SigningHandler.class);
-        mockParser = mock(JWKSetParser.class);
-        mockURL = new URL("http://www.google.com");
-        testResolver = new JWKOpenIdResolverImpl("Test", mockURL, mockParser);
-    }
-
-    @Test
-    public void testResolverReloadsJWKWhenProvidedWithAnInvalidKeyId()
-            throws FailedToLoadJWKException, InvalidSignatureException {
-        //given
-        SignedJwt mockJwt = mock(SignedJwt.class);
-        JwsHeader mockHeader = mock(JwsHeader.class);
-
-        given(mockJwt.getHeader()).willReturn(mockHeader);
-        given(mockHeader.getKeyId()).willReturn("keyId");
-
-        verify(mockParser, times(1)).generateMapFromJWK(any(URL.class)); //first time occured on creation
-
-        boolean success = false;
-
-        //when
-        try {
-            testResolver.verifySignature(mockJwt);
-        } catch (InvalidSignatureException e) {
-            success = true;
-        }
-
-        //then
-        verify(mockParser, times(2)).generateMapFromJWK(any(URL.class)); //second time when we found no id
-        assertTrue(success);
+        jwksStore = mock(JwksStore.class);
+        given(jwksStore.getUid()).willReturn("test");
+        testResolver = new JWKOpenIdResolverImpl(jwksStore);
     }
 
     @Test(expectedExceptions = InvalidSignatureException.class)
     public void testInvalidSignatureThrowsException()
             throws InvalidSignatureException, FailedToLoadJWKException {
-
         //given
         SignedJwt mockJwt = mock(SignedJwt.class);
         JwsHeader mockHeader = mock(JwsHeader.class);
@@ -90,6 +57,7 @@ public class JWKOpenIdResolverImplTest {
         given(mockHeader.getKeyId()).willReturn("keyId");
 
         given(mockJwt.verify(signingHandler)).willReturn(false);
+        given(jwksStore.findJwk(mockJwt.getHeader().getKeyId())).willReturn(null);
 
         //when
         testResolver.verifySignature(mockJwt);
@@ -120,6 +88,4 @@ public class JWKOpenIdResolverImplTest {
 
         //then checked by exception
     }
-
-
 }

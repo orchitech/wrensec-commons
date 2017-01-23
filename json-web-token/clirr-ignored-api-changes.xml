@@ -11,7 +11,7 @@
   ~ Header, with the fields enclosed by brackets [] replaced by your own identifying
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
-  ~ Copyright 2016 ForgeRock AS.
+  ~ Copyright 2016-2017 ForgeRock AS.
   -->
 <differences>
     <!--
@@ -49,5 +49,10 @@
         <className>org/forgerock/json/jose/utils/KeystoreManagerException</className>
         <differenceType>8001</differenceType>
         <justification>COMMONS-100 Moved this class to the commons security module</justification>
+    </difference>
+    <difference>
+        <className>org/forgerock/json/jose/jwt/Algorithm</className>
+        <differenceType>7012</differenceType>
+        <method>java.lang.String getJwaAlgorithmName()</method>
     </difference>
 </differences>
