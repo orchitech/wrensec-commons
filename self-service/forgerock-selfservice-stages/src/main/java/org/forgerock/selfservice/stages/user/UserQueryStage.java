@@ -141,10 +141,6 @@ public final class UserQueryStage implements ProgressStage<UserQueryConfig> {
             throw new BadRequestException("Unable to find account");
         }
 
-        if (user.get(0).get("accountStatus").asString().equals("inactive")) {
-            throw new BadRequestException("Account is inactive");
-        }
-
         return user.get(0);
     }
 
