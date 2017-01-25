@@ -11,13 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.stages.user;
 
 import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USERNAME_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.ACCOUNTSTATUS_FIELD;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,6 +99,7 @@ public final class UserQueryStage implements ProgressStage<UserQueryConfig> {
         putState(USER_ID_FIELD, context, config.getIdentityIdField(), user);
         putState(EMAIL_FIELD, context, config.getIdentityEmailField(), user);
         putState(USERNAME_FIELD, context, config.getIdentityUsernameField(), user);
+        putState(ACCOUNTSTATUS_FIELD, context, config.getIdentityAccountStatusField(), user);
 
         return StageResponse.newBuilder().build();
     }
@@ -145,9 +147,11 @@ public final class UserQueryStage implements ProgressStage<UserQueryConfig> {
     }
 
     private void putState(String key, ProcessContext context, String userFieldName, JsonValue user) {
-        JsonValue value = user.get(new JsonPointer(userFieldName));
-        if (value != null) {
-            context.putState(key, value.asString());
+        if (userFieldName != null) {
+            JsonValue value = user.get(new JsonPointer(userFieldName));
+            if (value != null) {
+                context.putState(key, value.asString());
+            }
         }
     }
 

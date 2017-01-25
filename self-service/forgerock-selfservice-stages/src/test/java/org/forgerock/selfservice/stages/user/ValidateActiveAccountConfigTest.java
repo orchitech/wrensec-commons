@@ -11,8 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2017 ForgeRock AS.
+ * Copyright 2017 ForgeRock AS.
  */
+
 package org.forgerock.selfservice.stages.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,30 +25,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 
 /**
- * Unit test for {@link UserQueryConfig}.
+ * Unit test for {@link ValidateActiveAccountConfig}.
  *
- * @since 0.5.0
+ * @since 22.0.0
  */
-public final class UserQueryConfigTest {
-
+public class ValidateActiveAccountConfigTest {
     @Test
     public void testConfigFromJson() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(
-                new NamedType(UserQueryConfig.class, UserQueryConfig.NAME)
+                new NamedType(ValidateActiveAccountConfig.class, ValidateActiveAccountConfig.NAME)
         );
-        StageConfig config = mapper.readValue(getClass().getResource("/userQuery.json"), StageConfig.class);
+        StageConfig config = mapper.readValue(getClass().getResource("/validateActiveAccount.json"), StageConfig.class);
 
-        assertThat(config).isInstanceOf(UserQueryConfig.class);
-        UserQueryConfig queryConfig = (UserQueryConfig) config;
-
-        assertThat(queryConfig.getIdentityServiceUrl()).isEqualTo("/users");
-        assertThat(queryConfig.getIdentityIdField()).isEqualTo("userId");
-        assertThat(queryConfig.getIdentityEmailField()).isEqualTo("email");
-        assertThat(queryConfig.getValidQueryFields()).contains("email");
-        assertThat(queryConfig.getValidQueryFields()).contains("username");
-        assertThat(queryConfig.getIdentityUsernameField()).isEqualTo("username");
-        assertThat(queryConfig.getIdentityAccountStatusField()).isEqualTo("accountStatus");
+        assertThat(config).isInstanceOf(ValidateActiveAccountConfig.class);
+        ValidateActiveAccountConfig validAccountConfig = (ValidateActiveAccountConfig) config;
+        assertThat(validAccountConfig.getAccountStatusField()).isEqualTo("accountStatus");
+        assertThat(validAccountConfig.getValidStatusValue()).isEqualTo("active");
     }
-
 }

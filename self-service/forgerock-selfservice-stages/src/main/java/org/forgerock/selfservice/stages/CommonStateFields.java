@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.stages;
@@ -46,5 +46,10 @@ public final class CommonStateFields {
      * The username field.
      */
     public static final String USERNAME_FIELD = "username";
+
+    /**
+     * The account status.
+     */
+    public static final String ACCOUNTSTATUS_FIELD = "accountStatus";
 
 }

@@ -11,16 +11,19 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.stages.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
+import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USERNAME_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.ACCOUNTSTATUS_FIELD;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -135,6 +138,24 @@ public final class UserQueryStageTest {
     }
 
     @Test
+    public void testGatherInitialRequirementsNoIdentityAccountStatus() throws Exception {
+        // Given
+        config = new UserQueryConfig()
+                .setIdentityEmailField("email")
+                .setIdentityIdField("_Id")
+                .setIdentityUsernameField("userName")
+                .setIdentityServiceUrl("url")
+                .setValidQueryFields(newQueryFields());
+
+        // When
+        JsonValue jsonValue = userQueryStage.gatherInitialRequirements(context, config);
+
+        // Then
+        assertThat(jsonValue).stringAt("description").isEqualTo("Find your account");
+        assertThat(jsonValue).stringAt("properties/queryFilter/description").isEqualTo("filter string to find account");
+    }
+
+    @Test
     public void testGatherInitialRequirements() throws Exception {
         // When
         JsonValue jsonValue = userQueryStage.gatherInitialRequirements(context, config);
@@ -230,6 +251,38 @@ public final class UserQueryStageTest {
     }
 
     @Test
+    public void testAdvanceUserWithNoAccountStatus() throws Exception {
+        // Given
+        config = new UserQueryConfig()
+                .setIdentityEmailField("email")
+                .setIdentityIdField("_Id")
+                .setIdentityUsernameField("userName")
+                .setIdentityServiceUrl("url")
+                .setValidQueryFields(newQueryFields());
+
+        given(context.getInput()).willReturn(newJsonValueWithQueryFields());
+        given(factory.getConnection()).willReturn(connection);
+        given(resourceResponse.getContent()).willReturn(newJsonValueUserWithoutStatus());
+        doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((QueryResourceHandler) invocation.getArguments()[2]).handleResource(resourceResponse);
+                return null;
+            }
+        }).when(connection).query(any(Context.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+
+        // When
+        userQueryStage.advance(context, config);
+
+        // Then
+        ArgumentCaptor<String> putStateArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(context).putState(eq(USER_ID_FIELD), putStateArgumentCaptor.capture());
+        assertThat(putStateArgumentCaptor.getValue()).isEqualTo("user1");
+        verify(context, never()).putState(eq(ACCOUNTSTATUS_FIELD), putStateArgumentCaptor.capture());
+    }
+
+    @Test
     public void testAdvance() throws Exception {
         // Given
         given(context.getInput()).willReturn(newJsonValueWithQueryFields());
@@ -254,6 +307,8 @@ public final class UserQueryStageTest {
         assertThat(putStateArgumentCaptor.getValue()).isEqualTo("email1");
         verify(context).putState(eq(USERNAME_FIELD), putStateArgumentCaptor.capture());
         assertThat(putStateArgumentCaptor.getValue()).isEqualTo("Alice");
+        verify(context).putState(eq(ACCOUNTSTATUS_FIELD), putStateArgumentCaptor.capture());
+        assertThat(putStateArgumentCaptor.getValue()).isEqualTo("active");
     }
 
     private UserQueryConfig newUserQueryStageConfig() {
@@ -262,6 +317,7 @@ public final class UserQueryStageTest {
                 .setIdentityIdField("_Id")
                 .setIdentityUsernameField("username")
                 .setIdentityServiceUrl("/users")
+                .setIdentityAccountStatusField("accountStatus")
                 .setValidQueryFields(newQueryFields());
     }
 
@@ -289,6 +345,7 @@ public final class UserQueryStageTest {
                 field("firstName", "first name"),
                 field("_Id", "user1"),
                 field("username", "Alice"),
+                field("accountStatus", "active"),
                 field("email", "email1")));
     }
 
@@ -296,8 +353,16 @@ public final class UserQueryStageTest {
         return json(object(
                 field("firstName", "first name"),
                 field("username", "Alice"),
+                field("accountStatus", "inactive"),
                 field("_Id", "user1")));
     }
 
+    private JsonValue newJsonValueUserWithoutStatus() {
+        return json(object(
+                field("firstName", "first name"),
+                field("_Id", "user1"),
+                field("username", "Alice"),
+                field("email", "email1")));
+    }
 }
 

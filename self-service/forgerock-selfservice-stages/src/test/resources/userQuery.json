@@ -4,5 +4,6 @@
   "identityIdField" : "userId",
   "identityEmailField" : "email",
   "identityUsernameField" : "username",
+  "identityAccountStatusField" : "accountStatus",
   "validQueryFields" : ["username", "email"]
 }
