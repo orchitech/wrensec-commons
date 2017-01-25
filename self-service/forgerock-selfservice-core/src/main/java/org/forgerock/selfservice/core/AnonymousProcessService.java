@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.core;
@@ -24,6 +24,7 @@ import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.selfservice.core.ServiceUtils.emptyJson;
 
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.AbstractRequestHandler;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
 import java.util.List;
 
 /**
@@ -137,6 +139,9 @@ public final class AnonymousProcessService extends AbstractRequestHandler {
         } catch (ResourceException rE) {
             logger.warn("Resource exception intercepted", rE);
             return rE;
+        } catch (JsonValueException jvE) {
+            logger.warn("Invalid JSON input", jvE);
+            return new BadRequestException(jvE.getMessage(), jvE);
         } catch (Exception ex) {
             logger.error("Exception intercepted", ex);
             return new InternalServerErrorException("Exception intercepted", ex);
