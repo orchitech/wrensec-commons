@@ -119,9 +119,9 @@ public final class UriRouterContext extends AbstractContext {
      *            A {@code Map} containing the parsed URI template variables,
      *            keyed on the URI template variable name. (not null)
      * @param originalUri
-     *            The original URI. If {@literal null} it will look up
-    It would also be nice if the constructor specified which fields may be null (indicating inheritance).
-
+     *            The original URI. If not {@literal null} it will override the
+     *            {@code originalUri} defined in the closest {@code UriRouterContext}
+     *            referenced in the context's chain.
      */
     public UriRouterContext(final Context parent, final String matchedUri, final String remainingUri,
             final Map<String, String> uriTemplateVariables, URI originalUri) {
