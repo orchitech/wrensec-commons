@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyrighted [year] [name of copyright owner]".
 
-  Copyright 2015-2016 ForgeRock AS.
+  Copyright 2015-2017 ForgeRock AS.
 -->
  <section xml:id="sec-about-crest"
           xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
@@ -526,7 +526,8 @@ Accept: application/json
   <para>
    To update a resource, perform an HTTP PUT
    including the case-sensitive identifier (<literal>_id</literal>)
-   for the resource with the JSON resource as a payload.
+   as the final element of the path to the resource,
+   and the JSON resource as the payload.
    Use the <literal>If-Match: <replaceable>_rev</replaceable></literal> header
    to check that you are actually updating the version you modified.
    Use <literal>If-Match: *</literal> if the version does not matter.
