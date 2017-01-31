@@ -11,93 +11,118 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwk;
 
-import java.util.HashMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.jose.jws.JwsAlgorithm;
+import org.forgerock.json.jose.jws.SupportedEllipticCurve;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class EcJWKTest {
 
-    private static final String KTY = "EC";
-    private static final String CRV = "NIST P-256";
-    private static final String X = "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4";
-    private static final String Y = "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM";
-    private static final String D = "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE";
-    private static final String USE = "enc";
-    private static final String KID = "1";
+    private String expectedKty = "EC";
+    private SupportedEllipticCurve expectedCurve;
+    private BigInteger expectedX;
+    private BigInteger expectedY;
+    private BigInteger expectedD;
+    private KeyUse expectedUse = KeyUse.SIG;
+    private String expectedKid = "test";
 
-    private String json = null;
-    private JsonValue jsonValue = null;
+    private ECPublicKey ecPublicKey;
+    private ECPrivateKey ecPrivateKey;
+
+    private String ecJwkAsJsonString;
+    private JsonValue ecJwkAsJsonValue;
 
     @BeforeClass
-    public void setup() {
-        /*
-        {"kty":"EC",
-        "crv":"P-256",
-        "x":"MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
-        "y":"4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
-        "d":"870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE",
-        "use":"enc",
-        "kid":"1"}
-        */
+    public void setup() throws NoSuchAlgorithmException {
+        KeyPairGenerator ecKeyPairGenerator = KeyPairGenerator.getInstance("EC");
+        ecKeyPairGenerator.initialize(256);
+        KeyPair keyPair = ecKeyPairGenerator.generateKeyPair();
+        ecPublicKey = (ECPublicKey) keyPair.getPublic();
+        ecPrivateKey = (ECPrivateKey) keyPair.getPrivate();
+        expectedCurve = SupportedEllipticCurve.forKey(ecPublicKey);
+        expectedX = ecPublicKey.getW().getAffineX();
+        expectedY = ecPublicKey.getW().getAffineY();
+        expectedD = ecPrivateKey.getS();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("{")
-                .append("\"kty\"").append(":").append("\"" + KTY + "\"").append(",")
-                .append("\"crv\"").append(":").append("\"" + CRV + "\"").append(",")
-                .append("\"x\"").append(":").append("\"" + X + "\"").append(",")
-                .append("\"y\"").append(":").append("\"" + Y + "\"").append(",")
-                .append("\"d\"").append(":").append("\"" + D + "\"").append(",")
-                .append("\"use\"").append(":").append("\"" + USE + "\"").append(",")
-                .append("\"kid\"").append(":").append("\"" + KID + "\"")
-                .append("}");
-        json = sb.toString();
-
-        //create json value object
-        jsonValue = new JsonValue(new HashMap<>());
-        jsonValue.put("kty", KTY);
-        jsonValue.put("crv", CRV);
-        jsonValue.put("x", X);
-        jsonValue.put("y", Y);
-        jsonValue.put("d", D);
-        jsonValue.put("use", USE);
-        jsonValue.put("kid", KID);
-
+        ecJwkAsJsonValue = json(object(
+                field("kty", expectedKty),
+                field("crv", expectedCurve.getStandardName()),
+                field("alg", JwsAlgorithm.ES256.name()),
+                field("x", EcJWK.encodeCoordinate(ecPublicKey.getParams().getCurve().getField().getFieldSize(),
+                        ecPublicKey.getW().getAffineX())),
+                field("y", EcJWK.encodeCoordinate(ecPublicKey.getParams().getCurve().getField().getFieldSize(),
+                        ecPublicKey.getW().getAffineY())),
+                field("d", EcJWK.encodeCoordinate(ecPublicKey.getParams().getCurve().getField().getFieldSize(),
+                        ecPrivateKey.getS())),
+                field("use", expectedUse.toString()),
+                field("kid", expectedKid)
+        ));
+        ecJwkAsJsonString = ecJwkAsJsonValue.toString();
     }
 
     @Test
-    public void testCreateJWKFromAString() {
-
-        //Given
-
+    public void testCreateJWKFromAString() throws IOException {
         //When
-        EcJWK jwk = EcJWK.parse(json);
+        EcJWK ecJwk = EcJWK.parse(ecJwkAsJsonString);
 
         //Then
-        assert jwk.getCurve().equals(CRV);
-        assert jwk.getX().equals(X);
-        assert jwk.getY().equals(Y);
-        assert jwk.getD().equals(D);
-
+        assertEcJwkIsEqualToOriginal(ecJwk);
     }
 
     @Test
-    public void testCreateJWKFromAJsonValue() {
-        //Given
-
+    public void testCreateJWKFromAJsonValue() throws IOException {
         //When
-        EcJWK jwk = EcJWK.parse(jsonValue);
+        EcJWK ecJwk = EcJWK.parse(ecJwkAsJsonValue);
 
         //Then
-        assert jwk.getCurve().equals(CRV);
-        assert jwk.getX().equals(X);
-        assert jwk.getY().equals(Y);
-        assert jwk.getD().equals(D);
+        assertEcJwkIsEqualToOriginal(ecJwk);
     }
+
+    @Test
+    public void testCreateEcJWKFromECKey() throws NoSuchAlgorithmException, IOException {
+        //When
+        EcJWK ecJwk = new EcJWK(ecPublicKey, ecPrivateKey, KeyUse.SIG, expectedKid);
+
+        //Then
+        assertEcJwkIsEqualToOriginal(ecJwk);
+    }
+
+    private void assertEcJwkIsEqualToOriginal(EcJWK ecJwk) throws IOException {
+        BigInteger x = EcJWK.decodeCoordinate(ecJwk.getX());
+        BigInteger y = EcJWK.decodeCoordinate(ecJwk.getY());
+        BigInteger d = EcJWK.decodeCoordinate(ecJwk.getD());
+
+        assertThat(SupportedEllipticCurve.forKey(ecPrivateKey)).isEqualTo(expectedCurve);
+        assertThat(x).isEqualTo(expectedX);
+        assertThat(y).isEqualTo(expectedY);
+        assertThat(d).isEqualTo(expectedD);
+
+
+        assertThat(expectedX.signum()).isEqualTo(1);
+        assertThat(expectedY.signum()).isEqualTo(1);
+        assertThat(expectedD.signum()).isEqualTo(1);
+
+        assertThat(ecJwk.toECPublicKey()).isEqualTo(ecPublicKey);
+        assertThat(ecJwk.toECPrivateKey()).isEqualTo(ecPrivateKey);
+    }
+
 }

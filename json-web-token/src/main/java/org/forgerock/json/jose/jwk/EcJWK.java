@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
- * Copyright 2013-2016 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwk;
@@ -30,6 +30,7 @@ import java.util.List;
 import org.forgerock.json.JsonException;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.jose.jws.SupportedEllipticCurve;
+import org.forgerock.json.jose.utils.BigIntegerUtils;
 import org.forgerock.util.encode.Base64url;
 
 /**
@@ -57,13 +58,61 @@ public class EcJWK extends JWK {
     private final static String CURVE = "crv";
 
     /**
+     * Creates a public EcJWK.
+     * @param publicKey The public key for the JWK
+     * @param use The value of the use JWK parameter
+     * @param kid The key id of the JWK
+     */
+    public EcJWK(ECPublicKey publicKey, KeyUse use, String kid) {
+        this(publicKey, null, use, kid);
+    }
+
+    /**
+     * Creates a public and private EcJWK.
+     * @param publicKey The public key for the JWK
+     * @param privateKey The private key for the JWK
+     * @param use The value of the use JWK parameter
+     * @param kid The key id of the JWK
+     */
+    public EcJWK(ECPublicKey publicKey, ECPrivateKey privateKey, KeyUse use, String kid) {
+        super(KeyType.EC, use, SupportedEllipticCurve.forKey(publicKey).getJwsAlgorithm().name(), kid);
+
+        final int fieldSize = publicKey.getParams().getCurve().getField().getFieldSize();
+        put(X, encodeCoordinate(fieldSize,
+                publicKey.getW().getAffineX()));
+        put(Y, encodeCoordinate(fieldSize,
+                publicKey.getW().getAffineY()));
+        put(CURVE, SupportedEllipticCurve.forKey(publicKey).getStandardName());
+        if (privateKey != null) {
+            put(D, encodeCoordinate(fieldSize, privateKey.getS()));
+        }
+    }
+
+    /**
+     * Creates a public EcJWK.
+     * @param use The value of the use JWK parameter
+     * @param alg The value of the alg JWK parameter
+     * @param kid The key id of the JWK
+     * @param x The unsigned big-endian base64 url encoding of the elliptical curve point x coordinate
+     * @param y The unsigned big-endian base64 url encoding of the elliptical curve point y coordinate
+     * @param curve The known curve to use. For example "NIST P-256".
+     * @param x5u the x509 url for the key
+     * @param x5t the x509 thumbnail for the key
+     * @param x5c the x509 chain as a list of Base64 encoded strings
+     */
+    public EcJWK(KeyUse use, String alg, String kid, String x, String y, String curve, String x5u, String x5t,
+            List<String> x5c) {
+        this(use, alg, kid, x, y, null, curve, x5u, x5t, x5c);
+    }
+
+    /**
      * Creates a public and private EcJWK.
      * @param use The value of the use JWK parameter
      * @param alg The value of the alg JWK parameter
      * @param kid The key id of the JWK
-     * @param x The x value for the elliptical curve point
-     * @param y The y value for the elliptical curve point
-     * @param d The d value for the elliptical curve private key
+     * @param x The unsigned big-endian base64 url encoding of the elliptical curve point x coordinate
+     * @param y The unsigned big-endian base64 url encoding of the elliptical curve point y coordinate
+     * @param d The unsigned big-endian base64 url encoding of the d value for the elliptical curve private key
      * @param curve The known curve to use. For example "NIST P-256".
      * @param x5u the x509 url for the key
      * @param x5t the x509 thumbnail for the key
@@ -91,41 +140,24 @@ public class EcJWK extends JWK {
     }
 
     /**
-     * Creates a public EcJWK.
-     * @param use The value of the use JWK parameter
-     * @param alg The value of the alg JWK parameter
-     * @param kid The key id of the JWK
-     * @param x The x value for the elliptical curve point
-     * @param y The y value for the elliptical curve point
-     * @param curve The known curve to use. For example "NIST P-256".
-     * @param x5u the x509 url for the key
-     * @param x5t the x509 thumbnail for the key
-     * @param x5c the x509 chain as a list of Base64 encoded strings
-     */
-    public EcJWK(KeyUse use, String alg, String kid, String x, String y, String curve, String x5u, String x5t,
-                 List<String> x5c) {
-        this (use, alg, kid, x, y, null, curve, x5u, x5t, x5c);
-    }
-
-    /**
-     * Gets the x value for the elliptical curve point.
-     * @return x value for the elliptical curve point
+     * Gets the unsigned big-endian  base64 url encoding of the elliptical curve point x coordinate.
+     * @return unsigned big-endian  base64 url encoding of the elliptical curve point x coordinate
      */
     public String getX() {
         return get(X).asString();
     }
 
     /**
-     * Gets the y value for the elliptical curve point.
-     * @return y value for the elliptical curve point
+     * Gets the unsigned big-endian  base64 url encoding of the elliptical curve point y coordinate.
+     * @return the unsigned big-endian  base64 url encoding of the elliptical curve point y coordinate
      */
     public String getY() {
         return get(Y).asString();
     }
 
     /**
-     * Gets the d value for the elliptical curve private key.
-     * @return d value for the elliptical curve point
+     * Gets the unsigned big-endian  base64 url encoding of the d value for the elliptical curve private key.
+     * @return the unsigned big-endian  base64 url encoding of the d value for the elliptical curve private key
      */
     public String getD() {
         return get(D).asString();
@@ -204,8 +236,9 @@ public class EcJWK extends JWK {
             final SupportedEllipticCurve curve = SupportedEllipticCurve.forName(getCurve());
 
             KeyFactory keyFactory = KeyFactory.getInstance("EC");
-            ECPoint point = new ECPoint(new BigInteger(Base64url.decode(getX())),
-                    new BigInteger(Base64url.decode(getY())));
+            ECPoint point = new ECPoint(
+                    BigIntegerUtils.base64UrlDecode(getX()),
+                    BigIntegerUtils.base64UrlDecode(getY()));
             return (ECPublicKey) keyFactory.generatePublic(new ECPublicKeySpec(point, curve.getParameters()));
         } catch (GeneralSecurityException e) {
             throw new JsonException("Unable to create EC Public Key", e);
@@ -221,7 +254,7 @@ public class EcJWK extends JWK {
             final SupportedEllipticCurve curve = SupportedEllipticCurve.forName(getCurve());
 
             KeyFactory keyFactory = KeyFactory.getInstance("EC");
-            final BigInteger s = new BigInteger(Base64url.decode(getD()));
+            final BigInteger s = BigIntegerUtils.base64UrlDecode(getD());
             return (ECPrivateKey) keyFactory.generatePrivate(new ECPrivateKeySpec(s, curve.getParameters()));
         } catch (GeneralSecurityException e) {
             throw new JsonException("Unable to create EC Private Key", e);
@@ -234,5 +267,43 @@ public class EcJWK extends JWK {
      */
     public KeyPair toKeyPair() {
         return new KeyPair(toECPublicKey(), toECPrivateKey());
+    }
+
+    /**
+     * Decode the unsigned big-endian  base64 url encoding of an elliptical curve point.
+     * @param encodedCoordinate the unsigned big-endian  base64 url encoding of a the elliptical curve point
+     * @return the elliptical curve point
+     */
+    public static BigInteger decodeCoordinate(String encodedCoordinate) {
+        return BigIntegerUtils.base64UrlDecode(encodedCoordinate);
+    }
+
+    /**
+     * Base64url encode the unsigned big-endian representation of an elliptical curve point.
+     * @param fieldSize the EC field size in bits.
+     * @param coordinate the elliptical curve point
+     * @return the unsigned big-endian  base64 url encoding of the elliptical curve point
+     */
+    public static String encodeCoordinate(final int fieldSize, final BigInteger coordinate) {
+        final byte[] bigEndian = BigIntegerUtils.toBytesUnsigned(coordinate);
+
+        /*
+         * fieldSize defines the size of the bytes array output.
+         * Since we need to keep big endian, we need to pad with 0 bits at the beginning if necessary
+         */
+        int bytesToOutput = (fieldSize + 7) / 8;
+
+        if (bigEndian.length > bytesToOutput) {
+            throw new IllegalArgumentException(
+                    "The EC field size can't be smaller than the actual elliptic curve points bits size.");
+        }
+        if (bigEndian.length == bytesToOutput) {
+            // Same size, we can return directly
+            return Base64url.encode(bigEndian);
+        }
+
+        final byte[] bigEndianWithRightFieldSize = new byte[bytesToOutput];
+        System.arraycopy(bigEndian, 0, bigEndianWithRightFieldSize, bytesToOutput - bigEndian.length, bigEndian.length);
+        return Base64url.encode(bigEndianWithRightFieldSize);
     }
 }
