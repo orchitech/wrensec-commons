@@ -11,19 +11,22 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.example;
-
-import org.forgerock.json.JsonException;
-import org.forgerock.json.JsonValue;
-import org.forgerock.selfservice.stages.utils.JsonUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.forgerock.json.JsonException;
+import org.forgerock.json.JsonValue;
+
 
 /**
  * Simple utility class to parse json string into a json value.
@@ -31,6 +34,8 @@ import java.io.InputStreamReader;
  * @since 0.1.0
  */
 public final class JsonReader {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private JsonReader() {
         throw new UnsupportedOperationException();
@@ -56,7 +61,7 @@ public final class JsonReader {
                 contents.append(line).append('\n');
             }
 
-            return JsonUtils.toJsonValue(contents.toString());
+            return new JsonValue(MAPPER.readValue(contents.toString(),  Map.class));
         } catch (IOException e) {
             throw new JsonException("Failed to parse json", e);
         }

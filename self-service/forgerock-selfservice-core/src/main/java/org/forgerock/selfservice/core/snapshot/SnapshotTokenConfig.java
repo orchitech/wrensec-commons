@@ -11,14 +11,16 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.core.snapshot;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import org.forgerock.tokenhandler.TokenHandler;
+
 /**
- * Represents the configuration for an {@link SnapshotTokenHandler}.
+ * Represents the configuration for an {@link TokenHandler}.
  *
  * @since 0.2.0
  */

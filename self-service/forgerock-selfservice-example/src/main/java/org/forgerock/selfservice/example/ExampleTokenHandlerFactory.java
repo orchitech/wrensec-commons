@@ -11,21 +11,21 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.example;
 
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+
 import org.forgerock.json.jose.jws.SigningManager;
 import org.forgerock.json.jose.jws.handlers.SigningHandler;
 import org.forgerock.selfservice.core.snapshot.SnapshotTokenConfig;
-import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandler;
+import org.forgerock.tokenhandler.TokenHandler;
 import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandlerFactory;
-import org.forgerock.selfservice.stages.tokenhandlers.JwtTokenHandler;
+import org.forgerock.json.jose.tokenhandler.JwtTokenHandler;
 import org.forgerock.selfservice.stages.tokenhandlers.JwtTokenHandlerConfig;
-
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Basic token handler factory that always returns the same handler.
@@ -35,7 +35,7 @@ import java.security.NoSuchAlgorithmException;
 final class ExampleTokenHandlerFactory implements SnapshotTokenHandlerFactory {
 
     @Override
-    public SnapshotTokenHandler get(SnapshotTokenConfig snapshotTokenConfig) {
+    public TokenHandler get(SnapshotTokenConfig snapshotTokenConfig) {
         switch (snapshotTokenConfig.getType()) {
         case JwtTokenHandlerConfig.TYPE:
             return createJwtTokenHandler((JwtTokenHandlerConfig) snapshotTokenConfig);
@@ -44,7 +44,7 @@ final class ExampleTokenHandlerFactory implements SnapshotTokenHandlerFactory {
         }
     }
 
-    private SnapshotTokenHandler createJwtTokenHandler(JwtTokenHandlerConfig config) {
+    private TokenHandler createJwtTokenHandler(JwtTokenHandlerConfig config) {
         try {
             SigningManager signingManager = new SigningManager();
             SigningHandler signingHandler = signingManager.newHmacSigningHandler(config.getSharedKey());

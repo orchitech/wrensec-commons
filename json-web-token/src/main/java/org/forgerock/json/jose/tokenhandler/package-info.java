@@ -9,30 +9,12 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions copyright [year] [name of copyright owner]".
+ * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
- * Copyright 2015-2017 ForgeRock AS.
+ * Copyright © 2017 ForgeRock AS. All rights reserved.
  */
-
-package org.forgerock.selfservice.core.snapshot;
-
-import org.forgerock.tokenhandler.TokenHandler;
 
 /**
- * Factory for delivering snapshot token handlers.
- *
- * @since 0.1.0
+ * JWT implementation(s) of {@link org.forgerock.tokenhandler.TokenHandler}.
  */
-public interface SnapshotTokenHandlerFactory {
-
-    /**
-     * Given the token type, provide a token handler instance.
-     *
-     * @param snapshotTokenConfig
-     *         snapshot token configuration
-     *
-     * @return snapshot token handler
-     */
-    TokenHandler get(SnapshotTokenConfig snapshotTokenConfig);
-
-}
+package org.forgerock.json.jose.tokenhandler;

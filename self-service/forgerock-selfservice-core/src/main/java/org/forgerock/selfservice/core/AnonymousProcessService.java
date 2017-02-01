@@ -37,7 +37,7 @@ import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.selfservice.core.config.ProcessInstanceConfig;
 import org.forgerock.selfservice.core.config.StageConfig;
 import org.forgerock.selfservice.core.config.StageConfigException;
-import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandler;
+import org.forgerock.tokenhandler.TokenHandler;
 import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandlerFactory;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Reject;
@@ -101,7 +101,7 @@ public final class AnonymousProcessService extends AbstractRequestHandler {
         stageConfigs = config.getStageConfigs();
         configVersion = config.hashCode();
 
-        SnapshotTokenHandler snapshotTokenHandler = tokenHandlerFactory.get(config.getSnapshotTokenConfig());
+        TokenHandler snapshotTokenHandler = tokenHandlerFactory.get(config.getSnapshotTokenConfig());
         snapshotAuthor = config.getStorageType().newSnapshotAuthor(snapshotTokenHandler, processStore);
     }
 

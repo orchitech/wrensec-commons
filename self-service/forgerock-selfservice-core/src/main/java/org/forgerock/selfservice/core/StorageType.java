@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.core;
@@ -19,8 +19,12 @@ package org.forgerock.selfservice.core;
 import static org.forgerock.selfservice.core.ServiceUtils.emptyJson;
 
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandler;
+import org.forgerock.tokenhandler.InvalidTokenException;
+import org.forgerock.tokenhandler.TokenHandler;
+import org.forgerock.tokenhandler.TokenHandlerException;
 
 /**
  * Indicates whether the service should operate in stateless or stateful mode.
@@ -39,7 +43,7 @@ public enum StorageType {
     LOCAL(new SnapshotAuthorFactory() {
 
         @Override
-        public SnapshotAuthor newSnapshotAuthor(SnapshotTokenHandler tokenHandler, ProcessStore store) {
+        public SnapshotAuthor newSnapshotAuthor(TokenHandler tokenHandler, ProcessStore store) {
             return new LocalSnapshotAuthor(tokenHandler, store);
         }
 
@@ -51,7 +55,7 @@ public enum StorageType {
     STATELESS(new SnapshotAuthorFactory() {
 
         @Override
-        public SnapshotAuthor newSnapshotAuthor(SnapshotTokenHandler tokenHandler, ProcessStore store) {
+        public SnapshotAuthor newSnapshotAuthor(TokenHandler tokenHandler, ProcessStore store) {
             return new StatelessSnapshotAuthor(tokenHandler);
         }
 
@@ -63,7 +67,7 @@ public enum StorageType {
         this.factory = factory;
     }
 
-    SnapshotAuthor newSnapshotAuthor(SnapshotTokenHandler tokenHandler, ProcessStore store) {
+    SnapshotAuthor newSnapshotAuthor(TokenHandler tokenHandler, ProcessStore store) {
         return factory.newSnapshotAuthor(tokenHandler, store);
     }
 
@@ -71,9 +75,7 @@ public enum StorageType {
      * Factory used to create new snapshot authors.
      */
     private interface SnapshotAuthorFactory {
-
-        SnapshotAuthor newSnapshotAuthor(SnapshotTokenHandler tokenHandler, ProcessStore store);
-
+        SnapshotAuthor newSnapshotAuthor(TokenHandler tokenHandler, ProcessStore store);
     }
 
     /*
@@ -83,27 +85,36 @@ public enum StorageType {
      */
     private static final class LocalSnapshotAuthor implements SnapshotAuthor {
 
-        private final SnapshotTokenHandler handler;
+        private final TokenHandler handler;
         private final ProcessStore store;
 
-        LocalSnapshotAuthor(SnapshotTokenHandler handler, ProcessStore store) {
+        LocalSnapshotAuthor(TokenHandler handler, ProcessStore store) {
             this.handler = handler;
             this.store = store;
         }
 
         @Override
         public String captureSnapshotOf(JsonValue state) throws ResourceException {
-            String snapshotToken = handler.generate(emptyJson());
-            store.add(snapshotToken, state);
-            return snapshotToken;
+            try {
+                String snapshotToken = handler.generate(emptyJson());
+                store.add(snapshotToken, state);
+                return snapshotToken;
+            } catch (TokenHandlerException e) {
+                throw new InternalServerErrorException("Error constructing snapshot token", e);
+            }
         }
 
         @Override
         public JsonValue retrieveSnapshotFrom(String snapshotToken) throws ResourceException {
-            handler.validate(snapshotToken);
-            return store.remove(snapshotToken);
+            try {
+                handler.validate(snapshotToken);
+                return store.remove(snapshotToken);
+            } catch (InvalidTokenException e) {
+                throw new BadRequestException("Snapshot token is invalid", e);
+            } catch (TokenHandlerException e) {
+                throw new InternalServerErrorException("Error retrieving snapshot token state", e);
+            }
         }
-
     }
 
     /*
@@ -113,20 +124,30 @@ public enum StorageType {
      */
     private static final class StatelessSnapshotAuthor implements SnapshotAuthor {
 
-        private final SnapshotTokenHandler handler;
+        private final TokenHandler handler;
 
-        StatelessSnapshotAuthor(SnapshotTokenHandler handler) {
+        StatelessSnapshotAuthor(TokenHandler handler) {
             this.handler = handler;
         }
 
         @Override
         public String captureSnapshotOf(JsonValue state) throws ResourceException {
-            return handler.generate(state);
+            try {
+                return handler.generate(state);
+            } catch (TokenHandlerException e) {
+                throw new InternalServerErrorException("Error constructing snapshot token", e);
+            }
         }
 
         @Override
         public JsonValue retrieveSnapshotFrom(String snapshotToken) throws ResourceException {
-            return handler.validateAndExtractState(snapshotToken);
+            try {
+                return handler.validateAndExtractState(snapshotToken);
+            } catch (InvalidTokenException e) {
+                throw new BadRequestException("Snapshot token is invalid", e);
+            } catch (TokenHandlerException e) {
+                throw new InternalServerErrorException("Error retrieving snapshot token state", e);
+            }
         }
 
     }
