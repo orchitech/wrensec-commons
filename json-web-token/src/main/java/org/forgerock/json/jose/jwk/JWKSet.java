@@ -11,12 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwk;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +39,7 @@ public class JWKSet extends JWObject {
      * Constructs an empty JWKSet.
      */
     public JWKSet() {
-
+        put("keys", Collections.EMPTY_LIST);
     }
 
     /**
@@ -48,18 +50,18 @@ public class JWKSet extends JWObject {
         if (jwk == null) {
             throw new JsonException("JWK must not be null");
         }
-        put("keys", jwk);
+        put("keys", Collections.singletonList(jwk.toJsonValue().asMap()));
     }
 
     /**
      * Construct a JWKSet from a single JWK.
-     * @param jwk contains a list of json web keys
+     * @param jwks contains a list of json web keys
      */
-    public JWKSet(JsonValue jwk) {
-        if (jwk == null) {
-            throw new JsonException("JWK must not be null");
+    public JWKSet(JsonValue jwks) {
+        if (jwks == null) {
+            throw new JsonException("JWK set must not be null");
         }
-        put("keys", jwk);
+        put("keys", jwks.expect(List.class));
     }
 
     /**
@@ -68,9 +70,14 @@ public class JWKSet extends JWObject {
      */
     public JWKSet(List<JWK> jwkList) {
         if (jwkList == null) {
-            throw new JsonException("The list cant be null");
+            throw new JsonException("The list cannot be null");
         }
-        put("keys", jwkList);
+        //transform to json, as it's our current way of storing jwks
+        List<Map<String, Object>> jwkListAsJson = new ArrayList<>();
+        for (JWK jwk : jwkList) {
+            jwkListAsJson.add(jwk.toJsonValue().asMap());
+        }
+        put("keys", jwkListAsJson);
     }
 
     /**
