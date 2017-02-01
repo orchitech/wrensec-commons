@@ -23,6 +23,7 @@ package org.forgerock.security.keystore;
  *
  * @deprecated  Specify the keystore type string directly in preference to this enum, as it is extensible at runtime
  */
+@Deprecated()
 public enum KeyStoreType {
     /** JKS keystore type. */
     JKS,

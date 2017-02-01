@@ -116,4 +116,21 @@ public class UtilsTest {
     public void testStringNullOrEmpty(String string, boolean result) {
         assertThat(Utils.isNullOrEmpty(string)).isEqualTo(result);
     }
+
+    @DataProvider
+    public Object[][] blankStrings() {
+        return new Object[][] {
+                { null, true},
+                { "   whitespace  ", false},
+                { " ", true},
+                { "", true},
+                { "\t\n", true},
+                { "\t\nfoo\t\n", false}
+        };
+    }
+
+    @Test(dataProvider = "blankStrings")
+    public void testIsBlank(String str, boolean expected) {
+        assertThat(Utils.isBlank(str)).isEqualTo(expected);
+    }
 }
