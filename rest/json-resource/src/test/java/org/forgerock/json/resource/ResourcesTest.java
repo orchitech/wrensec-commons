@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2016 ForgeRock AS.
+ * Copyright 2012-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.resource;
@@ -270,8 +270,6 @@ public final class ResourcesTest {
         // Then
         if (create && type != SINGLETON_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("create");
-        } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -293,8 +291,6 @@ public final class ResourcesTest {
         // Then
         if (read && type != COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("read");
-        } else if (type != COLLECTION_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -319,7 +315,7 @@ public final class ResourcesTest {
         } else if (read && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("read-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -341,8 +337,6 @@ public final class ResourcesTest {
         // Then
         if (update && type != COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("update");
-        } else if (type != COLLECTION_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -367,7 +361,7 @@ public final class ResourcesTest {
         } else if (update && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("update-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -392,7 +386,7 @@ public final class ResourcesTest {
         } else if (delete && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("delete-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -414,8 +408,6 @@ public final class ResourcesTest {
         // Then
         if (patch && type != COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("patch");
-        } else if (type != COLLECTION_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -440,7 +432,7 @@ public final class ResourcesTest {
         } else if (patch && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("patch-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -523,8 +515,6 @@ public final class ResourcesTest {
             AssertJPromiseAssert.assertThat(promise).succeeded();
             QueryResponse result = promise.get();
             Assertions.assertThat(result.getPagedResultsCookie()).isEqualTo("query");
-        } else if (type != SINGLETON_RESOURCE) {
-            AssertJPromiseAssert.assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             AssertJPromiseAssert.assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }

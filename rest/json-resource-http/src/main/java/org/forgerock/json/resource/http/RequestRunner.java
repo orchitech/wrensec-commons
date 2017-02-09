@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2016 ForgeRock AS.
+ * Copyright 2012-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.resource.http;
@@ -64,6 +64,7 @@ import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.AdviceContext;
 import org.forgerock.json.resource.Connection;
+import org.forgerock.json.resource.CreateNotSupportedException;
 import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.DeleteRequest;
 import org.forgerock.json.resource.PatchRequest;
@@ -203,7 +204,8 @@ final class RequestRunner implements RequestVisitor<Promise<Response, NeverThrow
                         try {
                             // treat as update to existing resource (if supported)
                             // if create failed because object already exists
-                            if (resourceException instanceof PreconditionFailedException
+                            if ((resourceException instanceof PreconditionFailedException
+                                    || resourceException instanceof CreateNotSupportedException)
                                     && isUpsertSupported(request)) {
                                 return visitUpdateRequest(p,
                                         newUpdateRequest(
