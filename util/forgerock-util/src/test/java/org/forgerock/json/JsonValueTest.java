@@ -104,6 +104,95 @@ public class JsonValueTest {
         assertThat(jv.get("age").isNotNull()).isFalse();
     }
 
+    // ----- jsonvalue composition tests ----------
+
+    @Test
+    public void shouldUnwrapJsonValuesInJsonObject() throws Exception {
+        JsonValue bjensen = json("bjensen");
+        JsonValue value = json(object());
+
+        value.put("uid", bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.put(new JsonPointer("/uid"), bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add("uid", bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.addPermissive(new JsonPointer("/uid"), bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.putPermissive(new JsonPointer("/uid"), bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValuesInJsonArray() throws Exception {
+        JsonValue bjensen = json("bjensen");
+        JsonValue value = json(array());
+
+        value.put(0, bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.put(0, json("scarter"));
+        assertThat(value.get(0).asString()).isEqualTo("scarter");
+
+        value.clear();
+
+        value.put(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add(0, bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add("0", bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add(bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.addPermissive(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.putPermissive(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValueConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue value = json(bjensen);
+
+        assertThat(value.asString()).isEqualTo("bjensen");
+
+        value = new JsonValue(bjensen, new JsonPointer("/pointer"));
+        assertThat(value.asString()).isEqualTo("bjensen");
+    }
+
     // ----- manipulation tests ----------
 
     @Test

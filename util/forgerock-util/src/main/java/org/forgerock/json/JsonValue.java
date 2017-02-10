@@ -116,7 +116,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
      * @return The JSON value.
      */
     public static JsonValue json(final Object object) {
-        return object instanceof JsonValue ? (JsonValue) object : new JsonValue(object);
+        return new JsonValue(unwrap(object));
     }
 
     /**
@@ -192,6 +192,19 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         return result;
     }
 
+    /**
+     * Unwrap the object if it is a JsonValue - used when combining JsonValues so we
+     * do not get nested JsonValue wrappers.
+     *
+     * @param object the object to unwrap.
+     * @return the unwrapped object.
+     */
+    private static Object unwrap(final Object object) {
+        return object instanceof JsonValue
+                ? ((JsonValue) object).getObject()
+                : object;
+    }
+
     /** The Java object representing this JSON value. */
     private Object object;
 
@@ -251,7 +264,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         if (index < 0 || index > list.size()) {
             throw new JsonValueException(this, "List index out of range: " + index);
         }
-        list.add(index, object);
+        list.add(index, unwrap(object));
         return this;
     }
 
@@ -321,7 +334,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
             if (map.containsKey(key)) {
                 throw new JsonValueException(this, "Map key " + key + " already exists");
             }
-            map.put(key, object);
+            map.put(key, unwrap(object));
         } else if (isList()) {
             add(toIndex(key), object);
         } else {
@@ -1056,9 +1069,9 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         if (index < 0 || index > list.size()) {
             throw new JsonValueException(this, "List index out of range: " + index);
         } else if (index == list.size()) { // appending to end of list
-            list.add(object);
+            list.add(unwrap(object));
         } else { // replacing existing element
-            list.set(index, object);
+            list.set(index, unwrap(object));
         }
         return this;
     }
@@ -1107,7 +1120,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         if (key == null) {
             throw new NullPointerException();
         } else if (isMap()) {
-            asMap().put(key, object);
+            asMap().put(key, unwrap(object));
         } else if (isList()) {
             put(toIndex(key), object);
         } else {
