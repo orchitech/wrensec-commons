@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2016 ForgeRock AS.
+ * Copyright 2016-2017 ForgeRock AS.
  */
 
 package org.forgerock.http.swagger;
@@ -91,8 +91,14 @@ public class OpenApiRequestFilter implements Filter {
         }
     }
 
-    /** The URL of the application isn't known until runtime usually, so that is why this is delayed. */
-    private static Swagger setUriDetailsIfNotPresent(Context context, Swagger descriptor) {
+    /**
+     * Deduce and set the base URI of the request for the OpenAPI descriptor from the request context.
+     *
+     * @param context The CHF request context.
+     * @param descriptor The descriptor object.
+     * @return The updated descriptor object.
+     */
+    protected Swagger setUriDetailsIfNotPresent(Context context, Swagger descriptor) {
         if (context.containsContext(UriRouterContext.class)) {
             final UriRouterContext uriRouterContext = context.asContext(UriRouterContext.class);
             final URI originalUri = uriRouterContext.getOriginalUri();
