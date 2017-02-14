@@ -12,7 +12,7 @@
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
  * Copyright © 2010–2011 ApexIdentity Inc. All rights reserved.
- * Portions Copyrighted 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2011-2017 ForgeRock AS.
  */
 
 package org.forgerock.json;
@@ -1402,7 +1402,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
                 } else if (isIndexToken(nextToken)) {
                     throw new JsonValueException(this, "Expecting a value");
                 } else {
-                    jv.add(token, new LinkedHashMap<>());
+                    jv.putPermissive(new JsonPointer(token), new LinkedHashMap<>());
                     jv = jv.get(token);
                 }
             }

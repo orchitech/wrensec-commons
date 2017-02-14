@@ -12,7 +12,7 @@
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
  * Copyright © 2010–2011 ApexIdentity Inc. All rights reserved.
- * Portions Copyrighted 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2011-2017 ForgeRock AS.
  */
 
 package org.forgerock.json;
@@ -615,6 +615,13 @@ public class JsonValueTest {
         assertThat(value.toString()).isEqualTo(
                 "{ \"a \\\"silly\\\" key\": \"value containing a \\\\ and a \\\" and "
                         + "some controls \\b\\f\\n\\r\\t\\u0000\\u001F\\u007F\\u009F\" }");
+    }
+
+    @Test
+    public void testAddPermissiveOverNullTarget() {
+        final JsonValue value = json(object(field("rootfield", null)));
+        value.putPermissive(new JsonPointer("/rootfield/childfield"), object(field("foo", "bar")));
+        assertThat(value.get("rootfield").get("childfield").get("foo").asString()).isEqualTo("bar");
     }
 
     @DataProvider
