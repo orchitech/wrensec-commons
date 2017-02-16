@@ -15,19 +15,32 @@
 */
 package org.forgerock.jaspi.modules.openid.resolvers;
 
+import org.forgerock.json.jose.builders.JwtBuilderFactory;
+import org.forgerock.json.jose.common.JwtReconstruction;
 import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
 import org.forgerock.jaspi.modules.openid.exceptions.InvalidIssException;
 import org.forgerock.jaspi.modules.openid.exceptions.InvalidSignatureException;
 import org.forgerock.jaspi.modules.openid.exceptions.JwtExpiredException;
+import org.forgerock.json.jose.jwk.KeyUse;
+import org.forgerock.json.jose.jwk.RsaJWK;
 import org.forgerock.json.jose.jwk.store.JwksStore;
+import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.jws.JwsHeader;
 import org.forgerock.json.jose.jws.SignedJwt;
+import org.forgerock.json.jose.jws.SigningManager;
 import org.forgerock.json.jose.jws.handlers.SigningHandler;
+import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.net.MalformedURLException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -44,6 +57,37 @@ public class JWKOpenIdResolverImplTest {
         jwksStore = mock(JwksStore.class);
         given(jwksStore.getUid()).willReturn("test");
         testResolver = new JWKOpenIdResolverImpl(jwksStore);
+    }
+
+    @Test
+    public void testValidSignature() throws NoSuchAlgorithmException, FailedToLoadJWKException,
+            InvalidSignatureException {
+        //given
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(2048);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        RsaJWK rsaJwk = new RsaJWK((RSAPublicKey) keyPair.getPublic(), KeyUse.SIG,
+                JwsAlgorithm.RS256.getJwaAlgorithmName(), "rsaJwk", null, null, null);
+
+        Map<String, Object> claims = new HashMap<String, Object>();
+        claims.put("test", "test");
+        SigningHandler rsaSigningHandler =
+                 new SigningManager().newRsaSigningHandler(keyPair.getPrivate());
+        String jwt = new JwtBuilderFactory()
+                .jws(rsaSigningHandler)
+                .headers()
+                .alg(JwsAlgorithm.RS256)
+                .kid(rsaJwk.getKeyId())
+                .done()
+                .claims(new JwtClaimsSet(claims)).build();
+        SignedJwt signedJwt = new JwtReconstruction().reconstructJwt(jwt, SignedJwt.class);
+
+        given(jwksStore.findJwk(signedJwt.getHeader().getKeyId())).willReturn(rsaJwk);
+
+        //when
+        testResolver.verifySignature(signedJwt);
+
+        //Then expect no InvalidSignatureException exception
     }
 
     @Test(expectedExceptions = InvalidSignatureException.class)

@@ -114,15 +114,15 @@ public enum JwsAlgorithm implements Algorithm {
     }
 
     /**
-     * See {@link #parseAlgorithm(String)}}.
-     * @deprecated Replaced by {@link #parseAlgorithm(String)}
+     * See {@link #parseCryptographicAlgorithm(String)}}.
+     * @deprecated Replaced by {@link #parseCryptographicAlgorithm(String)}
      *
      * @param algorithm The Java Cryptographic string algorithm name.
      * @return The matching JwsAlgorithm.
      */
     @Deprecated
     public static JwsAlgorithm getJwsAlgorithm(String algorithm) {
-        return parseAlgorithm(algorithm);
+        return parseCryptographicAlgorithm(algorithm);
     }
 
     /**
@@ -134,7 +134,7 @@ public enum JwsAlgorithm implements Algorithm {
      * @param algorithm The Java Cryptographic string algorithm name.
      * @return The matching JwsAlgorithm.
      */
-    public static JwsAlgorithm parseAlgorithm(String algorithm) {
+    public static JwsAlgorithm parseCryptographicAlgorithm(String algorithm) {
         for (JwsAlgorithm jwsAlgorithm : JwsAlgorithm.values()) {
             if (algorithm.equalsIgnoreCase(jwsAlgorithm.getAlgorithm())) {
                 return jwsAlgorithm;

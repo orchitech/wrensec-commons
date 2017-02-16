@@ -92,7 +92,7 @@ public class JWKOpenIdResolverImpl extends BaseOpenIdResolver {
     }
 
     private PublicKey getPublicKeyFromJWK(org.forgerock.json.jose.jwk.JWK jwk) {
-        JwsAlgorithm jweAlgorithm = JwsAlgorithm.parseAlgorithm(jwk.getAlgorithm());
+        JwsAlgorithm jweAlgorithm = JwsAlgorithm.valueOf(jwk.getAlgorithm());
 
         switch (jweAlgorithm.getAlgorithmType()) {
         case RSA:
