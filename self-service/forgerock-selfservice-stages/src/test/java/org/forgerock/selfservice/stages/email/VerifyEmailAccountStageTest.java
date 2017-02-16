@@ -182,6 +182,7 @@ public final class VerifyEmailAccountStageTest {
         ActionRequest actionRequest = actionRequestArgumentCaptor.getValue();
 
         assertThat(actionRequest.getAction()).isSameAs("send");
+        assertThat(actionRequest.getAdditionalParameter("someflag")).isEqualTo("true");
         assertThat(actionRequest.getContent()).stringAt("/to").isEqualTo(TEST_EMAIL_ID);
         assertThat(actionRequest.getContent()).stringAt("/from").isEqualTo(INFO_MAIL_ID);
         assertThat(actionRequest.getContent()).stringAt("/subject")
@@ -262,6 +263,7 @@ public final class VerifyEmailAccountStageTest {
     private VerifyEmailAccountConfig newVerifyEmailAccountConfig() {
         return new VerifyEmailAccountConfig()
                 .setIdentityEmailField("mail")
+                .setEmailServiceParameters(newParameterMap())
                 .setMessageTranslations(newMessageMap())
                 .setVerificationLinkToken("%link%")
                 .setVerificationLink("http://localhost:9999/example/#passwordReset/")
@@ -269,6 +271,12 @@ public final class VerifyEmailAccountStageTest {
                 .setFrom(INFO_MAIL_ID)
                 .setSubjectTranslations(newSubjectMap())
                 .setMimeType("html");
+    }
+
+    private Map<String, String> newParameterMap() {
+        Map<String, String> parameterMap = new HashMap<>();
+        parameterMap.put("someflag", "true");
+        return parameterMap;
     }
 
     private Map<Locale, String> newMessageMap() {
