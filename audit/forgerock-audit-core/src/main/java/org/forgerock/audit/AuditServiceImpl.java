@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.audit;
 
@@ -36,6 +36,7 @@ import org.forgerock.audit.events.EventTopicsMetaData;
 import org.forgerock.audit.events.handlers.AuditEventHandler;
 import org.forgerock.audit.filter.Filter;
 import org.forgerock.audit.filter.FilterChainBuilder;
+import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
@@ -58,6 +59,7 @@ import org.forgerock.util.generator.IdGenerator;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.RuntimeExceptionHandler;
+import org.forgerock.util.query.QueryFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -322,6 +324,15 @@ final class AuditServiceImpl implements AuditService {
         try {
             logger.debug("Audit query called for {}", request.getResourcePath());
             checkLifecycleStateIsRunning();
+
+            if (request.getQueryId() != null || request.getQueryExpression() != null) {
+                return new BadRequestException("QueryId and QueryExpression are not supported for audit").asPromise();
+            }
+
+            if (request.getQueryFilter() == null) {
+                request.setQueryFilter(QueryFilter.<JsonPointer>alwaysTrue());
+            }
+
             final String topic = establishTopic(request.getResourcePathObject(), true);
             return queryHandler.queryEvents(context, topic, request, handler);
         } catch (Exception e) {

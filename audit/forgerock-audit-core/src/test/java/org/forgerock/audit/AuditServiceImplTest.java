@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.audit;
@@ -70,6 +70,7 @@ import org.forgerock.json.resource.ServiceUnavailableException;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.query.QueryFilter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -749,6 +750,85 @@ public class AuditServiceImplTest {
         //then
         assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         verifyZeroInteractions(otherAuditEventHandler);
+    }
+
+    @Test
+    public void shouldNotSupportQueryWithQueryId() throws Exception {
+        final String topic = "access";
+        final Class<PassThroughAuditEventHandler> clazz = PassThroughAuditEventHandler.class;
+        final PassThroughAuditEventHandlerConfiguration configuration = new PassThroughAuditEventHandlerConfiguration();
+        configuration.setName(QUERY_HANDLER_NAME);
+        configuration.setTopics(Collections.singleton(topic));
+        final AuditService auditService = newAuditService()
+                .withConfiguration(getAuditServiceConfiguration(QUERY_HANDLER_NAME, topic))
+                .withAuditEventHandler(clazz, configuration)
+                .build();
+        auditService.startup();
+
+        final QueryRequest queryRequest = Requests.newQueryRequest(topic).setQueryId("someId");
+
+        //when
+        final Promise<QueryResponse, ResourceException> promise =
+                auditService.handleQuery(new RootContext(), queryRequest, mock(QueryResourceHandler.class));
+
+        //then
+        assertThat(promise)
+                .failedWithException()
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    public void shouldNotSupportQueryWithQueryExpression() throws Exception {
+        final String topic = "access";
+        final Class<PassThroughAuditEventHandler> clazz = PassThroughAuditEventHandler.class;
+        final PassThroughAuditEventHandlerConfiguration configuration = new PassThroughAuditEventHandlerConfiguration();
+        configuration.setName(QUERY_HANDLER_NAME);
+        configuration.setTopics(Collections.singleton(topic));
+        final AuditService auditService = newAuditService()
+                .withConfiguration(getAuditServiceConfiguration(QUERY_HANDLER_NAME, topic))
+                .withAuditEventHandler(clazz, configuration)
+                .build();
+        auditService.startup();
+
+        final QueryRequest queryRequest = Requests.newQueryRequest(topic).setQueryExpression("someExpression");
+
+        //when
+        final Promise<QueryResponse, ResourceException> promise =
+                auditService.handleQuery(new RootContext(), queryRequest, mock(QueryResourceHandler.class));
+
+        //then
+        assertThat(promise)
+                .failedWithException()
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    public void shouldSetNullQueryFilterToAlwaysTrue() throws Exception {
+        final String topic = "access";
+        final AuditServiceConfiguration configuration = getAuditServiceConfiguration(QUERY_HANDLER_NAME, topic);
+        final PassThroughAuditEventHandler eventHandler = spyPassThroughAuditEventHandler(QUERY_HANDLER_NAME);
+        final Set<AuditEventHandler> handlers = asSet(eventHandler);
+        final AuditService auditService = new AuditServiceImpl(configuration, eventTopicsMetaData, handlers);
+        auditService.startup();
+
+        final Promise<QueryResponse, ResourceException> queryResponsePromise = newQueryResponse().asPromise();
+        when(eventHandler.queryEvents(
+                any(Context.class), any(String.class), any(QueryRequest.class), any(QueryResourceHandler.class)))
+                .thenReturn(queryResponsePromise);
+
+        final QueryRequest queryRequest = newQueryRequest(topic).setQueryFilter(null);
+
+        //when
+        final Promise<QueryResponse, ResourceException> promise = auditService.handleQuery(
+                new RootContext(),
+                queryRequest,
+                mock(QueryResourceHandler.class));
+
+        //then
+        verify(eventHandler).queryEvents(
+                any(Context.class), any(String.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+        assertThat(promise).isSameAs(queryResponsePromise);
+        assertThat(queryRequest.getQueryFilter()).isEqualTo(QueryFilter.alwaysTrue());
     }
 
     private AuditServiceConfiguration getAuditServiceConfiguration(String queryHandlerName, String topic) {
