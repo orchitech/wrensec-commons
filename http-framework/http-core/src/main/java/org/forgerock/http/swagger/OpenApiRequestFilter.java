@@ -76,7 +76,7 @@ public class OpenApiRequestFilter implements Filter {
                 return newResponsePromise(new Response(Status.NOT_IMPLEMENTED));
             }
 
-            result = setUriDetailsIfNotPresent(context, result);
+            result = setUriDetailsIfNotPresent(request, context, result);
             ObjectWriter writer = Json.makeLocalizingObjectWriter(OBJECT_MAPPER, request);
             Response chfResponse = new Response(Status.OK).setEntity(writer.writeValueAsBytes(result));
             chfResponse.getHeaders().put(ContentTypeHeader.NAME, APPLICATION_JSON_CHARSET_UTF_8);
@@ -92,13 +92,15 @@ public class OpenApiRequestFilter implements Filter {
     }
 
     /**
-     * Deduce and set the base URI of the request for the OpenAPI descriptor from the request context.
+     * Deduce and set the base URI of the request for the OpenAPI descriptor from the request context. This method
+     * should set the {@code basePath}, {@code schemes} and {@code host} properties on the descriptor.
      *
+     * @param request The CHF request.
      * @param context The CHF request context.
      * @param descriptor The descriptor object.
      * @return The updated descriptor object.
      */
-    protected Swagger setUriDetailsIfNotPresent(Context context, Swagger descriptor) {
+    protected Swagger setUriDetailsIfNotPresent(Request request, Context context, Swagger descriptor) {
         if (context.containsContext(UriRouterContext.class)) {
             final UriRouterContext uriRouterContext = context.asContext(UriRouterContext.class);
             final URI originalUri = uriRouterContext.getOriginalUri();
