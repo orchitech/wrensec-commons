@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.forgerock</groupId>
         <artifactId>forgerock-parent</artifactId>
-        <version>2.0.7</version>
+        <version>2.0.15</version>
         <relativePath />
     </parent>
 
@@ -51,9 +51,9 @@
 
     <repositories>
       <repository>
-         <id>forgerock-staging-repository</id>
-         <name>ForgeRock Release Repository</name>
-         <url>http://maven.forgerock.org/repo/releases</url>
+         <id>forgerock-internal-releases</id>
+         <name>ForgeRock Internal Releases Repository</name>
+         <url>http://maven.forgerock.org/repo/internal-releases</url>
          <snapshots>
             <enabled>false</enabled>
          </snapshots>
@@ -63,9 +63,9 @@
       </repository>
 
       <repository>
-         <id>forgerock-snapshots-repository</id>
-         <name>ForgeRock Snapshot Repository</name>
-         <url>http://maven.forgerock.org/repo/snapshots</url>
+         <id>forgerock-internal-snapshots</id>
+         <name>ForgeRock Internal Snapshots Repository</name>
+         <url>http://maven.forgerock.org/repo/internal-snapshots</url>
          <snapshots>
             <enabled>true</enabled>
          </snapshots>
