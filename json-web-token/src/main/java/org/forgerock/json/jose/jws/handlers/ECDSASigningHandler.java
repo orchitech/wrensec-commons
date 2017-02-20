@@ -157,11 +157,14 @@ public class ECDSASigningHandler implements SigningHandler {
 
         final int size = params.position();
         // The overall sequence may need up to 4 bytes for the length field plus 1 byte for the sequence tag.
-        final ByteBuffer sequence = ByteBuffer.allocate(size + 5);
+        final ByteBuffer sequence = ByteBuffer.allocate(size + 6);
         sequence.put(DerUtils.SEQUENCE_TAG);
         DerUtils.writeLength(sequence, size);
         sequence.put((ByteBuffer) params.flip());
-        return sequence.array();
+        sequence.flip();
+        final byte[] encodedSignature = new byte[sequence.remaining()];
+        sequence.get(encodedSignature);
+        return encodedSignature;
     }
 
 }
