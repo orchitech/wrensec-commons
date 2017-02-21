@@ -11,14 +11,17 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.stages.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+
 import org.forgerock.util.i18n.PreferredLocales;
 
 /**
@@ -46,44 +49,44 @@ public final class LocaleUtils {
      * @throws IllegalArgumentException
      *         If an acceptable string cannot be found
      */
-    public static String getTranslationFromLocaleMap(
-            PreferredLocales preferredLocales, Map<Locale, String> translations) {
-        List<Locale> locales = preferredLocales.getLocales();
-        for (Locale locale : locales) {
-            String translation = getTranslation(locales, locale, translations);
-            if (translation != null) {
-                return translation;
+    public static String getTranslationFromLocaleMap(PreferredLocales preferredLocales, Map<Locale,
+            String> translations) {
+        List<Locale> locales = getTargetLocales(preferredLocales);
+        Set<Locale> candidates = translations.keySet();
+        int numberLocales = locales.size();
+        for (int i = 0; i < numberLocales; i++) {
+            Locale locale = locales.get(i);
+            List<Locale> remainingLocales = locales.subList(i + 1, numberLocales);
+            for (Locale candidate : candidates) {
+                if (PreferredLocales.matches(locale, candidate, remainingLocales)) {
+                    return translations.get(candidate);
+                }
             }
         }
         throw new IllegalArgumentException("Cannot find suitable translation from given choices");
     }
 
     /**
-     * Retrieves the appropriate translation.
-     *
-     * @param locales
-     *         The preferred locales
-     * @param locale
-     *         The desired locale
-     * @param translations
-     *         The translations
-     *
-     * @return A translation or null if not available
+     * Add the SELF_SERVICE_DEFAULT_LOCALE and JVM Default locale to the list.
      */
-    public static String getTranslation(List<Locale> locales, Locale locale, Map<Locale, String> translations) {
-        String translation = translations.get(locale);
-        if (translation != null) {
-            return translation;
-        }
-        String languageTag = locale.toLanguageTag();
-        int parentTagEnd = languageTag.lastIndexOf("-");
-        if (parentTagEnd > -1) {
-            Locale parent = Locale.forLanguageTag(languageTag.substring(0, parentTagEnd));
-            if (!locales.contains(parent)) {
-                return getTranslation(locales, parent, translations);
+    private static List<Locale> getTargetLocales(PreferredLocales preferredLocales) {
+        Locale defaultLocale =
+                Locale.forLanguageTag(System.getProperty("org.forgerock.selfservice.defaultLocale", "en-US"));
+        boolean defaultsAdded = false;
+        List<Locale> locales = new ArrayList<>();
+        for (Locale locale : preferredLocales.getLocales()) {
+            if (locale.equals(Locale.ROOT) && !defaultsAdded) {
+                locales.add(defaultLocale);
+                locales.add(Locale.getDefault());
+                defaultsAdded = true;
+            } else if (!locale.equals(Locale.ROOT)) {
+                locales.add(locale);
             }
         }
-        return null;
+        if (!defaultsAdded) {
+            locales.add(defaultLocale);
+            locales.add(Locale.getDefault());
+        }
+        return locales;
     }
-
 }
