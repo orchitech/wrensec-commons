@@ -42,8 +42,6 @@ import org.forgerock.util.Reject;
 import org.forgerock.util.i18n.PreferredLocales;
 
 import javax.inject.Inject;
-
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -54,6 +52,7 @@ import java.util.UUID;
  */
 public final class VerifyEmailAccountStage implements ProgressStage<VerifyEmailAccountConfig> {
 
+    static final String REQUIREMENT_KEY_EMAIL = "mail";
     static final String REQUIREMENT_KEY_CODE = "code";
 
     private static final String VALIDATE_CODE_TAG = "validateCode";
@@ -185,10 +184,6 @@ public final class VerifyEmailAccountStage implements ProgressStage<VerifyEmailA
                                             field("subject", subjectText),
                                             field("type", config.getMimeType()),
                                             field("body", bodyText))));
-
-            for (Map.Entry<String, String> parameter : config.getEmailServiceParameters().entrySet()) {
-                request.setAdditionalParameter(parameter.getKey(), parameter.getValue());
-            }
 
             connection.action(processContext.getRequestContext(), request);
         }

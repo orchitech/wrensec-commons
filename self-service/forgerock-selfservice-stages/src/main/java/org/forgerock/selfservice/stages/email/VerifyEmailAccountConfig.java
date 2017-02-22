@@ -18,7 +18,6 @@ package org.forgerock.selfservice.stages.email;
 
 import org.forgerock.selfservice.core.config.StageConfig;
 
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +35,6 @@ public final class VerifyEmailAccountConfig implements StageConfig {
     public static final String NAME = "emailValidation";
 
     private String emailServiceUrl;
-    private Map<String, String> emailServiceParameters = new LinkedHashMap<>();
     private Map<Locale, String> subjectTranslations;
     private String from;
     private Map<Locale, String> messageTranslations;
@@ -64,30 +62,6 @@ public final class VerifyEmailAccountConfig implements StageConfig {
      */
     public VerifyEmailAccountConfig setEmailServiceUrl(String emailServiceUrl) {
         this.emailServiceUrl = emailServiceUrl;
-        return this;
-    }
-
-    /**
-     * Gets additional parameters for the email service.
-     *
-     * @return the email service parameters
-     */
-    public Map<String, String> getEmailServiceParameters() {
-        return emailServiceParameters;
-    }
-
-    /**
-     * Sets any parameters for the email service.
-     *
-     * @param emailServiceParameters
-     *         the email service Parameters
-     *
-     * @return this config instance
-     */
-    public VerifyEmailAccountConfig setEmailServiceParameters(Map<String, String> emailServiceParameters) {
-        if (emailServiceParameters != null) {
-            this.emailServiceParameters = emailServiceParameters;
-        }
         return this;
     }
 
@@ -269,7 +243,6 @@ public final class VerifyEmailAccountConfig implements StageConfig {
         return Objects.equals(getName(), that.getName())
                 && Objects.equals(getProgressStageClassName(), that.getProgressStageClassName())
                 && Objects.equals(emailServiceUrl, that.emailServiceUrl)
-                && Objects.equals(emailServiceParameters, that.emailServiceParameters)
                 && Objects.equals(subjectTranslations, that.subjectTranslations)
                 && Objects.equals(from, that.from)
                 && Objects.equals(messageTranslations, that.messageTranslations)
@@ -282,7 +255,7 @@ public final class VerifyEmailAccountConfig implements StageConfig {
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getProgressStageClassName(),
-                emailServiceUrl, emailServiceParameters, subjectTranslations, from, messageTranslations, mimeType,
+                emailServiceUrl, subjectTranslations, from, messageTranslations, mimeType,
                 verificationLink, verificationLinkToken, identityEmailField);
     }
 

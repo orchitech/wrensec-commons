@@ -43,7 +43,6 @@ public final class VerifyEmailAccountConfigTest {
         VerifyEmailAccountConfig verifyEmailAccountConfig = (VerifyEmailAccountConfig) config;
 
         assertThat(verifyEmailAccountConfig.getEmailServiceUrl()).isEqualTo("/email");
-        assertThat(verifyEmailAccountConfig.getEmailServiceParameters()).containsEntry("someflag", "true");
         assertThat(verifyEmailAccountConfig.getFrom()).isEqualTo("noreply@example.com");
         assertThat(verifyEmailAccountConfig.getVerificationLink()).isEqualTo("/verifyemail");
         assertThat(verifyEmailAccountConfig.getVerificationLinkToken()).isEqualTo("abc123");
