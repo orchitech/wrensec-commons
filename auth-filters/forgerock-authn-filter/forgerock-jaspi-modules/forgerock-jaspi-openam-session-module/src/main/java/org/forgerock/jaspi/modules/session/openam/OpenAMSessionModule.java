@@ -293,7 +293,7 @@ public class OpenAMSessionModule implements AsyncServerAuthModule {
                 .setMethod("POST")
                 .setUri(URI.create(openamDeploymentUrl + JSON_SESSIONS_RELATIVE_URI + tokenId
                         + "?_action=validate"));
-
+        validateRequest.getHeaders().put("Accept-API-Version", "protocol=1.0,resource=1.0");
         // set empty body and Content-Type header for AM 12.
         validateRequest.getEntity().setJson(Collections.emptyMap());
 
