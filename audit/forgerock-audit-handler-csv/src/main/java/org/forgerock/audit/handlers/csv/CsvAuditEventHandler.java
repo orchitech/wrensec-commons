@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.audit.handlers.csv;
 
@@ -32,6 +32,7 @@ import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.resource.ResourceResponse.FIELD_CONTENT_ID;
 import static org.forgerock.json.resource.Responses.newQueryResponse;
 import static org.forgerock.json.resource.Responses.newResourceResponse;
+import static org.forgerock.util.Utils.isNullOrEmpty;
 
 import java.io.File;
 import java.io.FileReader;
@@ -152,9 +153,17 @@ public class CsvAuditEventHandler extends AuditEventHandlerBase {
             Duration duration = security.getSignatureIntervalDuration();
             Reject.ifTrue(duration.isZero() || duration.isUnlimited(),
                     "The signature interval can't be zero or unlimited");
+            Reject.ifFalse(
+                    !isNullOrEmpty(security.getKeyStoreHandlerName())
+                            ^ (!isNullOrEmpty(security.getFilename()) && !isNullOrEmpty(security.getPassword())),
+                    "Either keyStoreHandlerName or filename/password security settings must be specified, "
+                            + "but not both");
 
             if (security.getKeyStoreHandlerName() != null) {
                 this.keyStoreHandler = keyStoreHandlerProvider.getKeystoreHandler(security.getKeyStoreHandlerName());
+                Reject.ifTrue(keyStoreHandler == null,
+                        "No keystore configured for keyStoreHandlerName: "
+                                + security.getKeyStoreHandlerName());
             } else {
                 try {
                     keyStoreHandler = new JcaKeyStoreHandler(CsvSecureConstants.KEYSTORE_TYPE, security.getFilename(),
