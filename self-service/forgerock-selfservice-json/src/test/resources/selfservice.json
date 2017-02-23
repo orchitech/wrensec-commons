@@ -47,6 +47,9 @@
     {
       "name" : "emailUsername",
       "emailServiceUrl": "/email",
+      "emailServiceParameters" : {
+        "someflag" : "true"
+      },
       "from": "info@admin.org",
       "mimeType": "text/html",
       "subjectTranslations": {
