@@ -95,3 +95,5 @@ local.properties
 # TestNG Eclipse plugin default output directory
 test-output/
 
+# NodeJS modules
+node_modules/
