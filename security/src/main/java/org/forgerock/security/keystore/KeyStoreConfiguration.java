@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -44,6 +45,7 @@ public class KeyStoreConfiguration {
     private String providerClass;
     private String providerArg;
     private String providerName;
+    private Map<String, Object> parameters;
 
     // Private no arg constructor is provided for Jackson
     private KeyStoreConfiguration() {
@@ -64,6 +66,8 @@ public class KeyStoreConfiguration {
      * @param providerArg          Optional argument used to instantiate a KeyStoreProvider. The interpretation
      *                             is left to the provider
      * @param providerName         The name of the registered keystore provider instance ("LDAP", "JKS", etc.)
+     * @param parameters           optional key/value map used to create loadstore parameters for keystore
+     *                             initialization
      */
     public KeyStoreConfiguration(String keyStorePasswordFile,
                                  String keyPasswordFile,
@@ -71,7 +75,8 @@ public class KeyStoreConfiguration {
                                  String keyStoreFile,
                                  String providerClass,
                                  String providerArg,
-                                 String providerName) {
+                                 String providerName,
+                                 Map<String, Object> parameters) {
         this.keyStorePasswordFile = keyStorePasswordFile;
         this.keyPasswordFile = keyPasswordFile;
         this.keyStoreType = keyStoreType;
@@ -79,6 +84,7 @@ public class KeyStoreConfiguration {
         this.providerClass = providerClass;
         this.providerArg = providerArg;
         this.providerName = providerName;
+        this.parameters = parameters;
     }
 
     /**
@@ -143,6 +149,16 @@ public class KeyStoreConfiguration {
      */
     public String getProviderArg() {
         return providerArg;
+    }
+
+    /**
+     * Get the optional parameter map used to initialize a keystore. This is
+     * for providers that support a LoadStoreParameter argument.
+     *
+     * @return parameter map used to configure the keystore.
+     */
+    public Map<String, Object> getParameters() {
+        return parameters;
     }
 
     /**
@@ -222,8 +238,14 @@ public class KeyStoreConfiguration {
             } else if (getProviderClass() != null) {
                 builder = builder
                         .withProviderClass(getProviderClass(), classLoader)
-                        .withProviderArgument(getProviderArg())
                         .withKeyStoreType(getKeyStoreType());
+                if (getProviderArg() != null) {
+                    builder = builder.withProviderArgument(getProviderArg());
+                }
+                if (getParameters() != null) {
+                    final MapKeyStoreParameters params = new MapKeyStoreParameters(getParameters());
+                    builder = builder.withLoadStoreParameter(params);
+                }
             } else {
                 throw new KeyStoreException("Could not initialize keystore - the configuration file is incomplete");
             }

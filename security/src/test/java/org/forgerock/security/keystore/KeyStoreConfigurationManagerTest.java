@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 
 import org.forgerock.opendj.security.OpenDjSecurityProvider;
 import org.testng.annotations.DataProvider;
@@ -92,8 +93,8 @@ public class KeyStoreConfigurationManagerTest {
         String configFile = "/keystore_opendj.json";
 
         final InputStream in = getClass().getResourceAsStream(configFile);
+        assertThat(in).isNotNull();
         String dir = getPathPrefix();
-        assertThat(configFile).isNotNull();
         KeyStoreConfigurationManager cf = new KeyStoreConfigurationManagerImpl(in);
         KeyStoreConfiguration ksc = cf.getKeyStoreConfiguration("default");
         KeyStore keyStore = ksc.loadKeyStore(dir);
@@ -118,6 +119,37 @@ public class KeyStoreConfigurationManagerTest {
         builder = builder.withProviderClass(OPENDJ_CLASSNAME, Thread.currentThread().getContextClassLoader());
     }
 
+    @Test()
+    public void testMapParameters() throws Exception {
+        KeyStoreConfiguration ksc = getKeyStoreConfigWithMapParams("/keystore_opendj_with_map_params.json");
+
+        Map<String, Object> p = ksc.getParameters();
+        assertThat(p).isNotNull();
+        assertThat(p.get("org.forgerock.opendj.security.port")).isEqualTo(1389);
+    }
+
+    // enable this integration test once https://bugster.forgerock.org/jira/browse/OPENDJ-3790 is complete
+    @Test(enabled = false)
+    public void testOpenDJwithMapParameters() throws Exception {
+        KeyStoreConfiguration ksc = getKeyStoreConfigWithMapParams("/keystore_opendj_with_map_params.json");
+
+        Map<String, Object> p = ksc.getParameters();
+        assertThat(p).isNotNull();
+        assertThat(p.get("org.forgerock.opendj.security.port")).isEqualTo(1389);
+        String dir = getPathPrefix();
+
+        KeyStore keyStore = ksc.loadKeyStore(dir);
+    }
+
+    private KeyStoreConfiguration getKeyStoreConfigWithMapParams(String configFile) throws Exception {
+        final InputStream in = getClass().getResourceAsStream(configFile);
+        assertThat(in).isNotNull();
+        String dir = getPathPrefix();
+        KeyStoreConfigurationManager cf = new KeyStoreConfigurationManagerImpl(in);
+        KeyStoreConfiguration ksc = cf.getKeyStoreConfiguration("default");
+        return ksc;
+    }
+
 
     // test method to add a secret to the keystore
     private void setSecretKeyEntry(KeyStore ks, String alias, String password) throws KeyStoreException {
@@ -140,6 +172,7 @@ public class KeyStoreConfigurationManagerTest {
         }
     }
 
+    private static String pathPrefix;
 
     /**
      * Calculate the parent directory of the keystore / storepass files
@@ -148,9 +181,14 @@ public class KeyStoreConfigurationManagerTest {
      * @return
      */
     private String getPathPrefix() throws URISyntaxException {
+        if (pathPrefix != null) {
+            return pathPrefix;
+        }
+
         String fileName = "/keystore_config1.json";
 
         File f = Paths.get(getClass().getResource(fileName).toURI()).toFile();
-        return f.getParent();
+        pathPrefix = f.getParent();
+        return pathPrefix;
     }
 }
