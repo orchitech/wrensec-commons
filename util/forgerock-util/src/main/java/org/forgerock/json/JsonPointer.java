@@ -84,6 +84,37 @@ public class JsonPointer implements Iterable<String> {
     }
 
     /**
+     * Constructs a JSON pointer, identifying the specified pointer value.
+     *
+     * @param pointer a string containing the JSON pointer of the value to identify.
+     * @return The new JSON pointer
+     * @throws JsonException if the pointer is malformed.
+     */
+    public static JsonPointer ptr(final String pointer) {
+        return new JsonPointer(pointer);
+    }
+
+    /**
+     * Constructs a JSON pointer from an array of reference tokens.
+     *
+     * @param tokens an array of string reference tokens.
+     * @return The new json pointer
+     */
+    public static JsonPointer ptr(final String... tokens) {
+        return new JsonPointer(tokens);
+    }
+
+    /**
+     * Constructs a JSON pointer from an iterable collection of reference tokens.
+     *
+     * @param iterable an iterable collection of reference tokens.
+     * @return The new json pointer
+     */
+    public static JsonPointer ptr(final Iterable<String> iterable) {
+        return new JsonPointer(iterable);
+    }
+
+    /**
      * Encodes a reference token into a string value suitable to expressing in a JSON
      * pointer string value.
      *
