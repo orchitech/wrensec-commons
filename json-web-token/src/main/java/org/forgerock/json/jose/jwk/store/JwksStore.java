@@ -25,6 +25,7 @@ import org.forgerock.json.jose.jwk.JWKSet;
 import org.forgerock.json.jose.jwk.JWKSetParser;
 import org.forgerock.json.jose.jwk.KeyUse;
 import org.forgerock.json.jose.jwt.Algorithm;
+import org.forgerock.util.Reject;
 import org.forgerock.util.SimpleHTTPClient;
 import org.forgerock.util.time.Duration;
 import org.slf4j.Logger;
@@ -187,9 +188,15 @@ public class JwksStore {
     /**
      * Update the JWKs URI.
      * @param jwkUrl the jwks uri.
+     * @throws FailedToLoadJWKException If the URI has changed and the JWK set cannot be loaded.
      */
-    public void setJwkUrl(URL jwkUrl) {
+    public void setJwkUrl(URL jwkUrl) throws FailedToLoadJWKException {
+        Reject.ifNull(jwkUrl);
+        URL originalJwkUrl = this.jwkUrl;
         this.jwkUrl = jwkUrl;
+        if (!jwkUrl.equals(originalJwkUrl)) {
+            reloadJwks();
+        }
     }
 
     private boolean hasJwksCacheTimedOut() {

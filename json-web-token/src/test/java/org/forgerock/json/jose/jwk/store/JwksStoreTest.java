@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2017 ForgeRock AS
+ * Copyright 2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwk.store;
@@ -108,6 +108,25 @@ public class JwksStoreTest {
         for (JWK expectedJwk : jwksMapByKid.values()) {
             assertEquals(jwksStore.findJwk(expectedJwk.getKeyId()).getKeyId(), expectedJwk.getKeyId());
         }
+    }
+
+    @Test
+    public void testChangingJwksUri() throws Exception {
+        //Given
+        URL originalJwkUrl = new URL("http://different.com");
+        JwksStore jwksStore = new JwksStore(jwksStoreID, JwksStoreService.JWKS_STORE_DEFAULT_CACHE_TIMEOUT_MS,
+                JwksStoreService.JWKS_STORE_DEFAULT_CACHE_MISS_CACHE_TIME_MS, originalJwkUrl, jwkSetParser);
+        given(jwkSetParser.jwkSet(this.jwkUrl)).willReturn(jwkSet);
+
+        //When
+        jwksStore.setJwkUrl(this.jwkUrl);
+
+        //then
+        for (JWK expectedJwk : jwksMapByKid.values()) {
+            assertEquals(jwksStore.findJwk(expectedJwk.getKeyId()).getKeyId(), expectedJwk.getKeyId());
+        }
+        verify(jwkSetParser).jwkSet(originalJwkUrl);
+        verify(jwkSetParser).jwkSet(this.jwkUrl);
     }
 
     @Test
