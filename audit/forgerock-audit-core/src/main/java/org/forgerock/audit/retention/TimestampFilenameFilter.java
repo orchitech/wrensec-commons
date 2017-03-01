@@ -11,13 +11,12 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.audit.retention;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.nio.file.Path;
 
 import org.joda.time.format.DateTimeFormatter;
 
@@ -27,21 +26,20 @@ import org.joda.time.format.DateTimeFormatter;
  */
 public class TimestampFilenameFilter implements FilenameFilter {
 
-    private final File initialFile;
-    private final String prefix;
+    private final String fileNameTemplate;
     private final DateTimeFormatter suffixDateFormat;
 
     /**
      * Constructs a {@link TimestampFilenameFilter} given an initial file, prefix and suffix.
      * @param initialFile The initial filename.
-     * @param prefix The audit file prefix to match.
+     * @param prefix The audit file prefix to match (can be {@code null}).
      * @param suffixDateFormat The audit file date suffix to match.
      */
     public TimestampFilenameFilter(final File initialFile, final String prefix,
             final DateTimeFormatter suffixDateFormat) {
-        this.initialFile = initialFile;
-        this.prefix = prefix;
         this.suffixDateFormat = suffixDateFormat;
+        this.fileNameTemplate =
+                (prefix != null ? prefix : "").concat(String.valueOf(initialFile.toPath().getFileName()));
     }
 
     /**
@@ -49,34 +47,19 @@ public class TimestampFilenameFilter implements FilenameFilter {
      * {@inheritDoc}
      */
     @Override
-    public boolean accept(File dir, String name) {
-        // create prefix + filename string
-        final StringBuilder newFileNameBuilder = new StringBuilder();
-        final Path path = initialFile.toPath();
+    public boolean accept(final File dir, final String fileName) {
+        return fileName.length() > fileNameTemplate.length()
+                && fileName.startsWith(fileNameTemplate)
+                && suffixMatchesDateFormat(fileName.substring(fileNameTemplate.length()));
+    }
 
-        if (prefix != null) {
-            newFileNameBuilder.append(prefix);
-        }
-        newFileNameBuilder.append(path.getFileName());
-        final String newFileName = newFileNameBuilder.toString();
-
-        if (name.length() < newFileName.length()) {
-            // the filename is smaller or equal to the prefix + filename
-            return false;
-        }
-
-        final String timestamp = name.substring(newFileName.length());
+    private boolean suffixMatchesDateFormat(final String timestamp) {
         try {
             suffixDateFormat.parseDateTime(timestamp);
-        } catch (IllegalArgumentException | UnsupportedOperationException e) {
+            return true;
+        } catch (final IllegalArgumentException | UnsupportedOperationException e) {
             // not a valid timestamp for the given timestamp suffix
             return false;
         }
-
-        // if the file starts with the prefix + initial filename match it.
-        if (name.startsWith(newFileName)) {
-            return true;
-        }
-        return false;
     }
 }
