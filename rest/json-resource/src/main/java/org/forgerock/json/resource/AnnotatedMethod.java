@@ -39,6 +39,7 @@ import org.forgerock.util.promise.Promise;
  * it being handled with a {@link NotSupportedException}.
  */
 final class AnnotatedMethod {
+    private final static int ABSENT = -1;
     private final Object requestHandler;
     private final Method method;
     private final int idParameter;
@@ -58,6 +59,10 @@ final class AnnotatedMethod {
         this.requestParameter = requestParameter;
         this.queryHandlerParameter = queryHandlerParameter;
         this.numberOfParameters = numberOfParameters;
+    }
+
+    boolean isUsingId() {
+        return idParameter != ABSENT;
     }
 
     <T> Promise<T, ResourceException> invoke(Context context, Request request) {
@@ -83,16 +88,16 @@ final class AnnotatedMethod {
             return new BadRequestException(operation + " not supported").asPromise();
         }
         Object[] args = new Object[numberOfParameters];
-        if (idParameter > -1) {
+        if (idParameter != ABSENT) {
             args[idParameter] = id;
         }
-        if (requestParameter > -1) {
+        if (requestParameter != ABSENT) {
             args[requestParameter] = request;
         }
-        if (contextParameter > -1) {
+        if (contextParameter != ABSENT) {
             args[contextParameter] = context;
         }
-        if (queryHandlerParameter > -1) {
+        if (queryHandlerParameter != ABSENT) {
             args[queryHandlerParameter] = queryHandler;
         }
         try {
@@ -121,15 +126,15 @@ final class AnnotatedMethod {
                 }
             }
         }
-        return new AnnotatedMethod(annotation.getSimpleName(), null, null, -1, -1, -1, -1, -1);
+        return new AnnotatedMethod(annotation.getSimpleName(), null, null, ABSENT, ABSENT, ABSENT, ABSENT, ABSENT);
     }
 
     static AnnotatedMethod checkMethod(Class<?> annotation, Object requestHandler, Method method, boolean needsId) {
         if (Promise.class.equals(method.getReturnType())) {
-            int idParam = -1;
-            int contextParam = -1;
-            int requestParam = -1;
-            int queryHandlerParam = -1;
+            int idParam = ABSENT;
+            int contextParam = ABSENT;
+            int requestParam = ABSENT;
+            int queryHandlerParam = ABSENT;
             for (int i = 0; i < method.getParameterTypes().length; i++) {
                 Class<?> type = method.getParameterTypes()[i];
                 if (String.class.equals(type)) {
@@ -143,14 +148,14 @@ final class AnnotatedMethod {
                 }
             }
             if (Arrays.asList(Create.class, Update.class, Patch.class, Query.class).contains(annotation)
-                    && requestParam == -1) {
+                    && requestParam == ABSENT) {
                 return null;
             }
-            if (queryHandlerParam == -1 && Query.class.equals(annotation)
-                    || queryHandlerParam != -1 && !Query.class.equals(annotation)) {
+            if (queryHandlerParam == ABSENT && Query.class.equals(annotation)
+                    || queryHandlerParam != ABSENT && !Query.class.equals(annotation)) {
                 return null;
             }
-            if (!needsId || idParam > -1) {
+            if (!needsId || idParam != ABSENT) {
                 return new AnnotatedMethod(annotation.getSimpleName(), requestHandler, method, idParam, contextParam,
                         requestParam, queryHandlerParam, method.getParameterTypes().length);
             }

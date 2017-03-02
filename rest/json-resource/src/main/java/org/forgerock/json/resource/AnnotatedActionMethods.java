@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.resource;
@@ -31,16 +31,22 @@ import org.forgerock.util.promise.Promise;
  */
 class AnnotatedActionMethods {
 
-    private Map<String, AnnotatedMethod> methods = new HashMap<>();
+    private Map<String, AnnotatedMethod> methodsWithIdActions = new HashMap<>();
+
+    private Map<String, AnnotatedMethod> methodsWithoutIdActions = new HashMap<>();
 
     Promise<ActionResponse, ResourceException> invoke(Context context, ActionRequest request) {
-        return invoke(context, request, null);
+        return invoke(context, request, null, methodsWithoutIdActions.get(request.getAction()));
     }
 
     Promise<ActionResponse, ResourceException> invoke(Context context, ActionRequest request, String id) {
-        AnnotatedMethod method = methods.get(request.getAction());
+        return invoke(context, request, id, methodsWithIdActions.get(request.getAction()));
+    }
+
+    private Promise<ActionResponse, ResourceException> invoke(
+        Context context, ActionRequest request, String id, AnnotatedMethod method) {
         if (method == null) {
-            return new NotSupportedException(request.getAction() + "not supported").asPromise();
+            return new NotSupportedException(request.getAction() + " not supported").asPromise();
         }
         return method.invoke(context, request, id);
     }
@@ -56,7 +62,11 @@ class AnnotatedActionMethods {
                     if (actionName == null || actionName.length() == 0) {
                         actionName = method.getName();
                     }
-                    methods.methods.put(actionName, checked);
+                    if (checked.isUsingId()) {
+                        methods.methodsWithIdActions.put(actionName, checked);
+                    } else {
+                        methods.methodsWithoutIdActions.put(actionName, checked);
+                    }
                 }
             }
         }

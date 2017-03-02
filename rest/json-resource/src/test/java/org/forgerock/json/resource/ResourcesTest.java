@@ -496,6 +496,27 @@ public final class ResourcesTest {
         }
     }
 
+    @Test
+    public void testActionCollectionItemAnnotatedRequestHandler() throws Exception {
+
+        // Given
+        AnnotationCollection provider = new AnnotationCollection();
+        Connection connection = Resources.newInternalConnection(newHandler(provider));
+        ActionRequest req1 = Requests.newActionRequest("/test/fred", "action");
+        ActionRequest req2 = Requests.newActionRequest("/test", "fred", "action");
+        ActionRequest req3 = Requests.newActionRequest("/test", "action");
+
+        // When
+        Promise<ActionResponse, ResourceException> promise1 = connection.actionAsync(new RootContext(), req1);
+        Promise<ActionResponse, ResourceException> promise2 = connection.actionAsync(new RootContext(), req2);
+        Promise<ActionResponse, ResourceException> promise3 = connection.actionAsync(new RootContext(), req3);
+
+        // Then
+        assertThat(promise1).succeeded().withContent().stringAt("result").isEqualTo("instanceAction-fred");
+        assertThat(promise2).succeeded().withContent().stringAt("result").isEqualTo("instanceAction-fred");
+        assertThat(promise3).succeeded().withContent().stringAt("result").isEqualTo("collectionAction");
+    }
+
     @Test(dataProvider = "annotatedRequestHandlerData")
     public void testQueryCollectionAnnotatedRequestHandler(Class<?> requestHandler, HandlerVariant type, boolean create,
             boolean read, boolean update, boolean delete, boolean patch, boolean resourceAction,
@@ -635,6 +656,14 @@ public final class ResourcesTest {
         @Action(operationDescription = @Operation)
         public Promise<ActionResponse, ResourceException> collectionAction2() {
             return newResultPromise(newActionResponse(json(object(field("result", "collectionAction2")))));
+        }
+        @Action(operationDescription = @Operation)
+        public Promise<ActionResponse, ResourceException> action(String id) {
+            return newResultPromise(newActionResponse(json(object(field("result", "instanceAction-" + id)))));
+        }
+        @Action(operationDescription = @Operation)
+        public Promise<ActionResponse, ResourceException> action() {
+            return newResultPromise(newActionResponse(json(object(field("result", "collectionAction")))));
         }
         @Query(operationDescription = @Operation, type = QueryType.FILTER, queryableFields = "*")
         public Promise<QueryResponse, ResourceException> query(QueryRequest request, QueryResourceHandler handler) {
