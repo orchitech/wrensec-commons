@@ -24,7 +24,6 @@ import java.security.PublicKey;
 import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
 import org.forgerock.jaspi.modules.openid.exceptions.InvalidSignatureException;
 import org.forgerock.jaspi.modules.openid.exceptions.OpenIdConnectVerificationException;
-import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.util.SimpleHTTPClient;
 import org.forgerock.json.jose.jwk.store.JwksStore;
 import org.forgerock.json.jose.jwk.EcJWK;
@@ -92,20 +91,15 @@ public class JWKOpenIdResolverImpl extends BaseOpenIdResolver {
     }
 
     private PublicKey getPublicKeyFromJWK(org.forgerock.json.jose.jwk.JWK jwk) {
-        JwsAlgorithm jweAlgorithm = JwsAlgorithm.valueOf(jwk.getAlgorithm());
-
-        switch (jweAlgorithm.getAlgorithmType()) {
+        switch (jwk.getKeyType()) {
         case RSA:
             RsaJWK rsaJWK = (RsaJWK) jwk;
             return rsaJWK.toRSAPublicKey();
-        case ECDSA:
+        case EC:
             EcJWK ecJWK = (EcJWK) jwk;
             return ecJWK.toECPublicKey();
-        case NONE:
-        case HMAC:
         default:
-            throw new IllegalArgumentException("Algorithm type '" + jweAlgorithm.getAlgorithmType()
-                    + "' not supported");
+            throw new IllegalArgumentException("Key type '" + jwk.getKeyType() + "' not supported");
         }
     }
 }

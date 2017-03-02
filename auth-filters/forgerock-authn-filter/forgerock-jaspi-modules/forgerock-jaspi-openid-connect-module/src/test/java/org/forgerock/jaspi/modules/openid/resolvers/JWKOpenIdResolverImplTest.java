@@ -67,7 +67,7 @@ public class JWKOpenIdResolverImplTest {
         keyPairGenerator.initialize(2048);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         RsaJWK rsaJwk = new RsaJWK((RSAPublicKey) keyPair.getPublic(), KeyUse.SIG,
-                JwsAlgorithm.RS256.getJwaAlgorithmName(), "rsaJwk", null, null, null);
+                null, "rsaJwk", null, null, null);
 
         Map<String, Object> claims = new HashMap<String, Object>();
         claims.put("test", "test");
