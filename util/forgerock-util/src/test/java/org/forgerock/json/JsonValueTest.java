@@ -31,6 +31,7 @@ import static org.forgerock.json.JsonValueFunctions.url;
 import static org.testng.Assert.fail;
 
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -191,6 +192,33 @@ public class JsonValueTest {
 
         value = new JsonValue(bjensen, new JsonPointer("/pointer"));
         assertThat(value.asString()).isEqualTo("bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValueObjectFromFieldConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue bjensenIsHisName = json(object(
+                new AbstractMap.SimpleImmutableEntry<String, Object>("name", bjensen)));
+
+        assertThat(bjensenIsHisName.asMap()).containsEntry("name", "bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValueFieldConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue bjensenIsHisName = json(object(field("name", bjensen)));
+
+        assertThat(bjensenIsHisName.asMap()).containsEntry("name", "bjensen");
+    }
+
+
+    @Test
+    public void shouldUnwrapJsonValueArrayConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue scarter = json("scarter");
+        JsonValue commonActors = json(array(bjensen, scarter));
+
+        assertThat(commonActors.asList()).containsExactly("bjensen", "scarter");
     }
 
     // ----- manipulation tests ----------

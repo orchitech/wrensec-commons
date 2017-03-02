@@ -20,7 +20,6 @@ package org.forgerock.json;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -54,7 +53,11 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
      * @return A JSON array.
      */
     public static List<Object> array(final Object... objects) {
-        return new ArrayList<>(Arrays.asList(objects));
+        List<Object> array = new ArrayList<>(objects.length);
+        for (Object o : objects) {
+            array.add(unwrap(o));
+        }
+        return array;
     }
 
     /**
@@ -97,7 +100,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
      * @return The JSON field for inclusion in a JSON object.
      */
     public static Map.Entry<String, Object> field(final String key, final Object value) {
-        return new AbstractMap.SimpleImmutableEntry<>(key, value);
+        return new AbstractMap.SimpleImmutableEntry<>(key, unwrap(value));
     }
 
     /**
@@ -140,7 +143,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         final Map<String, Object> object = object(fields.length);
         for (final Map.Entry<String, Object> field : fields) {
             if (field != null) {
-                object.put(field.getKey(), field.getValue());
+                object.put(field.getKey(), unwrap(field.getValue()));
             }
         }
         return object;
