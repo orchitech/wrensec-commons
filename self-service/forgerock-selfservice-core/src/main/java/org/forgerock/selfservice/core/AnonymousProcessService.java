@@ -137,10 +137,10 @@ public final class AnonymousProcessService extends AbstractRequestHandler {
             logger.error("Internal error intercepted", iseE);
             return iseE;
         } catch (ResourceException rE) {
-            logger.warn("Resource exception intercepted", rE);
+            logger.debug("Resource exception intercepted", rE);
             return rE;
         } catch (JsonValueException jvE) {
-            logger.warn("Invalid JSON input", jvE);
+            logger.debug("Invalid JSON input", jvE);
             return new BadRequestException(jvE.getMessage(), jvE);
         } catch (Exception ex) {
             logger.error("Exception intercepted", ex);
