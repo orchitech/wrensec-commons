@@ -23,8 +23,10 @@ import java.security.KeyPair;
 import java.util.Date;
 import java.util.Map;
 
+import org.forgerock.guava.common.base.Optional;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.jose.builders.JwtBuilderFactory;
+import org.forgerock.json.jose.builders.JwtClaimsSetBuilder;
 import org.forgerock.json.jose.jwe.EncryptionMethod;
 import org.forgerock.json.jose.jwe.JweAlgorithm;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
@@ -52,7 +54,26 @@ public final class JwtTokenHandler implements TokenHandler {
     private final KeyPair jweKeyPair;
     private final JwsAlgorithm jwsAlgorithm;
     private final SigningHandler jwsHandler;
-    private final long tokenLifeTimeInSeconds;
+    private final Optional<Long> tokenLifeTimeInSeconds;
+
+    /**
+     * Constructs a new JWT token handler that never expires.
+     *
+     * @param jweAlgorithm
+     *         the JWE algorithm use to construct the key pair
+     * @param jweMethod
+     *         the encryption method to use
+     * @param jweKeyPair
+     *         key pair for the purpose of encryption
+     * @param jwsAlgorithm
+     *         the JWS algorithm to use
+     * @param jwsHandler
+     *         the signing handler
+     */
+    public JwtTokenHandler(JweAlgorithm jweAlgorithm, EncryptionMethod jweMethod, KeyPair jweKeyPair,
+            JwsAlgorithm jwsAlgorithm, SigningHandler jwsHandler) {
+        this(jweAlgorithm, jweMethod, jweKeyPair, jwsAlgorithm, jwsHandler, Optional.<Long>absent());
+    }
 
     /**
      * Constructs a new JWT token handler.
@@ -71,9 +92,9 @@ public final class JwtTokenHandler implements TokenHandler {
      *         token life time in seconds
      */
     public JwtTokenHandler(JweAlgorithm jweAlgorithm, EncryptionMethod jweMethod, KeyPair jweKeyPair,
-                           JwsAlgorithm jwsAlgorithm, SigningHandler jwsHandler, long tokenLifeTimeInSeconds) {
+            JwsAlgorithm jwsAlgorithm, SigningHandler jwsHandler, Optional<Long> tokenLifeTimeInSeconds) {
         Reject.ifNull(jweAlgorithm, jweMethod, jweKeyPair, jwsAlgorithm, jwsHandler);
-        Reject.ifFalse(tokenLifeTimeInSeconds > 0);
+        Reject.ifTrue(tokenLifeTimeInSeconds.isPresent() && tokenLifeTimeInSeconds.get() <= 0);
         jwtBuilderFactory = new JwtBuilderFactory();
         this.jweAlgorithm = jweAlgorithm;
         this.jweMethod = jweMethod;
@@ -87,14 +108,19 @@ public final class JwtTokenHandler implements TokenHandler {
     public String generate(JsonValue state) throws TokenHandlerException {
         Reject.ifNull(state);
 
-        long expirationTime = System.currentTimeMillis() + (tokenLifeTimeInSeconds * 1000L);
-
         try {
-            JwtClaimsSet claimsSet = jwtBuilderFactory
+            JwtClaimsSetBuilder claimsSetBuilder = jwtBuilderFactory
                     .claims()
-                    .claim("state", MAPPER.writeValueAsString(state.getObject()))
-                    .exp(new Date(expirationTime))
-                    .build();
+                    .claim("state", MAPPER.writeValueAsString(state.getObject()));
+
+            final JwtClaimsSet claimsSet;
+            if (tokenLifeTimeInSeconds.isPresent()) {
+                claimsSet = claimsSetBuilder
+                        .exp(new Date(System.currentTimeMillis() + (tokenLifeTimeInSeconds.get() * 1000L)))
+                        .build();
+            } else {
+                claimsSet = claimsSetBuilder.build();
+            }
 
             return jwtBuilderFactory
                     .jwe(jweKeyPair.getPublic())
@@ -130,8 +156,6 @@ public final class JwtTokenHandler implements TokenHandler {
     }
 
     private JwtClaimsSet validateAndExtractClaims(String snapshotToken) throws TokenHandlerException {
-        Date currentTime = new Date();
-
         try {
             SignedEncryptedJwt signedEncryptedJwt = jwtBuilderFactory
                     .reconstruct(snapshotToken, SignedEncryptedJwt.class);
@@ -145,7 +169,7 @@ public final class JwtTokenHandler implements TokenHandler {
             JwtClaimsSet claimsSet = signedEncryptedJwt.getClaimsSet();
             Date expirationTime = claimsSet.getExpirationTime();
 
-            if (expirationTime.before(currentTime)) {
+            if (expirationTime != null && expirationTime.before(new Date())) {
                 throw new ExpiredTokenException("Token has expired");
             }
 
