@@ -13,6 +13,7 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2016 ForgeRock AS.
+  ~ Portions Copyright 2017 Wren Security.  
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -27,15 +28,10 @@
     <artifactId>forgerock-selfservice</artifactId>
     <packaging>pom</packaging>
 
-    <name>Commons Self Service Framework</name>
+    <name>Wren Security Commons Self Service - Framework</name>
     <description>
         Common implementation of self service including such features as password reset and user self service.
     </description>
-
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://bugster.forgerock.org/jira/browse/USS</url>
-    </issueManagement>
 
     <modules>
         <module>forgerock-selfservice-core</module>

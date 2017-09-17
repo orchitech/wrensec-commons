@@ -13,6 +13,7 @@
   information: "Portions Copyrighted [year] [name of copyright owner]".
 
   Copyright 2012-2016 ForgeRock AS.
+  Portions Copyright 2017 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -23,19 +24,7 @@
     </parent>
     <artifactId>json-crypto</artifactId>
     <packaging>pom</packaging>
-    <name>JSON Crypto libraries</name>
-    <url>http://commons.forgerock.org/json-crypto</url>
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://bugster.forgerock.org/jira/browse/COMMONS</url>
-    </issueManagement>
-    <distributionManagement>
-        <site>
-            <id>forgerock.org</id>
-            <name>ForgeRock Community</name>
-            <url>scp://forgerock.org/var/www/vhosts/commons.forgerock.org/httpdocs/json-crypto</url>
-        </site>
-    </distributionManagement>
+    <name>Wren Security Commons JSON Crypto - Libraries</name>
     <modules>
         <module>json-crypto-core</module>
         <module>json-crypto-cli</module>

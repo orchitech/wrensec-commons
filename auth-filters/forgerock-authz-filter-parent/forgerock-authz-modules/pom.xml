@@ -13,6 +13,7 @@
 * information: "Portions copyright [year] [name of copyright owner]".
 *
 * Copyright 2014 ForgeRock AS.
+* Portions Copyright 2017 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
@@ -27,7 +28,7 @@
     <artifactId>forgerock-authz-modules</artifactId>
     <packaging>pom</packaging>
 
-    <name>ForgeRock Authorization Filter Modules</name>
+    <name>Wren Security Commons Authz. - Filter Modules</name>
 
     <modules>
         <module>forgerock-authz-oauth2-module</module>
