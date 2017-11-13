@@ -13,6 +13,7 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2015-2016 ForgeRock AS.
+  ~ Portions Copyright 2017 Wren Security.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -26,7 +27,7 @@
 
   <artifactId>chf-client-apache-common</artifactId>
   <packaging>bundle</packaging>
-  <name>HTTP Apache HttpClient(s) base</name>
+  <name>Wren Security Commons HTTP - Apache HttpClient(s) base</name>
 
   <dependencies>
     <dependency>

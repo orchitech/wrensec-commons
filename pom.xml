@@ -13,6 +13,7 @@
    information: "Portions copyright [year] [name of copyright owner]".
 
     Copyright 2015-2016 ForgeRock AS.
+    Portions Copyright 2017 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -26,11 +27,11 @@
   <artifactId>commons-parent</artifactId>
   <packaging>pom</packaging>
 
-  <name>ForgeRock Commons Parent</name>
+  <name>Wren Security Commons - Parent</name>
   <description>
-    This group modules includes the Forgerock Commons components
+    This group modules includes the Wren Security common components.
   </description>
-  <url>http://www.forgerock.com</url>
+  <url>https://github.com/WrenSecurity/wrensec-commons</url>
 
   <licenses>
     <license>
@@ -42,20 +43,14 @@
   </licenses>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://bugster.forgerock.org/jira/browse/COMMONS</url>
+    <system>GitHub Issues</system>
+    <url>https://github.com/WrenSecurity/wrensec-commons/issues</url>
   </issueManagement>
 
-  <ciManagement>
-    <system>jenkins</system>
-    <url>https://ci.forgerock.org/job/Commons%20-%20forgerock-commons%20-%20postcommit</url>
-  </ciManagement>
-
   <scm>
-    <connection>scm:git:ssh://git@stash.forgerock.org:7999/commons/forgerock-commons.git</connection>
-    <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/commons/forgerock-commons.git</developerConnection>
-    <url>https://stash.forgerock.org/projects/COMMONS/repos/forgerock-commons/browse</url>
-    <tag>HEAD</tag>
+    <url>https://github.com/WrenSecurity/wrensec-commons</url>
+    <connection>scm:git:git://github.com/WrenSecurity/wrensec-commons.git</connection>
+    <developerConnection>scm:git:git@github.com:WrenSecurity/wrensec-commons.git</developerConnection>
   </scm>
 
   <properties>

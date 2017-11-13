@@ -3,6 +3,7 @@
   ~ DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
   ~
   ~ Copyright (c) 2015 ForgeRock AS. All Rights Reserved
+  ~ Portions Copyright 2017 Wren Security. All Rights Reserved.
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -31,7 +32,8 @@
     </parent>
 
     <artifactId>forgerock-selfservice-example-ui</artifactId>
-    <name>ForgeRock UI for ForgeRock Self-Service Example</name>
+    <name>Wren Security Commons Self Service - Example UI</name>
+    <description>UI for Wren Security Self-Service Example</description>
     <packaging>pom</packaging>
 
     <properties>

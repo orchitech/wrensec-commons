@@ -13,6 +13,7 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2015-2016 ForgeRock AS.
+  ~ Portions Copyright 2017 Wren Security.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -26,13 +27,8 @@
     <artifactId>forgerock-audit</artifactId>
     <packaging>pom</packaging>
 
-    <name>Commons - ForgeRock Audit Framework</name>
+    <name>Wren Security Commons Audit - Framework</name>
     <description>Implements the commons audit framework.</description>
-
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://bugster.forgerock.org/jira/browse/CAUD</url>
-    </issueManagement>
 
     <properties>
         <commons.forgerock-bom.version>7.0</commons.forgerock-bom.version>
