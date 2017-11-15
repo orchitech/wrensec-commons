@@ -28,10 +28,9 @@
 
     <artifactId>forgerock-selfservice-example</artifactId>
     <packaging>bundle</packaging>
+
     <name>Wren Security Commons Self Service - Examples</name>
-    <description>
-        Some basic self service examples.
-    </description>
+    <description>Some basic self service examples.</description>
 
     <dependencies>
         <dependency>

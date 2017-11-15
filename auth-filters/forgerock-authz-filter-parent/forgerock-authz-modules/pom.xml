@@ -29,6 +29,7 @@
     <packaging>pom</packaging>
 
     <name>Wren Security Commons Authz. - Filter Modules</name>
+    <description>Parent project for all authorization filters in this project.</description>
 
     <modules>
         <module>forgerock-authz-oauth2-module</module>

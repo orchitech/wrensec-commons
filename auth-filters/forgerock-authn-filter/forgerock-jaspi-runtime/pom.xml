@@ -28,6 +28,9 @@
     <packaging>bundle</packaging>
 
     <name>Wren Security Commons Authn. - JASPI (JSR-196) Runtime</name>
+    <description>
+        Provides a runtime for asynchronous and improved JASPI-like message authentication.
+    </description>
 
     <build>
         <plugins>

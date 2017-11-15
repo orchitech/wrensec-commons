@@ -27,6 +27,7 @@
 
     <artifactId>forgerock-selfservice-json</artifactId>
     <packaging>bundle</packaging>
+
     <name>Wren Security Commons Self Service - JSON Config</name>
     <description>
         JSON configuration of the self service framework.

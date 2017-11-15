@@ -32,9 +32,10 @@
     </parent>
 
     <artifactId>forgerock-selfservice-example-ui</artifactId>
+    <packaging>pom</packaging>
+
     <name>Wren Security Commons Self Service - Example UI</name>
     <description>UI for Wren Security Self-Service Example</description>
-    <packaging>pom</packaging>
 
     <properties>
         <forgerock-ui.version>8.6.0</forgerock-ui.version>

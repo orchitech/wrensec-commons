@@ -28,6 +28,7 @@
     <artifactId>forgerock-authz-oauth2-module</artifactId>
 
     <name>Wren Security Commons Authz. - OAuth2 Filter Module</name>
+    <description>The OAuth2 authorization filter.</description>
 
     <dependencies>
         <dependency>
