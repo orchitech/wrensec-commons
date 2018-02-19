@@ -134,8 +134,8 @@ public class OpenIdConnectModule implements AsyncServerAuthModule {
      * {@inheritDoc}
      */
     @Override
-    public Promise<Void, AuthenticationException> initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
-            CallbackHandler callbackHandler, Map<String, Object> config) {
+    public void initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
+            CallbackHandler callbackHandler, Map<String, Object> config) throws AuthenticationException {
 
         this.openIdConnectHeader = (String) config.get(OpenIdConnectModule.HEADER_KEY);
         this.callbackHandler = callbackHandler;
@@ -145,7 +145,7 @@ public class OpenIdConnectModule implements AsyncServerAuthModule {
 
         if (openIdConnectHeader == null || openIdConnectHeader.isEmpty()) {
             LOG.debug("OpenIdConnectModule config is invalid. You must include the header key parameter");
-            return newExceptionPromise(new AuthenticationException("OpenIdConnectModule configuration is invalid."));
+            throw new AuthenticationException("OpenIdConnectModule configuration is invalid.");
         }
 
         if (readTimeout == null || readTimeout < 0) {
@@ -167,10 +167,8 @@ public class OpenIdConnectModule implements AsyncServerAuthModule {
         //error out here
         if (!serviceConfigurator.configureService(resolverService, resolvers)) {
             LOG.debug("OpenIdConnectModule config is invalid. You must configure at least one valid resolver.");
-            return newExceptionPromise(new AuthenticationException("OpenIdConnectModule configuration is invalid."));
+            throw new AuthenticationException("OpenIdConnectModule configuration is invalid.");
         }
-
-        return newResultPromise(null);
     }
 
     /**

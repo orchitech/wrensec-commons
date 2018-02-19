@@ -105,6 +105,7 @@ public class OpenAMSessionModuleTest {
         } catch (IllegalArgumentException e) {
             //Then
             assertTrue(e.getMessage().contains("openamDeploymentUrl property must be set"));
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -125,6 +126,7 @@ public class OpenAMSessionModuleTest {
         } catch (IllegalArgumentException e) {
             //Then
             assertTrue(e.getMessage().contains("openamDeploymentUrl property must be set"));
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -145,6 +147,7 @@ public class OpenAMSessionModuleTest {
         } catch (IllegalArgumentException e) {
             //Then
             assertTrue(e.getMessage().contains("openamSSOTokenCookieName property must be set"));
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -166,6 +169,7 @@ public class OpenAMSessionModuleTest {
         } catch (IllegalArgumentException e) {
             //Then
             assertTrue(e.getMessage().contains("openamSSOTokenCookieName property must be set"));
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -187,6 +191,7 @@ public class OpenAMSessionModuleTest {
         } catch (IllegalArgumentException e) {
             //Then
             assertTrue(e.getMessage().contains("openamUserAttribute property must be set"));
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -209,11 +214,12 @@ public class OpenAMSessionModuleTest {
         } catch (IllegalArgumentException e) {
             //Then
             assertTrue(e.getMessage().contains("openamUserAttribute property must be set"));
+        } catch (AuthenticationException e) {
         }
     }
 
     @Test
-    public void initialiseShouldReturnSuccessfullyWhenUseSSLSetToFalse() {
+    public void initialiseShouldReturnSuccessfullyWhenUseSSLSetToFalse() throws AuthenticationException {
 
         //Given
         final MessagePolicy requestMessagePolicy = mock(MessagePolicy.class);
@@ -252,6 +258,7 @@ public class OpenAMSessionModuleTest {
             //Then
             assertTrue(e.getMessage().contains("truststorePath property must be set"));
             verifyZeroInteractions(httpHandler);
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -276,6 +283,7 @@ public class OpenAMSessionModuleTest {
             //Then
             assertTrue(e.getMessage().contains("truststorePath property must be set"));
             verifyZeroInteractions(httpHandler);
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -300,6 +308,7 @@ public class OpenAMSessionModuleTest {
             //Then
             assertTrue(e.getMessage().contains("truststoreType property must be set"));
             verifyZeroInteractions(httpHandler);
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -325,6 +334,7 @@ public class OpenAMSessionModuleTest {
             //Then
             assertTrue(e.getMessage().contains("truststoreType property must be set"));
             verifyZeroInteractions(httpHandler);
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -350,6 +360,7 @@ public class OpenAMSessionModuleTest {
             //Then
             assertTrue(e.getMessage().contains("truststorePassword property must be set"));
             verifyZeroInteractions(httpHandler);
+        } catch (AuthenticationException e) {
         }
     }
 
@@ -376,11 +387,12 @@ public class OpenAMSessionModuleTest {
             //Then
             assertTrue(e.getMessage().contains("truststorePassword property must be set"));
             verifyZeroInteractions(httpHandler);
+        } catch (AuthenticationException e) {
         }
     }
 
     @Test
-    public void initialiseShouldReturnSuccessFullyWhenRequiredPropertiesSet() {
+    public void initialiseShouldReturnSuccessFullyWhenRequiredPropertiesSet() throws AuthenticationException {
 
         //Given
         final MessagePolicy requestMessagePolicy = mock(MessagePolicy.class);
@@ -408,7 +420,7 @@ public class OpenAMSessionModuleTest {
     }
 
     @Test
-    public void initialiseShouldReturnSuccessFullyWhenRequiredAndOptionalPropertiesSet() {
+    public void initialiseShouldReturnSuccessFullyWhenRequiredAndOptionalPropertiesSet() throws AuthenticationException {
 
         //Given
         final MessagePolicy requestMessagePolicy = mock(MessagePolicy.class);
@@ -449,11 +461,11 @@ public class OpenAMSessionModuleTest {
                 .containsExactly(Request.class, Response.class);
     }
 
-    private void initialise() {
+    private void initialise() throws AuthenticationException {
         initialise("https://OPENAM_DEPLOYMENT_URI/");
     }
 
-    private void initialise(final String openamDeploymentUrl) {
+    private void initialise(final String openamDeploymentUrl) throws AuthenticationException {
         final MessagePolicy requestMessagePolicy = mock(MessagePolicy.class);
         final MessagePolicy responseMessagePolicy = mock(MessagePolicy.class);
         final CallbackHandler callbackHandler = mock(CallbackHandler.class);

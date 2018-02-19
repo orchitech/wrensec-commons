@@ -430,29 +430,21 @@ final class AuthModules {
         }
 
         @Override
-        public Promise<Void, AuthenticationException> initialize(final MessagePolicy requestPolicy,
-                final MessagePolicy responsePolicy, CallbackHandler handler, final Map<String, Object> options) {
-            return super.initialize(requestPolicy, responsePolicy, handler, options)
-                    .thenOnResult(new ResultHandler<Void>() {
-                        @Override
-                        public void handleResult(Void result) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("{} was successfully initialized. \nrequest MessagePolicy: {}, "
-                                                + "\nresponse MessagePolicy: {}, \noptions: {}", getModuleId(),
-                                        requestPolicy, responsePolicy, options);
-                            }
-                        }
-                    })
-                    .thenOnException(new ExceptionHandler<AuthenticationException>() {
-                        @Override
-                        public void handleException(AuthenticationException error) {
-                            if (logger.isErrorEnabled()) {
-                                logger.error("{} failed to initialize. \nrequest MessagePolicy: {}, "
-                                                + "\nresponse MessagePolicy: {}, \noptions: {}", getModuleId(),
-                                        requestPolicy, responsePolicy, options, error);
-                            }
-                        }
-                    });
+        public void initialize(final MessagePolicy requestPolicy, final MessagePolicy responsePolicy,
+                CallbackHandler handler, final Map<String, Object> options) throws AuthenticationException {
+            try {
+                super.initialize(requestPolicy, responsePolicy, handler, options);
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("{} was successfully initialized. \nrequest MessagePolicy: {}, \nresponse MessagePolicy: {}, \noptions: {}",
+                            new Object[] { getModuleId(), requestPolicy, responsePolicy, options });
+                }
+            } catch (AuthenticationException e) {
+                if (this.logger.isErrorEnabled()) {
+                    this.logger.error("{} failed to initialize. \nrequest MessagePolicy: {}, \nresponse MessagePolicy: {}, \noptions: {}",
+                            new Object[] { getModuleId(), requestPolicy, responsePolicy, options, e });
+                }
+                throw e;
+            }
         }
 
         @Override
@@ -557,9 +549,9 @@ final class AuthModules {
         }
 
         @Override
-        public Promise<Void, AuthenticationException> initialize(MessagePolicy requestPolicy,
-                MessagePolicy responsePolicy, CallbackHandler handler, Map<String, Object> options) {
-            return authModule.initialize(requestPolicy, responsePolicy, handler, options);
+        public void initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
+                CallbackHandler handler, Map<String, Object> options) throws AuthenticationException {
+            this.authModule.initialize(requestPolicy, responsePolicy, handler, options);
         }
 
         @Override

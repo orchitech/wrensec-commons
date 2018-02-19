@@ -192,11 +192,9 @@ public class JaspiAdaptersTest {
 
         //When
         AsyncServerAuthModule asyncAuthModule = JaspiAdapters.adapt(authModule);
-        Promise<Void, AuthenticationException> promise =
-                asyncAuthModule.initialize(requestPolicy, responsePolicy, handler, options);
+        asyncAuthModule.initialize(requestPolicy, responsePolicy, handler, options);
 
         //Then
-        assertThat(promise).succeeded().withObject().isNull();
         verify(authModule).initialize(requestPolicy, responsePolicy, handler, options);
     }
 
@@ -214,11 +212,11 @@ public class JaspiAdaptersTest {
 
         //When
         AsyncServerAuthModule asyncAuthModule = JaspiAdapters.adapt(authModule);
-        Promise<Void, AuthenticationException> promise =
-                asyncAuthModule.initialize(requestPolicy, responsePolicy, handler, options);
-
-        //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        try {
+            asyncAuthModule.initialize(requestPolicy, responsePolicy, handler, options);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(AuthenticationException.class);
+        }
     }
 
     @Test

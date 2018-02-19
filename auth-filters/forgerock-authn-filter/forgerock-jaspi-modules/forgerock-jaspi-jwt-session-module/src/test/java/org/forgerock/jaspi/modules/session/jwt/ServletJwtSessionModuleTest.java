@@ -46,6 +46,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.forgerock.caf.authentication.api.AuthenticationException;
 import org.forgerock.caf.authentication.framework.AuthenticationFramework;
 import org.forgerock.json.jose.builders.EncryptedJwtBuilder;
 import org.forgerock.json.jose.builders.JweHeaderBuilder;
@@ -1203,8 +1204,11 @@ public class ServletJwtSessionModuleTest {
         options.put(JwtSessionModule.TOKEN_IDLE_TIME_IN_SECONDS_CLAIM_KEY, "1");
 
         //when
-        jwtSessionModule.initialize(requestMessagePolicy, responseMessagePolicy, callbackHandler, options)
-                .getOrThrowUninterruptibly();
+        try {
+            jwtSessionModule.initialize(requestMessagePolicy, responseMessagePolicy, callbackHandler, options);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(AuthenticationException.class);
+        }
 
         //then
         //should never get here
@@ -1222,8 +1226,11 @@ public class ServletJwtSessionModuleTest {
         options.put(JwtSessionModule.MAX_TOKEN_LIFE_IN_SECONDS_KEY, "1");
 
         //when
-        jwtSessionModule.initialize(requestMessagePolicy, responseMessagePolicy, callbackHandler, options)
-                .getOrThrowUninterruptibly();
+        try {
+            jwtSessionModule.initialize(requestMessagePolicy, responseMessagePolicy, callbackHandler, options);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(AuthenticationException.class);
+        }
 
         //then
         //should never get here

@@ -77,14 +77,9 @@ public class JwtSessionModule extends AbstractJwtSessionModule<CookieWrapper> im
     }
 
     @Override
-    public Promise<Void, AuthenticationException> initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
-            CallbackHandler handler, Map<String, Object> options) {
-        try {
-            initialize(handler, options);
-            return newResultPromise(null);
-        } catch (AuthenticationException e) {
-            return newExceptionPromise(e);
-        }
+    public void initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
+            CallbackHandler handler, Map<String, Object> options) throws AuthenticationException {
+        initialize(handler, options);
     }
 
     @Override

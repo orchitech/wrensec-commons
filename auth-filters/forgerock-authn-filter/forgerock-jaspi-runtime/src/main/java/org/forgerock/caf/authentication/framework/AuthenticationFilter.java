@@ -72,13 +72,10 @@ public final class AuthenticationFilter implements Filter {
      * @param responseHandler The non-{@code null} {@link ResponseHandler} instance.
      * @param authContext The non-{@code null} {@link AsyncServerAuthContext} instance.
      * @param serviceSubject The non-{@code null} service {@link Subject}.
-     * @param initializationPromise A {@link Promise} which will be completed once the configured
-     *                              auth modules have been initialised.
      */
     AuthenticationFilter(Logger logger, AuditApi auditApi, Subject serviceSubject, ResponseHandler responseHandler,
-            AsyncServerAuthContext authContext, Promise<List<Void>, AuthenticationException> initializationPromise) {
-        this.runtime = new AuthenticationFramework(logger, auditApi, responseHandler, authContext, serviceSubject,
-                initializationPromise);
+            AsyncServerAuthContext authContext) {
+        this.runtime = new AuthenticationFramework(logger, auditApi, responseHandler, authContext, serviceSubject);
     }
 
     /**
@@ -271,7 +268,7 @@ public final class AuthenticationFilter implements Filter {
          * @return A new Authentication Framework filter instance.
          * @throws IllegalStateException If the {@code AuditApi} instance has not been set.
          */
-        public AuthenticationFilter build() {
+        public AuthenticationFilter build() throws AuthenticationException {
             if (auditApi == null) {
                 throw new IllegalStateException("Audit Api must be set");
             }
@@ -283,37 +280,31 @@ public final class AuthenticationFilter implements Filter {
             AsyncServerAuthModule sessionAuthModule = null;
             List<AsyncServerAuthModule> authModules = new ArrayList<>();
 
-            List<Promise<Void, AuthenticationException>> initializationPromises = new ArrayList<>();
-
             if (sessionAuthModuleBuilder != null && sessionAuthModuleBuilder.authModule != null) {
                 sessionAuthModule = sessionAuthModuleBuilder.authModule;
-                initializationPromises.add(initializeModule(sessionAuthModuleBuilder));
+                initializeModule(sessionAuthModuleBuilder);
             }
             for (AuthenticationModuleBuilder authModuleBuilder : authModuleBuilders) {
                 authModules.add(authModuleBuilder.authModule);
-                initializationPromises.add(initializeModule(authModuleBuilder));
+                initializeModule(authModuleBuilder);
             }
-            Promise<List<Void>, AuthenticationException> initializationPromise = Promises.when(initializationPromises);
-            return createFilter(logger, auditApi, responseHandler, serviceSubject, sessionAuthModule, authModules,
-                    initializationPromise);
+            return createFilter(logger, auditApi, responseHandler, serviceSubject, sessionAuthModule, authModules);
         }
 
-        private Promise<Void, AuthenticationException> initializeModule(AuthenticationModuleBuilder moduleBuilder) {
+        private void initializeModule(AuthenticationModuleBuilder moduleBuilder) throws AuthenticationException {
             CallbackHandler callbackHandler = moduleBuilder.handler;
             if (callbackHandler == null) {
                 callbackHandler = new HttpCallbackHandler();
             }
-            return moduleBuilder.authModule.initialize(moduleBuilder.requestPolicy, moduleBuilder.responsePolicy,
-                    callbackHandler, moduleBuilder.settings);
+            moduleBuilder.authModule.initialize(moduleBuilder.requestPolicy, moduleBuilder.responsePolicy, callbackHandler, moduleBuilder.settings);
         }
 
         AuthenticationFilter createFilter(Logger logger, AuditApi auditApi, ResponseHandler responseHandler,
                 Subject serviceSubject, AsyncServerAuthModule sessionAuthModule,
-                List<AsyncServerAuthModule> authModules,
-                Promise<List<Void>, AuthenticationException> initializationPromise) {
+                List<AsyncServerAuthModule> authModules) {
             return new AuthenticationFilter(logger, auditApi, serviceSubject, responseHandler,
                     new AggregateAuthContext(logger, new SessionAuthContext(logger, sessionAuthModule),
-                            new FallbackAuthContext(logger, authModules)), initializationPromise);
+                            new FallbackAuthContext(logger, authModules)));
         }
     }
 

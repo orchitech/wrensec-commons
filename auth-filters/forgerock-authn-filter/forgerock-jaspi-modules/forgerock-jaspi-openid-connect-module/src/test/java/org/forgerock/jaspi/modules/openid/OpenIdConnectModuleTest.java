@@ -87,7 +87,11 @@ public class OpenIdConnectModuleTest {
         Map<String, Object> config = new HashMap<>();
 
         //when
-        testModule.initialize(requestPolicy, responsePolicy, callback, config).getOrThrowUninterruptibly();
+        try {
+            testModule.initialize(requestPolicy, responsePolicy, callback, config);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(AuthenticationException.class);
+        }
 
         //then - covered by caught exception
     }
@@ -103,7 +107,11 @@ public class OpenIdConnectModuleTest {
         given(mockConfigurator.configureService(any(OpenIdResolverService.class), any(List.class))).willReturn(false);
 
         //when
-        testModule.initialize(requestPolicy, responsePolicy, callback, config).getOrThrowUninterruptibly();
+        try {
+            testModule.initialize(requestPolicy, responsePolicy, callback, config);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(AuthenticationException.class);
+        }
 
         //then - covered by caught exception
     }

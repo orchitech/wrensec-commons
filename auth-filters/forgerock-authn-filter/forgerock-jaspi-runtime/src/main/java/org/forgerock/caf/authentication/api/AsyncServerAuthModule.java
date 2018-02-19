@@ -67,8 +67,8 @@ public interface AsyncServerAuthModule {
      * {@code AuthenticationException} if module initialization fails, including for the case
      * where the options argument contains elements that are not supported by the module.
      */
-    Promise<Void, AuthenticationException> initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
-            CallbackHandler handler, Map<String, Object> options);
+    void initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
+            CallbackHandler handler, Map<String, Object> options) throws AuthenticationException;
 
     /**
      * Gets the {@code Collection} of {@code Class} objects of the message types supported by the

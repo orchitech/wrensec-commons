@@ -65,9 +65,8 @@ public class AuditingAuthModule implements AsyncServerAuthModule {
      */
     @SuppressWarnings("rawtypes")
     @Override
-    public Promise<Void, AuthenticationException> initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
-            CallbackHandler callbackHandler, Map config) {
-        return Promises.newResultPromise(null);
+    public void initialize(MessagePolicy requestPolicy, MessagePolicy responsePolicy,
+            CallbackHandler callbackHandler, Map config) throws AuthenticationException {
     }
 
     /**

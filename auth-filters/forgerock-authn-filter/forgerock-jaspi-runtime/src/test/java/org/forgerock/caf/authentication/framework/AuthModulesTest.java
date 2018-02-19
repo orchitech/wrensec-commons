@@ -16,6 +16,7 @@
 
 package org.forgerock.caf.authentication.framework;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.caf.authentication.framework.AuthStatusUtils.asString;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -33,6 +34,7 @@ import javax.security.auth.message.MessagePolicy;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.assertj.core.api.AssertDelegateTarget;
 import org.assertj.core.api.Assertions;
 import org.forgerock.caf.authentication.api.AsyncServerAuthModule;
 import org.forgerock.caf.authentication.api.AuthenticationException;
@@ -573,7 +575,7 @@ public class AuthModulesTest {
     }
 
     @Test(dataProvider = "initializeResultLoggingModule")
-    public void loggingAuthModuleShouldLogInitializeResult(boolean logLevelEnabled) {
+    public void loggingAuthModuleShouldLogInitializeResult(boolean logLevelEnabled) throws AuthenticationException {
 
         //Given
         Logger logger = mock(Logger.class);
@@ -583,16 +585,13 @@ public class AuthModulesTest {
         CallbackHandler handler = mock(CallbackHandler.class);
         Map<String, Object> options = new HashMap<>();
 
-        given(authModule.initialize(requestPolicy, responsePolicy, handler, options))
-                .willReturn(Promises.<Void, AuthenticationException>newResultPromise(null));
         given(logger.isDebugEnabled()).willReturn(logLevelEnabled);
 
         //When
-        Promise<Void, AuthenticationException> promise = AuthModules.withLogging(logger, authModule)
+        AuthModules.withLogging(logger, authModule)
                 .initialize(requestPolicy, responsePolicy, handler, options);
 
         //Then
-        assertThat(promise).succeeded();
         if (logLevelEnabled) {
             verify(logger).debug(anyString(), anyObject(), anyObject(), anyObject(), anyObject());
         } else {
@@ -612,16 +611,16 @@ public class AuthModulesTest {
         Map<String, Object> options = new HashMap<>();
         AuthenticationException exception = new AuthenticationException("ERROR");
 
-        given(authModule.initialize(requestPolicy, responsePolicy, handler, options))
-                .willReturn(Promises.<Void, AuthenticationException>newExceptionPromise(exception));
         given(logger.isErrorEnabled()).willReturn(logLevelEnabled);
 
         //When
-        Promise<Void, AuthenticationException> promise = AuthModules.withLogging(logger, authModule)
-                .initialize(requestPolicy, responsePolicy, handler, options);
+        try {
+            AuthModules.withLogging(logger, authModule).initialize(requestPolicy, responsePolicy, handler, options);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(AuthenticationException.class);
+        }
 
         //Then
-        assertThat(promise).failedWithException();
         if (logLevelEnabled) {
             verify(logger).error(anyString(), anyObject(), anyObject(), anyObject(), anyObject(), eq(exception));
         } else {

@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
 public class AuthenticationFilterTest {
 
     @Test(expectedExceptions = IllegalStateException.class)
-    public void attemptingToBuildFilterWithNoAuditApiShouldThrowIllegalStateException() {
+    public void attemptingToBuildFilterWithNoAuditApiShouldThrowIllegalStateException() throws AuthenticationException {
 
         //Given
         AuthenticationFilterBuilder builder = spy(AuthenticationFilter.builder());
@@ -62,7 +62,7 @@ public class AuthenticationFilterTest {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
-    public void shouldBuildFilterWithAuditApiAndDefaultLogger() {
+    public void shouldBuildFilterWithAuditApiAndDefaultLogger() throws AuthenticationException {
 
         //Given
         AuditApi auditApi = mock(AuditApi.class);
@@ -82,8 +82,7 @@ public class AuthenticationFilterTest {
         ArgumentCaptor<List> authModulesCaptor = ArgumentCaptor.forClass(List.class);
 
         verify(builder).createFilter(loggerCaptor.capture(), eq(auditApi), responseHandlerCaptor.capture(),
-                serviceSubjectCaptor.capture(), eq(sessionAuthModule), authModulesCaptor.capture(),
-                Matchers.<Promise<List<Void>, AuthenticationException>>anyObject());
+                serviceSubjectCaptor.capture(), eq(sessionAuthModule), authModulesCaptor.capture());
 
         assertThat(loggerCaptor.getValue()).isNotNull();
         assertThat(responseHandlerCaptor.getValue()).isNotNull();
@@ -92,7 +91,7 @@ public class AuthenticationFilterTest {
     }
 
     @Test
-    public void shouldBuildFilterWithNamedLogger() {
+    public void shouldBuildFilterWithNamedLogger() throws AuthenticationException {
 
         //Given
         AuditApi auditApi = mock(AuditApi.class);
@@ -109,15 +108,14 @@ public class AuthenticationFilterTest {
         ArgumentCaptor<Logger> loggerCaptor = ArgumentCaptor.forClass(Logger.class);
 
         verify(builder).createFilter(loggerCaptor.capture(), eq(auditApi), any(ResponseHandler.class),
-                any(Subject.class), eq(sessionAuthModule), anyListOf(AsyncServerAuthModule.class),
-                Matchers.<Promise<List<Void>, AuthenticationException>>anyObject());
+                any(Subject.class), eq(sessionAuthModule), anyListOf(AsyncServerAuthModule.class));
 
         assertThat(loggerCaptor.getValue()).isNotNull();
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
-    public void shouldBuildFullyConfiguredFilter() {
+    public void shouldBuildFullyConfiguredFilter() throws AuthenticationException {
 
         //Given
         Logger logger = mock(Logger.class);
@@ -176,8 +174,7 @@ public class AuthenticationFilterTest {
         ArgumentCaptor<List> authModulesCaptor = ArgumentCaptor.forClass(List.class);
 
         verify(builder).createFilter(loggerCaptor.capture(), eq(auditApi), responseHandlerCaptor.capture(),
-                eq(serviceSubject), eq(sessionAuthModule), authModulesCaptor.capture(),
-                Matchers.<Promise<List<Void>, AuthenticationException>>anyObject());
+                eq(serviceSubject), eq(sessionAuthModule), authModulesCaptor.capture());
 
         assertThat(loggerCaptor.getValue()).isNotNull();
         assertThat(responseHandlerCaptor.getValue()).isNotNull();
@@ -219,8 +216,7 @@ public class AuthenticationFilterTest {
 
         //Then
         verify(builder).createFilter(any(Logger.class), eq(auditApi), any(ResponseHandler.class), any(Subject.class),
-                any(AsyncServerAuthModule.class), anyListOf(AsyncServerAuthModule.class),
-                Matchers.<Promise<List<Void>, AuthenticationException>>anyObject());
+                any(AsyncServerAuthModule.class), anyListOf(AsyncServerAuthModule.class));
 
         verify(authModule).initialize(authModuleRequestPolicy, authModuleResponsePolicy,
                 authModuleHandler, authModuleSettings);
@@ -233,10 +229,6 @@ public class AuthenticationFilterTest {
         supportedMessageTypes.add(Request.class);
         supportedMessageTypes.add(Response.class);
         given(authModule.getSupportedMessageTypes()).willReturn(supportedMessageTypes);
-
-        given(authModule.initialize(any(MessagePolicy.class), any(MessagePolicy.class), any(CallbackHandler.class),
-                anyMapOf(String.class, Object.class)))
-                .willReturn(Promises.<Void, AuthenticationException>newResultPromise(null));
 
         return authModule;
     }
