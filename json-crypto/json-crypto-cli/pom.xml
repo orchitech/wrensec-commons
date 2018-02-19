@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>json-crypto</artifactId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>21.0.0-SNAPSHOT-orchi</version>
     </parent>
     <artifactId>json-crypto-cli</artifactId>
     <name>Wren Security Commons JSON Crypto - CLI</name>
