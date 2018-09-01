@@ -42,7 +42,7 @@
     <module>http-examples</module>
     <module>binding-test-utils</module>
     <module>http-oauth2</module>
-    <module>http-client-test-utils</module>
+    <!--<module>http-client-test-utils</module>-->
   </modules>
   <build>
     <plugins>
