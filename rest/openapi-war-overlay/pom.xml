@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>openapi-war-overlay</artifactId>
-    <name>OpenAPI WAR Overlay</name>
+    <name>Wren OpenAPI WAR Overlay</name>
     <description>Static Swagger UI 2.1.4 HTML/CSS/JS assets, as a WAR overlay.</description>
     <packaging>war</packaging>
 

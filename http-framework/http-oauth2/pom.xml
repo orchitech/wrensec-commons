@@ -24,7 +24,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>chf-oauth2</artifactId>
-  <name>HTTP OAuth 2.0 Support</name>
+  <name>Wren Security Commons HTTP - OAuth 2.0 Resource Server Support</name>
 
   <dependencies>
     <dependency>

@@ -24,6 +24,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>http-descriptor-example</artifactId>
+    <name>Wren Security Commons HTTP - OpenAPI Descriptor Example Module</name>
 
     <dependencies>
         <dependency>
