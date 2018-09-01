@@ -16,19 +16,31 @@
 
 package org.forgerock.json.resource;
 
-import static org.forgerock.http.routing.RoutingMode.*;
-import static org.forgerock.json.resource.Requests.*;
-import static org.forgerock.json.resource.ResourceApiVersionRoutingFilter.*;
-import static org.forgerock.json.resource.Resources.*;
-import static org.forgerock.json.resource.RouteMatchers.*;
-import static org.forgerock.util.promise.Promises.*;
+import static org.forgerock.http.routing.RoutingMode.EQUALS;
+import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
+import static org.forgerock.json.resource.Requests.copyOfActionRequest;
+import static org.forgerock.json.resource.Requests.copyOfApiRequest;
+import static org.forgerock.json.resource.Requests.copyOfCreateRequest;
+import static org.forgerock.json.resource.Requests.copyOfDeleteRequest;
+import static org.forgerock.json.resource.Requests.copyOfPatchRequest;
+import static org.forgerock.json.resource.Requests.copyOfQueryRequest;
+import static org.forgerock.json.resource.Requests.copyOfReadRequest;
+import static org.forgerock.json.resource.Requests.copyOfUpdateRequest;
+import static org.forgerock.json.resource.ResourceApiVersionRoutingFilter.setApiVersionInfo;
+import static org.forgerock.json.resource.Resources.newHandler;
+import static org.forgerock.json.resource.RouteMatchers.requestResourceApiVersionMatcher;
+import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
+import static org.forgerock.json.resource.RouteMatchers.selfApiMatcher;
+import static org.forgerock.util.promise.Promises.newExceptionPromise;
 
 import org.forgerock.api.models.ApiDescription;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.http.routing.ApiVersionRouterContext;
 import org.forgerock.http.routing.RoutingMode;
 import org.forgerock.http.routing.UriRouterContext;
 import org.forgerock.http.routing.Version;
 import org.forgerock.services.context.Context;
+import org.forgerock.services.descriptor.Describable;
 import org.forgerock.services.routing.AbstractRouter;
 import org.forgerock.services.routing.IncomparableRouteMatchException;
 import org.forgerock.services.routing.RouteMatcher;
@@ -62,6 +74,8 @@ import org.forgerock.util.promise.Promise;
  */
 public class Router extends AbstractRouter<Router, Request, RequestHandler, ApiDescription>
         implements RequestHandler {
+
+    private RequestHandler selfApiHandler = new SelfApiHandler();
 
     /**
      * Creates a new router with no routes defined.
@@ -226,9 +240,8 @@ public class Router extends AbstractRouter<Router, Request, RequestHandler, ApiD
             Pair<Context, RequestHandler> bestMatch = getBestRoute(context, request);
             if (bestMatch == null) {
                 throw new NotFoundException(String.format("Resource '%s' not found", request.getResourcePath()));
-            } else {
-                return bestMatch;
             }
+            return bestMatch;
         } catch (IncomparableRouteMatchException e) {
             throw new InternalServerErrorException(e.getMessage(), e);
         }
@@ -345,12 +358,37 @@ public class Router extends AbstractRouter<Router, Request, RequestHandler, ApiD
         }
     }
 
-    private UriRouterContext getRouterContext(Context context) {
-        if (context.containsContext(UriRouterContext.class)) {
-            return context.asContext(UriRouterContext.class);
-        } else {
-            return null;
+    @Override
+    @SuppressWarnings("unchecked")
+    public ApiDescription handleApiRequest(Context context, Request request) {
+        try {
+            Pair<Context, RequestHandler> bestRoute = getBestApiRoute(context, request);
+            if (bestRoute != null) {
+                RequestHandler handler = bestRoute.getSecond();
+                if (handler instanceof Describable) {
+                    Context nextContext = bestRoute.getFirst();
+                    UriRouterContext routerContext = getRouterContext(nextContext);
+                    Request routedRequest = wasRouted(context, routerContext)
+                        ? copyOfApiRequest(request).setResourcePath(getResourcePath(routerContext))
+                        : request;
+                    return ((Describable<ApiDescription, Request>) handler)
+                        .handleApiRequest(nextContext, routedRequest);
+                }
+            }
+        } catch (IncomparableRouteMatchException e) {
+            throw new IllegalStateException(e);
         }
+        if (thisRouterUriMatcher.evaluate(context, request) != null) {
+            return this.api;
+        }
+        throw new UnsupportedOperationException(
+            "No route matched the request resource path " + request.getResourcePath());
+    }
+
+    private UriRouterContext getRouterContext(Context context) {
+        return context.containsContext(UriRouterContext.class)
+            ? context.asContext(UriRouterContext.class)
+            : null;
     }
 
     private boolean wasRouted(Context originalContext, UriRouterContext routerContext) {
@@ -382,6 +420,34 @@ public class Router extends AbstractRouter<Router, Request, RequestHandler, ApiD
         @Override
         public String toString() {
             return template;
+        }
+    }
+
+    @Override
+    protected Pair<RouteMatcher<Request>, RequestHandler> getSelfApiHandler() {
+        return Pair.of(selfApiMatcher(), selfApiHandler);
+    }
+
+    private class SelfApiHandler extends AbstractRequestHandler implements Describable<ApiDescription, Request> {
+
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ApiDescription handleApiRequest(Context context, Request request) {
+            return api;
+        }
+
+        @Override
+        public void addDescriptorListener(Listener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeDescriptorListener(Listener listener) {
+            throw new UnsupportedOperationException();
         }
     }
 }
