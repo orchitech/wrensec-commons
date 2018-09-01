@@ -14,24 +14,28 @@
 
   Copyright 2010–2011 ApexIdentity Inc.
   Portions Copyright 2011-2016 ForgeRock AS.
-  Portions Copyright 2017 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock.commons</groupId>
     <artifactId>commons-parent</artifactId>
-    <version>21.0.0-SNAPSHOT</version>
+    <version>21.0.0-alpha-17</version>
   </parent>
   <groupId>org.forgerock.http</groupId>
   <artifactId>forgerock-http-framework-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Wren Security Commons HTTP - Framework</name>
+  <name>Commons HTTP Framework</name>
   <description>
        The HTTP framework provides a uniform client/server HTTP API, which is
        script friendly, and includes adapters for various common HTTP libraries
        such as Servlet, Apache HTTP Clients, and Grizzly.
   </description>
+  <url>http://commons.forgerock.org/forgerock-http-framework</url>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://bugster.forgerock.org/jira/browse/CHF</url>
+  </issueManagement>
   <modules>
     <module>http-core</module>
     <module>http-servlet</module>
@@ -42,6 +46,7 @@
     <module>http-examples</module>
     <module>binding-test-utils</module>
     <module>http-oauth2</module>
+      <module>http-client-test-utils</module>
   </modules>
   <build>
     <plugins>
@@ -56,6 +61,14 @@
           <excludePackageNames>com.*:*.internal</excludePackageNames>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <comparisonVersion>20.0.0</comparisonVersion>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <dependencyManagement>
@@ -63,16 +76,27 @@
       <dependency>
         <groupId>com.xebialabs.restito</groupId>
         <artifactId>restito</artifactId>
-        <version>0.5.1</version>
-        <scope>test</scope>
+        <version>0.8.2</version>
       </dependency>
       <dependency>
         <groupId>org.forgerock.http</groupId>
         <artifactId>binding-test-utils</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.forgerock.http</groupId>
+        <artifactId>http-client-test-utils</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
+  <distributionManagement>
+    <site>
+      <id>forgerock.org</id>
+      <name>ForgeRock Community</name>
+      <url>scp://forgerock.org/var/www/vhosts/commons.forgerock.org/httpdocs/forgerock-http-framework</url>
+    </site>
+  </distributionManagement>
   <profiles>
     <profile>
       <id>benchmarks</id>
