@@ -16,7 +16,6 @@
 
 package org.forgerock.json.resource.http;
 
-import static org.forgerock.http.util.Paths.addLeadingSlash;
 import static org.forgerock.json.resource.QueryResponse.FIELD_ERROR;
 import static org.forgerock.json.resource.QueryResponse.FIELD_PAGED_RESULTS_COOKIE;
 import static org.forgerock.json.resource.QueryResponse.FIELD_REMAINING_PAGED_RESULTS;
@@ -187,7 +186,7 @@ final class RequestRunner implements RequestVisitor<Promise<Response, NeverThrow
                             writeApiVersionHeaders(result);
                             writeAdvice();
                             if (result.getId() != null) {
-                                httpResponse.getHeaders().put(HEADER_LOCATION, getResourceURL(result, request));
+                                httpResponse.getHeaders().put(HEADER_LOCATION, getResourceURL(result));
                             }
                             httpResponse.setStatus(Status.CREATED);
                             writeResource(result);
@@ -370,26 +369,23 @@ final class RequestRunner implements RequestVisitor<Promise<Response, NeverThrow
         closeSilently(connection);
     }
 
-    private String getResourceURL(final ResourceResponse resource, final CreateRequest request) {
+    private String getResourceURL(final ResourceResponse resource) {
         // Strip out everything except the scheme and host.
         StringBuilder builder = new StringBuilder()
                 .append(httpRequest.getUri().getScheme())
                 .append("://")
                 .append(httpRequest.getUri().getRawAuthority());
 
-        // Add the routed path ...
+        // Add back the full context path.
         String baseUri = context.asContext(UriRouterContext.class).getBaseUri();
         if (!baseUri.isEmpty()) {
-            builder.append(addLeadingSlash(baseUri));
+            if (!baseUri.startsWith("/")) {
+                builder.append('/');
+            }
+            builder.append(baseUri);
         }
 
-        // ... the container path ...
-        String resourcePath = request.getResourcePath();
-        if (!resourcePath.isEmpty()) {
-            builder.append(addLeadingSlash(resourcePath));
-        }
-
-        // ... and the resource ID
+        // Add resource ID.
         builder.append('/');
         builder.append(resource.getId());
 

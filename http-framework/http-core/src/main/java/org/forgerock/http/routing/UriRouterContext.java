@@ -28,7 +28,6 @@ import java.util.Map;
 import org.forgerock.json.JsonValue;
 import org.forgerock.services.context.AbstractContext;
 import org.forgerock.services.context.Context;
-import org.forgerock.util.Reject;
 
 /**
  * A {@link Context} which is created when a request has been routed. The
@@ -42,6 +41,24 @@ import org.forgerock.util.Reject;
  * <li>a map which contains the parsed URI template variables, keyed on the URI
  * template variable name.
  * </ul>
+ *
+ * The {@literal originalUri} represents the incoming request URI, as sent
+ * by the client. So it can be used to generate redirects or links that will
+ * be usable in the context of the caller (user-agent).
+ *
+ * This is considered as the starting point of the current routing process.
+ * Most of the time, that will be the URI received by web server, but it may
+ * happen that the URI received by the web server is not the same one that the
+ * one sent by the user-agent (e.g. : behind a load balancer, in a cloud
+ * environment, ... ). The real URI can be found by other means, it is possible to
+ * ?overwrite? it in other UriRouterContexts that can be accessed in the contexts
+ * chain. Then in that case, we need to start a new routing process by considering
+ * that given URI as the new originalUri.
+ *
+ * Otherwise child {@code UriRouterContext} may just redefine only the
+ * {code matchedUri}, {@code remainingUri}, {@code uriTemplateVariables} as
+ * part of their routing process.
+ *
  */
 public final class UriRouterContext extends AbstractContext {
 
@@ -59,10 +76,13 @@ public final class UriRouterContext extends AbstractContext {
      */
     private URI originalUri;
 
-        /**
+    /**
      * Creates a new routing context having the provided parent, URI template
      * variables, and an ID automatically generated using
      * {@code UUID.randomUUID()}.
+     *
+     * The parameters provided in this {@link UriRouterContext} will override any
+     * parameters inherited from parent {@link UriRouterContext}s.
      *
      * @param parent
      *            The parent server context.
@@ -84,17 +104,22 @@ public final class UriRouterContext extends AbstractContext {
      * variables, and an ID automatically generated using
      * {@code UUID.randomUUID()}.
      *
+     * The parameters provided in this {@link UriRouterContext} will override any
+     * parameters inherited from parent {@link UriRouterContext}s.
+     *
      * @param parent
-     *            The parent server context.
+     *            The parent server context. (not null)
      * @param matchedUri
      *            The matched URI
      * @param remainingUri
      *            The remaining URI to be matched.
      * @param uriTemplateVariables
      *            A {@code Map} containing the parsed URI template variables,
-     *            keyed on the URI template variable name.
+     *            keyed on the URI template variable name. (not null)
      * @param originalUri
-     *            The original URI
+     *            The original URI. If not {@literal null} it will override the
+     *            {@code originalUri} defined in the closest {@code UriRouterContext}
+     *            referenced in the context's chain.
      */
     public UriRouterContext(final Context parent, final String matchedUri, final String remainingUri,
             final Map<String, String> uriTemplateVariables, URI originalUri) {
@@ -105,11 +130,6 @@ public final class UriRouterContext extends AbstractContext {
         data.put(ATTR_URI_TEMPLATE_VARIABLES, this.uriTemplateVariables);
 
         if (originalUri != null) {
-            if (parent.containsContext(UriRouterContext.class)) {
-                UriRouterContext parentUriRouterContext = parent.asContext(UriRouterContext.class);
-                Reject.ifTrue(parentUriRouterContext.getOriginalUri() != null, "Cannot set the originalUri more than "
-                        + "once in the chain.");
-            }
             this.originalUri = originalUri;
             data.put(ATTR_ORIGINAL_URI, originalUri.toASCIIString());
         }

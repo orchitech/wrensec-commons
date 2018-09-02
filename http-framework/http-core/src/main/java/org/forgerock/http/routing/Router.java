@@ -17,10 +17,8 @@ package org.forgerock.http.routing;
 
 import static org.forgerock.http.protocol.Responses.newNotFound;
 import static org.forgerock.http.routing.RouteMatchers.getRemainingRequestUri;
-import static org.forgerock.http.routing.RouteMatchers.selfApiMatcher;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
-import org.forgerock.http.ApiProducer;
 import org.forgerock.http.Handler;
 import org.forgerock.http.handler.DescribableHandler;
 import org.forgerock.http.protocol.Request;
@@ -68,7 +66,6 @@ import io.swagger.models.Swagger;
 public final class Router extends AbstractRouter<Router, Request, Handler, Swagger> implements DescribableHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(Router.class);
-    private Handler selfApiHandler = new SelfApiHandler();
 
     /** Creates a new router with no routes defined. */
     public Router() {
@@ -96,11 +93,6 @@ public final class Router extends AbstractRouter<Router, Request, Handler, Swagg
     }
 
     @Override
-    protected Pair<RouteMatcher<Request>, Handler> getSelfApiHandler() {
-        return Pair.of(selfApiMatcher(), selfApiHandler);
-    }
-
-    @Override
     public Promise<Response, NeverThrowsException> handle(Context context, Request request) {
         try {
             Pair<Context, Handler> bestMatch = getBestRoute(context, request);
@@ -116,33 +108,4 @@ public final class Router extends AbstractRouter<Router, Request, Handler, Swagg
             return newResultPromise(new ResponseException(e.getMessage()).getResponse());
         }
     }
-
-    private class SelfApiHandler implements DescribableHandler {
-
-        @Override
-        public Swagger api(ApiProducer<Swagger> producer) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Swagger handleApiRequest(Context context, Request request) {
-            return api;
-        }
-
-        @Override
-        public void addDescriptorListener(Listener listener) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void removeDescriptorListener(Listener listener) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Promise<Response, NeverThrowsException> handle(Context context, Request request) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
 }

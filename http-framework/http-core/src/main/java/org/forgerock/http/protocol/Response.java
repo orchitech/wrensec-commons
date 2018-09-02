@@ -68,6 +68,13 @@ public final class Response extends MessageImpl<Response> {
     }
 
     /**
+     * Creates a new response.
+     */
+    public Response() {
+        // Nothing to do.
+    }
+    
+    /**
      * Creates a defensive copy of the given {@code response} message.
      *
      * @param response

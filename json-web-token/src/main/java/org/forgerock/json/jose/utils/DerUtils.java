@@ -17,10 +17,8 @@
 
 package org.forgerock.json.jose.utils;
 
-import java.math.BigInteger;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -106,27 +104,27 @@ public final class DerUtils {
      * @param output the output buffer.
      * @param length the length to write.
      */
-    public static void writeLength(final ByteBuffer output, final int len) {
-        if (len < 128) {
-            output.put((byte) len);
-        } else if (len < (1 << 8)) {
+    public static void writeLength(final ByteBuffer output, final int length) {
+        if (length < 128) {
+            output.put((byte) length);
+        } else if (length < (1 << 8)) {
             output.put((byte) 0x081);
-            output.put((byte) len);
-        } else if (len < (1 << 16)) {
+            output.put((byte) length);
+        } else if (length < (1 << 16)) {
             output.put((byte) 0x82);
-            output.put((byte) (len >> 8));
-            output.put((byte) len);
-        } else if (len < (1 << 24)) {
+            output.put((byte) (length >> 8));
+            output.put((byte) length);
+        } else if (length < (1 << 24)) {
             output.put((byte) 0x83);
-            output.put((byte) (len >> 16));
-            output.put((byte) (len >> 8));
-            output.put((byte) len);
+            output.put((byte) (length >> 16));
+            output.put((byte) (length >> 8));
+            output.put((byte) length);
         } else {
             output.put((byte) 0x84);
-            output.put((byte) (len >> 24));
-            output.put((byte) (len >> 16));
-            output.put((byte) (len >> 8));
-            output.put((byte) len);
+            output.put((byte) (length >> 24));
+            output.put((byte) (length >> 16));
+            output.put((byte) (length >> 8));
+            output.put((byte) length);
         }
     }
 }
