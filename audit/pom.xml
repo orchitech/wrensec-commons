@@ -13,11 +13,12 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2015-2016 ForgeRock AS.
-  ~ Portions Copyright 2017 Wren Security.
+  ~ Portions Copyright 2017-2018 Wren Security.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>commons-parent</artifactId>
@@ -28,7 +29,10 @@
     <packaging>pom</packaging>
 
     <name>Wren Security Commons Audit - Framework</name>
-    <description>Implements the commons audit framework.</description>
+    <description>
+        Implements common functionality for auditing system and security, and sending those events
+        to a variety of capture and storage formats.
+    </description>
 
     <properties>
         <commons.forgerock-bom.version>7.0</commons.forgerock-bom.version>
@@ -61,6 +65,7 @@
                 <artifactId>org.apache.servicemix.bundles.javax-inject</artifactId>
                 <version>${javax.inject.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
@@ -73,11 +78,13 @@
                 <artifactId>super-csv</artifactId>
                 <version>${supercsv.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${jodaTime.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>

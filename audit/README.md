@@ -25,7 +25,7 @@ must direct log data to the commons audit authentication endpoint.
 ### Configuration
 The config audit topic logs operations on the systems configuration.
 
-##Deploying the demo application
+## Deploying the demo application
 First make sure it is built:
 
     mvn clean install

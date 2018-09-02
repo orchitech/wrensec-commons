@@ -13,18 +13,24 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2016 ForgeRock AS.
+  ~ Portions Copyright 2018 Wren Security.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>forgerock-audit</artifactId>
         <groupId>org.forgerock.commons</groupId>
         <version>21.0.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>forgerock-audit-handler-splunk</artifactId>
     <packaging>bundle</packaging>
-    <name>Commons - ForgeRock Audit Splunk Event Handler</name>
+
+    <name>Wren Security Commons Audit - Splunk Event Handler</name>
+    <description>
+        Provides native support for streaming audit events into Splunk for indexing.
+    </description>
 
     <dependencies>
         <!-- ForgeRock Commons Dependencies -->
@@ -32,10 +38,12 @@
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-audit-core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.http</groupId>
             <artifactId>chf-client-apache-async</artifactId>
@@ -47,11 +55,13 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
@@ -68,5 +78,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
