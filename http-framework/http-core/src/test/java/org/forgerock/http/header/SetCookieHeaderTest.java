@@ -83,6 +83,22 @@ public class SetCookieHeaderTest {
     }
 
     @Test
+    public void shouldCreateSetCookieHeaderWithZeroMaxAge() {
+
+        //Given
+        Cookie cookie = new Cookie()
+                .setName("NAME")
+                .setValue("VALUE")
+                .setMaxAge(0);
+
+        //When
+        SetCookieHeader setCookieHeader = new SetCookieHeader(singletonList(cookie));
+
+        //Then
+        assertThat(setCookieHeader.getValues()).containsOnly("NAME=VALUE; Max-Age=0");
+    }
+
+    @Test
     public void shouldCreateSetCookieHeaderWithPath() {
 
         //Given
