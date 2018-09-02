@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security
  */
 
 package org.forgerock.api.models;
@@ -123,7 +124,7 @@ public final class Definitions {
         public Builder put(String name, Schema schema) {
             if (isEmpty(name) || containsWhitespace(name)) {
                 throw new IllegalArgumentException(
-                        "Schema name required and may not contain whitespace, current value: '" + name + "'");
+                    "name is required, must not be blank, and must not contain whitespace");
             }
             if (definitions.containsKey(name) && !definitions.get(name).equals(schema)) {
                 throw new IllegalStateException("The given Schema name"

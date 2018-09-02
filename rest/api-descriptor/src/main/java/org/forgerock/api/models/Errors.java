@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security
  */
 
 package org.forgerock.api.models;
@@ -128,11 +129,12 @@ public final class Errors {
         @JsonAnySetter
         public Builder put(String name, ApiError apiError) {
             if (isEmpty(name) || containsWhitespace(name)) {
-                throw new IllegalArgumentException("ApiError name is required and may not contain whitespace");
+                throw new IllegalArgumentException(
+                    "name is required, must not be blank, and must not contain whitespace");
             }
             if (errors.containsKey(name) && !errors.get(name).equals(apiError)) {
-                throw new IllegalStateException("The give ApiError name already exists but the ApiError objects"
-                        + " are not equal");
+                throw new IllegalStateException(
+                    "name must be unique; two different errors cannot have the same name");
             }
             errors.put(name, checkNotNull(apiError));
             return this;
