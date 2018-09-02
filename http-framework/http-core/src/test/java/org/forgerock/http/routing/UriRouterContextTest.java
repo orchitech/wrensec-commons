@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.http.routing;
@@ -81,15 +82,17 @@ public class UriRouterContextTest {
         assertThat(context2.getOriginalUri()).isEqualTo(originalUri2);
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    @SuppressWarnings("ResultOfObjectAllocationIgnored")
-    public void shouldFailWhenTryingToDefineMoreThanOneOriginalUri() throws URISyntaxException {
-        final URI originalUri = new URI("http://www.example.com");
+    @Test
+    public void shouldAllowChildToOverrideParentOriginalUri() throws URISyntaxException {
+        final URI parentUri = new URI("http://www.example.com");
+        final URI childUri = new URI("http://www.forgerock.org");
+
         UriRouterContext parent = new UriRouterContext(new RootContext(), null, null,
-                Collections.<String, String>emptyMap(), originalUri);
+                Collections.<String, String>emptyMap(), parentUri);
+        UriRouterContext child = new UriRouterContext(parent, null, null, Collections.<String, String>emptyMap(),
+                childUri);
 
-        new UriRouterContext(parent, null, null, Collections.<String, String>emptyMap(),
-                new URI("http://www.forgerock.org"));
+        assertThat(parent.getOriginalUri()).isEqualTo(parentUri);
+        assertThat(child.getOriginalUri()).isEqualTo(childUri);
     }
-
 }

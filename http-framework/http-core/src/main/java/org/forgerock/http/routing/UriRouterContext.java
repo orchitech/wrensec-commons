@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.http.routing;
@@ -71,8 +72,8 @@ public final class UriRouterContext extends AbstractContext {
     private final Map<String, String> uriTemplateVariables;
 
     /**
-     * The original message's URI, as received by the web container. This value is set by the receiving servlet and
-     * is immutable.
+     * The original message's URI, as received by the web container. This value is set by the
+     * receiving servlet and is immutable.
      */
     private URI originalUri;
 
