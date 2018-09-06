@@ -118,7 +118,7 @@ public class PreferredLocales {
                 logger.debug("Returning {} bundle in {} locale", bundleName, candidateLocale);
                 return candidate;
             }
-            if (!candidateLocale.equals(Locale.ROOT)
+            if (candidateLocale.equals(Locale.ROOT)
                     && matches(locale, DEFAULT_RESOURCE_BUNDLE_LOCALE, remainingLocales)) {
                 return ResourceBundle.getBundle(bundleName, Locale.ROOT, classLoader);
             }

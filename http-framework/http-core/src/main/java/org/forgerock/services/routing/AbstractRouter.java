@@ -15,6 +15,8 @@
  */
 package org.forgerock.services.routing;
 
+import static org.forgerock.http.routing.RoutingMode.EQUALS;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,12 +53,14 @@ public abstract class AbstractRouter<T extends AbstractRouter<T, R, H, D>, R, H,
 
     private final Map<RouteMatcher<R>, H> routes = new ConcurrentHashMap<>();
     /** Matches the current route. */
-    protected final RouteMatcher<R> thisRouterUriMatcher = uriMatcher(RoutingMode.EQUALS, "");
-    private final List<Describable.Listener> apiListeners = new CopyOnWriteArrayList<>();
+    protected final RouteMatcher<R> thisRouterUriMatcher = uriMatcher(EQUALS, "");
     private volatile H defaultRoute;
+
+    private final List<Describable.Listener> apiListeners = new CopyOnWriteArrayList<>();
     private ApiProducer<D> apiProducer;
     /** Api of the current router. */
     protected D api;
+    private boolean apiNotificationsEnabled = true;
 
     /** Creates a new abstract router with no routes defined. */
     protected AbstractRouter() {
@@ -218,62 +222,74 @@ public abstract class AbstractRouter<T extends AbstractRouter<T, R, H, D>, R, H,
      * {@code RouteMatcher}s could not be compared to one another.
      */
     protected Pair<Context, H> getBestRoute(Context context, R request) throws IncomparableRouteMatchException {
-        H handler = null;
-        RouteMatch bestMatch = null;
-        for (Map.Entry<RouteMatcher<R>, H> route : routes.entrySet()) {
-            RouteMatch result = route.getKey().evaluate(context, request);
-            if (result != null) {
-                if (result.isBetterMatchThan(bestMatch)) {
-                    handler = route.getValue();
-                    bestMatch = result;
-                }
-            }
-        }
-        if (bestMatch != null) {
-            return Pair.of(bestMatch.decorateContext(context), handler);
+        Pair<RouteMatch, H> bestMatch = getBestRouteMatch(context, request);
+        if (bestMatch.getFirst() != null) {
+            return Pair.of(bestMatch.getFirst().decorateContext(context), bestMatch.getSecond());
         }
 
         final H dftRoute = defaultRoute;
         return dftRoute != null ? Pair.of(context, dftRoute) : null;
     }
 
+    /**
+     * Get the best route for an API request. This is differs from {@link #getBestRoute(Context, Object)} in that it
+     * also checks to see whether this router itself is being addressed, and returns the merged descriptor for all the
+     * routes if so.
+     *
+     * @param context The request context.
+     * @param request The request to be matched against the registered routes.
+     * @return A {@code Pair} containing the decorated {@code Context} and the
+     * handler which is the best match for the given request or {@code null} if
+     * no route was found.
+     * @throws IncomparableRouteMatchException If any of the registered
+     * {@code RouteMatcher}s could not be compared to one another.
+     */
+    protected Pair<Context, H> getBestApiRoute(Context context, R request) throws IncomparableRouteMatchException {
+        Pair<RouteMatch, H> bestMatch = getBestRouteMatch(context, request);
+
+        Pair<RouteMatcher<R>, H> selfApiRoute = getSelfApiHandler();
+        RouteMatch selfMatch = selfApiRoute.getFirst().evaluate(context, request);
+
+        RouteMatch match = bestMatch.getFirst();
+        if (selfMatch != null && selfMatch.isBetterMatchThan(match)) {
+            return Pair.of(context, selfApiRoute.getSecond());
+        } else if (match != null) {
+            return Pair.of(match.decorateContext(context), bestMatch.getSecond());
+        }
+
+        final H dftRoute = defaultRoute;
+        return dftRoute != null ? Pair.of(context, dftRoute) : null;
+    }
+
+    private Pair<RouteMatch, H> getBestRouteMatch(Context context, R request) throws IncomparableRouteMatchException {
+        Pair<RouteMatch, H> bestMatch = Pair.of(null, null);
+        for (Map.Entry<RouteMatcher<R>, H> route : routes.entrySet()) {
+            RouteMatch result = route.getKey().evaluate(context, request);
+            if (result != null) {
+                if (result.isBetterMatchThan(bestMatch.getFirst())) {
+                    bestMatch = Pair.of(result, route.getValue());
+                }
+            }
+        }
+        return bestMatch;
+    }
+
+    /**
+     * Return a {@code Describable} handler that returns this {@code AbstractRouter}'s internal api description from the
+     * {@link Describable#handleApiRequest(Context, Object)} method. All other methods should throw an
+     * {@code UnsupportedOperationException}, as they should never be used.
+     *
+     * @return The describable handler.
+     */
+    protected abstract Pair<RouteMatcher<R>, H> getSelfApiHandler();
+
     @Override
     public synchronized D api(ApiProducer<D> producer) {
         if (apiProducer == null) {
             this.apiProducer = producer;
-            updateApi();
+            notifyDescriptorChange();
         }
         return this.api;
-    }
-
-    private void updateApi() {
-        if (this.apiProducer != null) {
-            this.api = buildApi(this.apiProducer);
-        }
-    }
-
-    /**
-     * Build an api with a given {@link ApiProducer}.
-     *
-     * @param producer The given ApiProducer to use.
-     * @return an api.
-     */
-    @SuppressWarnings("unchecked")
-    protected D buildApi(ApiProducer<D> producer) {
-        List<D> descriptors = new ArrayList<>(routes.size());
-        for (Map.Entry<RouteMatcher<R>, H> route : routes.entrySet()) {
-            H handler = route.getValue();
-            if (handler instanceof Describable) {
-                RouteMatcher<R> matcher = route.getKey();
-                D descriptor = ((Describable<D, R>) handler).api(producer.newChildProducer(matcher.idFragment()));
-                descriptors.add(matcher.transformApi(descriptor, producer));
-            }
-        }
-        final H dftRoute = defaultRoute;
-        if (dftRoute instanceof Describable) {
-            descriptors.add(((Describable<D, R>) dftRoute).api(producer));
-        }
-        return descriptors.isEmpty() ? null : producer.merge(descriptors);
     }
 
     /**
@@ -288,7 +304,7 @@ public abstract class AbstractRouter<T extends AbstractRouter<T, R, H, D>, R, H,
     @SuppressWarnings("unchecked")
     public D handleApiRequest(Context context, R request) {
         try {
-            Pair<Context, H> bestRoute = getBestRoute(context, request);
+            Pair<Context, H> bestRoute = getBestApiRoute(context, request);
             H handler = bestRoute != null ? bestRoute.getSecond() : null;
             if (handler instanceof Describable) {
                 Context nextContext = bestRoute.getFirst();
@@ -321,7 +337,35 @@ public abstract class AbstractRouter<T extends AbstractRouter<T, R, H, D>, R, H,
 
     @Override
     public void notifyDescriptorChange() {
-        updateApi();
-        notifyListeners();
+        if (this.apiProducer != null && apiNotificationsEnabled) {
+            apiNotificationsEnabled = false;
+            this.api = buildApi(this.apiProducer);
+            apiNotificationsEnabled = true;
+            notifyListeners();
+        }
+    }
+
+    /**
+     * Build an api with a given {@link ApiProducer}.
+     *
+     * @param producer The given ApiProducer to use.
+     * @return an api.
+     */
+    @SuppressWarnings("unchecked")
+    protected D buildApi(ApiProducer<D> producer) {
+        List<D> descriptors = new ArrayList<>(routes.size());
+        for (Map.Entry<RouteMatcher<R>, H> route : routes.entrySet()) {
+            H handler = route.getValue();
+            if (handler instanceof Describable) {
+                RouteMatcher<R> matcher = route.getKey();
+                D descriptor = ((Describable<D, R>) handler).api(producer.newChildProducer(matcher.idFragment()));
+                descriptors.add(matcher.transformApi(descriptor, producer));
+            }
+        }
+        final H dftRoute = defaultRoute;
+        if (dftRoute instanceof Describable) {
+            descriptors.add(((Describable<D, R>) dftRoute).api(producer));
+        }
+        return descriptors.isEmpty() ? null : producer.merge(descriptors);
     }
 }

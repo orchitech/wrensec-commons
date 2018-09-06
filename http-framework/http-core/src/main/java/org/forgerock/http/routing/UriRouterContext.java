@@ -52,7 +52,7 @@ import org.forgerock.services.context.Context;
  * happen that the URI received by the web server is not the same one that the
  * one sent by the user-agent (e.g. : behind a load balancer, in a cloud
  * environment, ... ). The real URI can be found by other means, it is possible to
- * ?overwrite? it in other UriRouterContexts that can be accessed in the contexts
+ * "overwrite" it in other UriRouterContexts that can be accessed in the contexts
  * chain. Then in that case, we need to start a new routing process by considering
  * that given URI as the new originalUri.
  *
