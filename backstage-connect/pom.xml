@@ -13,19 +13,24 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2017 ForgeRock AS.
+  ~ Portions Copyright 2018 Wren Security.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>commons-parent</artifactId>
         <groupId>org.forgerock.commons</groupId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>backstage-connect</artifactId>
     <packaging>bundle</packaging>
-    <name>Forgerock Commons - Backstage Connect</name>
-    <description>Common means of communicating with Backstage Connect services.</description>
+
+    <name>Wren Security Commons - Backstage Connect</name>
+    <description>
+        Common means of reporting telemetry data back to Wren Security Servers.
+    </description>
 
     <dependencies>
         <dependency>
@@ -38,6 +43,7 @@
             <groupId>org.forgerock.http</groupId>
             <artifactId>chf-client-apache-async</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-web-token</artifactId>
@@ -49,6 +55,7 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>

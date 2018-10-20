@@ -13,15 +13,16 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2016 ForgeRock AS.
-  -->
-
+  ~ Portions Copyright 2018 Wren Security.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>chf-http-examples</artifactId>
         <groupId>org.forgerock.http</groupId>
         <version>22.0.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>http-descriptor-example</artifactId>
     <name>Wren Security Commons HTTP - OpenAPI Descriptor Example Module</name>
@@ -31,16 +32,17 @@
             <groupId>org.forgerock.http</groupId>
             <artifactId>chf-http-core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-core</artifactId>
             <version>1.5.7</version>
         </dependency>
     </dependencies>
-
 </project>

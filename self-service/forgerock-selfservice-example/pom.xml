@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ The contents of this file are subject to the terms of the Common Development and
   ~ Distribution License (the License). You may not use this file except in compliance with the
@@ -14,9 +13,8 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2015 ForgeRock AS.
-  ~ Portions Copyright 2017 Wren Security.
-  -->
-
+  ~ Portions Copyright 2017-2018 Wren Security.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -38,21 +36,25 @@
             <artifactId>forgerock-selfservice-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-selfservice-custom-stage</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-selfservice-stages</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-selfservice-json</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-selfservice-example-ui</artifactId>
@@ -60,30 +62,37 @@
             <classifier>www</classifier>
             <type>zip</type>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.http</groupId>
             <artifactId>chf-http-servlet</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource-http</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-util</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons.guava</groupId>
             <artifactId>forgerock-guava-base</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
@@ -95,13 +104,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+
                 <executions>
                     <execution>
                         <id>war</id>
                         <phase>package</phase>
+
                         <goals>
                             <goal>war</goal>
                         </goals>
+
                         <configuration>
                             <classifier>servlet</classifier>
                         </configuration>
@@ -112,25 +124,29 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+
                 <executions>
                     <execution>
-                    <id>unpack</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>unpack</goal>
-                    </goals>
-                    <configuration>
-                        <artifactItems>
-                        <artifactItem>
-                            <groupId>org.forgerock.commons</groupId>
-                            <artifactId>forgerock-selfservice-example-ui</artifactId>
-                            <version>${project.version}</version>
-                            <type>zip</type>
-                            <classifier>www</classifier>
-                        </artifactItem>
-                        </artifactItems>
-                        <outputDirectory>${project.build.directory}/webapp</outputDirectory>
-                    </configuration>
+                        <id>unpack</id>
+                        <phase>package</phase>
+
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.forgerock.commons</groupId>
+                                    <artifactId>forgerock-selfservice-example-ui</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>zip</type>
+                                    <classifier>www</classifier>
+                                </artifactItem>
+                            </artifactItems>
+
+                            <outputDirectory>${project.build.directory}/webapp</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -139,14 +155,17 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>9.2.1.v20140609</version>
+
                 <configuration>
                     <scanIntervalSeconds>2</scanIntervalSeconds>
+
                     <webApp>
                         <baseResource implementation="org.eclipse.jetty.util.resource.ResourceCollection">
                             <resourcesAsCSV>${project.build.directory}/webapp</resourcesAsCSV>
                         </baseResource>
                         <contextPath>/example</contextPath>
                     </webApp>
+
                     <httpConnector>
                         <port>9999</port>
                     </httpConnector>
@@ -154,5 +173,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

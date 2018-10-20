@@ -13,10 +13,11 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2017 Wren Security.
+  Portions Copyright 2017-2018 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.forgerock.http</groupId>
     <artifactId>forgerock-http-framework-parent</artifactId>
@@ -32,14 +33,17 @@
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-http-core</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpasyncclient-osgi</artifactId>
       <version>${apache-httpasyncclient.version}</version>
+
       <!-- Dependencies packaged within the OSGi bundle: no need to transitively duplicates them -->
       <exclusions>
         <exclusion>
@@ -48,30 +52,36 @@
         </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-client-apache-common</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>com.xebialabs.restito</groupId>
       <artifactId>restito</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.http</groupId>
       <artifactId>http-client-test-utils</artifactId>

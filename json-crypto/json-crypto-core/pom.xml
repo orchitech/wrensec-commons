@@ -13,43 +13,52 @@
   information: "Portions Copyrighted [year] [name of copyright owner]".
 
   Copyright 2011-2015 ForgeRock AS. All rights reserved.
-  Portions Copyright 2017 Wren Security.
+  Portions Copyright 2017-2018 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>json-crypto</artifactId>
         <version>22.0.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>json-crypto-core</artifactId>
+    <packaging>bundle</packaging>
+
     <name>Wren Security Commons JSON Crypto - Core Library</name>
     <description>Wren Security JSON cryptographic library</description>
-    <packaging>bundle</packaging>
+
     <dependencies>
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-util</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
+
                 <configuration>
                     <instructions>
                         <Export-Package>
