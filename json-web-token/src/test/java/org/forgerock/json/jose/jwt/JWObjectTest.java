@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwt;
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.jose.exceptions.JwtRuntimeException;
 import org.testng.annotations.Test;
 
@@ -33,7 +34,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldNotPutNullValues() {
-
         //Given
         JWObject jwObject = new JWObject() { };
 
@@ -46,7 +46,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldRemoveExistingValueWhenPuttingNewValueIsNull() {
-
         //Given
         JWObject jwObject = new JWObject() { };
         jwObject.put("KEY1", "VALUE1");
@@ -60,7 +59,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldGetValue() {
-
         //Given
         JWObject jwObject = new JWObject() { };
         jwObject.put("KEY", "VALUE");
@@ -74,7 +72,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldCheckIfIsDefined() {
-
         //Given
         JWObject jwObject = new JWObject() { };
 
@@ -87,7 +84,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldCheckValueIsOfType() {
-
         //Given
         JWObject jwObject = new JWObject() { };
 
@@ -101,7 +97,6 @@ public class JWObjectTest {
 
     @Test (expectedExceptions = JwtRuntimeException.class)
     public void shouldThrowJwtRuntimeExceptionWhenValueIsOfWrongType() {
-
         //Given
         JWObject jwObject = new JWObject() { };
 
@@ -115,7 +110,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldCheckListValuesAreOfType() {
-
         //Given
         JWObject jwObject = new JWObject() { };
         List<String> strings = new ArrayList<>();
@@ -134,7 +128,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldCheckListValuesAreOfTypeOkIfWrongListTypeIsEmpty() {
-
         //Given
         JWObject jwObject = new JWObject() { };
         List<String> strings = new ArrayList<>();
@@ -153,7 +146,6 @@ public class JWObjectTest {
 
     @Test (expectedExceptions = JwtRuntimeException.class)
     public void shouldThrowJwtRuntimeExceptionWhenListValuesAreOfWrongType() {
-
         //Given
         JWObject jwObject = new JWObject() { };
         List<String> strings = new ArrayList<>();
@@ -173,7 +165,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldCheckIfIsValueOfType() {
-
         //Given
         JWObject jwObject = new JWObject() { };
 
@@ -190,7 +181,6 @@ public class JWObjectTest {
 
     @Test
     public void shouldToString() {
-
         //Given
         JWObject jwObject = new JWObject() { };
         jwObject.put("KEY1", "VALUE1");
@@ -200,6 +190,51 @@ public class JWObjectTest {
         String jwString = jwObject.toString();
 
         //Then
-        assertThat(jwString).contains("\"KEY1\":\"VALUE1\",\"KEY2\":\"VALUE2\"");
+        assertThat(jwString).contains("\"KEY2\":\"VALUE2\"", "\"KEY1\":\"VALUE1\"");
+    }
+
+    @Test
+    public void shouldNotAddAdditionalWhitespace() {
+        // Given
+        JWObject jwObject = new JWObject() { };
+        for (int i = 0; i < 100; ++i) {
+            jwObject.put("key" + i, "value" + i);
+        }
+
+        // When
+        String jwString = jwObject.toString();
+
+        // Then
+        assertThat(jwString).doesNotContain(" ")
+                            .doesNotContain("\t")
+                            .doesNotContain("\n")
+                            .doesNotContain("\r");
+    }
+
+    @Test
+    public void testToJsonValue() {
+        //Given
+        JWObject jwObject = new JWObject() { };
+        jwObject.put("KEY1", "test");
+
+        //When
+        JsonValue jwObjectJson = jwObject.toJsonValue();
+
+        //Then
+        assertThat(jwObjectJson.get("KEY1").asString()).isEqualTo("test");
+    }
+
+    @Test
+    public void testToJsonValueIsCopy() {
+        //Given
+        JWObject jwObject = new JWObject() { };
+        jwObject.put("KEY1", "test1");
+
+        //When
+        JsonValue jwObjectJson = jwObject.toJsonValue();
+        jwObjectJson.put("KEY2", "test2");
+
+        //Then
+        assertThat(jwObject.isDefined("KEY2")).isFalse();
     }
 }

@@ -11,7 +11,7 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014-2015 ForgeRock AS.
+* Copyright 2014-2016 ForgeRock AS.
 */
 
 package org.forgerock.jaspi.modules.openid;
@@ -20,15 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
-import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.AuthException;
-import javax.security.auth.message.AuthStatus;
-import javax.security.auth.message.MessagePolicy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
@@ -36,10 +35,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.message.AuthException;
+import javax.security.auth.message.AuthStatus;
+import javax.security.auth.message.MessagePolicy;
+
 import org.forgerock.caf.authentication.api.AuthenticationException;
 import org.forgerock.caf.authentication.api.MessageInfoContext;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
+import org.forgerock.http.protocol.Status;
 import org.forgerock.jaspi.modules.openid.exceptions.OpenIdConnectVerificationException;
 import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolver;
 import org.forgerock.jaspi.modules.openid.resolvers.service.OpenIdResolverService;
@@ -80,21 +87,21 @@ public class OpenIdConnectModuleTest {
 
     @Test(expectedExceptions = AuthException.class)
     public void shouldThrowAuthExceptionWithNoHeaderInConfig() throws Exception {
-        //given
+        // given
         MessagePolicy requestPolicy = mock(MessagePolicy.class);
         MessagePolicy responsePolicy =  mock(MessagePolicy.class);
         CallbackHandler callback =  mock(CallbackHandler.class);
         Map<String, Object> config = new HashMap<>();
 
-        //when
-        testModule.initialize(requestPolicy, responsePolicy, callback, config).getOrThrowUninterruptibly();
+        // when
+        testModule.initialize(requestPolicy, responsePolicy, callback, config);
 
-        //then - covered by caught exception
+        // then - covered by caught exception
     }
 
     @Test(expectedExceptions = AuthException.class)
     public void shouldThrowAuthExceptionWhenConfigureServiceFails() throws Exception {
-        //given
+        // given
         MessagePolicy requestPolicy = mock(MessagePolicy.class);
         MessagePolicy responsePolicy =  mock(MessagePolicy.class);
         CallbackHandler callback =  mock(CallbackHandler.class);
@@ -102,17 +109,16 @@ public class OpenIdConnectModuleTest {
 
         given(mockConfigurator.configureService(any(OpenIdResolverService.class), any(List.class))).willReturn(false);
 
-        //when
-        testModule.initialize(requestPolicy, responsePolicy, callback, config).getOrThrowUninterruptibly();
-
-        //then - covered by caught exception
+        // when
+        testModule.initialize(requestPolicy, responsePolicy, callback, config);
+        // then - covered by caught exception
     }
 
     @Test
     public void shouldReturnFailureWhenNoJwtInRequest() throws AuthException {
         //given
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = null;
@@ -133,7 +139,7 @@ public class OpenIdConnectModuleTest {
     public void shouldReturnFailureWhenEmptyJwtInRequest() throws AuthException {
         //given
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = "";
@@ -154,7 +160,7 @@ public class OpenIdConnectModuleTest {
     public void shouldReturnFailureWhenInvalidJwtInRequest() throws AuthException {
         //given
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = "jwt";
@@ -176,7 +182,7 @@ public class OpenIdConnectModuleTest {
     public void shouldReturnFailureWhenInvalidJwtPartsInRequest() throws AuthException {
         //given
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = "jwt";
@@ -199,7 +205,7 @@ public class OpenIdConnectModuleTest {
     public void shouldReturnFailureWhenUnableToFindResolverForIssuer() throws Exception {
         //given
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = "jwt";
@@ -227,7 +233,7 @@ public class OpenIdConnectModuleTest {
         //given
         OpenIdResolver mockResolver = mock(OpenIdResolver.class);
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = "jwt";
@@ -257,7 +263,7 @@ public class OpenIdConnectModuleTest {
         //given
         OpenIdResolver mockResolver = mock(OpenIdResolver.class);
         Request request = new Request();
-        Response response = new Response();
+        Response response = new Response(Status.OK);
 
         MessageInfoContext mockMessage = mock(MessageInfoContext.class);
         String jwtInRequest = "jwt";

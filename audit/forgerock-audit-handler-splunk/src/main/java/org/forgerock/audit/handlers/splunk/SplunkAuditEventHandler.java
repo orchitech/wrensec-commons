@@ -12,20 +12,19 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.audit.handlers.splunk;
 
+import static org.forgerock.guava.common.base.Strings.isNullOrEmpty;
 import static org.forgerock.http.handler.HttpClientHandler.OPTION_LOADER;
 import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.util.CloseSilentlyFunction.closeSilently;
 import static org.forgerock.util.promise.Promises.newExceptionPromise;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.UUID;
+
 import org.forgerock.audit.Audit;
 import org.forgerock.audit.events.EventTopicsMetaData;
 import org.forgerock.audit.events.handlers.AuditEventHandlerBase;
@@ -36,7 +35,6 @@ import org.forgerock.audit.events.handlers.buffering.BatchPublisherFactory;
 import org.forgerock.audit.events.handlers.buffering.BatchPublisherFactoryImpl;
 import org.forgerock.audit.handlers.splunk.SplunkAuditEventHandlerConfiguration.BufferingConfiguration;
 import org.forgerock.audit.handlers.splunk.SplunkAuditEventHandlerConfiguration.ConnectionConfiguration;
-import org.forgerock.guava.common.base.Strings;
 import org.forgerock.http.Client;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.apache.async.AsyncHttpClientProvider;
@@ -59,6 +57,9 @@ import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Audit event handler that writes out to Splunk's HTTP event collector RAW endpoint.
@@ -125,8 +126,7 @@ public final class SplunkAuditEventHandler extends AuditEventHandlerBase impleme
                 + "/services/collector/raw";
 
         final BufferingConfiguration bufferingConfiguration = configuration.getBuffering();
-        final Duration writeInterval =
-            Strings.isNullOrEmpty(bufferingConfiguration.getWriteInterval()) ? null
+        final Duration writeInterval = isNullOrEmpty(bufferingConfiguration.getWriteInterval()) ? null
                 : Duration.duration(bufferingConfiguration.getWriteInterval());
 
         if (publisherFactory == null) {

@@ -93,8 +93,11 @@ class JsonFileWriter {
         elasticsearchCompatible = configuration.isElasticsearchCompatible();
         queue = new ArrayBlockingQueue<>(max(configuration.getBuffering().getMaxSize(), MIN_QUEUE_SIZE));
         scheduler = Executors.newScheduledThreadPool(1, Utils.newThreadFactory(null, "audit-json-%d", false));
-        queueConsumer = new QueueConsumer(LOG_FILE_NAME_SUFFIX, topics, configuration, autoFlush, queue, scheduler);
         writeInterval = parseWriteInterval(configuration);
+        // checking for events to write on disk happens at most once a second, since {@code run()}
+        // is called periodically compute how many iterations are needed beofre writing on file
+        queueConsumer = new QueueConsumer(LOG_FILE_NAME_SUFFIX, topics, configuration, autoFlush, queue, scheduler,
+                (int) Math.max(1, 1_000_000 / writeInterval.to(TimeUnit.MICROSECONDS)));
     }
 
     private Duration parseWriteInterval(final JsonAuditEventHandlerConfiguration configuration) {
@@ -246,6 +249,7 @@ class JsonFileWriter {
         private final ScheduledExecutorService scheduler;
         private final Map<String, TopicEntry> topicEntryMap;
         private final List<QueueEntry> drainList;
+        private final int iterationsBeforeFlush;
 
         private volatile boolean shutdown;
 
@@ -259,13 +263,16 @@ class JsonFileWriter {
          * items in the queue will be dropped
          * @param queue Audit-event queue
          * @param scheduler This runnable's scheduler
+         * @param iterationsBeforeFlush number of times {@code run()} is called before topic events are written on file
          */
         private QueueConsumer(final String fileNameSuffix, final Set<String> topics,
                 final JsonAuditEventHandlerConfiguration configuration, final boolean flushOnShutdown,
-                final BlockingQueue<QueueEntry> queue, final ScheduledExecutorService scheduler) {
+                final BlockingQueue<QueueEntry> queue, final ScheduledExecutorService scheduler,
+                final int iterationsBeforeFlush) {
             this.queue = queue;
             this.scheduler = scheduler;
             this.flushOnShutdown = flushOnShutdown;
+            this.iterationsBeforeFlush = iterationsBeforeFlush;
             drainList = new ArrayList<>(BATCH_SIZE);
             rotationEnabled = configuration.getFileRotation().isRotationEnabled();
             rotationPolicies = configuration.getFileRotation().buildRotationPolicies();
@@ -355,9 +362,9 @@ class JsonFileWriter {
                         }
                     }
                 }
-                if (n == 0) {
+                for (final TopicEntry topicEntry : topicEntryMap.values()) {
                     // no new events, so flush all file buffers, to prevent appearance that events are stuck/lost
-                    for (final TopicEntry topicEntry : topicEntryMap.values()) {
+                    if (topicEntry.currentIterationsWithoutEvents() >= iterationsBeforeFlush) {
                         topicEntry.flush();
                     }
                 }
@@ -396,6 +403,7 @@ class JsonFileWriter {
             private DateTime lastRotationTime;
             private FileChannel fileChannel;
             private long positionInFile;
+            private int iterationsWithoutEventsCounter;
 
             TopicEntry(final String fileName, final JsonAuditEventHandlerConfiguration configuration) {
                 try {
@@ -406,13 +414,7 @@ class JsonFileWriter {
                         Files.createDirectory(directoryPath);
                     }
                     filePath = directoryPath.resolve(fileName);
-                    if (Files.notExists(filePath)) {
-                        fileChannel = FileChannel.open(filePath, StandardOpenOption.CREATE_NEW,
-                                StandardOpenOption.WRITE);
-                    } else {
-                        fileChannel = FileChannel.open(filePath, StandardOpenOption.WRITE);
-                        positionInFile = fileChannel.size();
-                    }
+                    openFileChannel();
 
                     final File currentFile = filePath.toFile();
                     fileNamingPolicy = configuration.getFileRotation().buildTimeStampFileNamingPolicy(currentFile);
@@ -433,12 +435,16 @@ class JsonFileWriter {
                 if (outputStream.byteBuffer().position() >= FILE_BUFFER_THRESHOLD) {
                     outputStream.byteBuffer().flip();
                     try {
+                        if (Files.notExists(filePath)) {
+                            openFileChannel();
+                        }
                         // write buffer to file
                         positionInFile += fileChannel.write(outputStream.byteBuffer(), positionInFile);
                     } finally {
                         outputStream.clear();
                     }
                 }
+                iterationsWithoutEventsCounter = 0;
             }
 
             void flush() {
@@ -446,6 +452,10 @@ class JsonFileWriter {
                     // write buffer to file
                     outputStream.byteBuffer().flip();
                     try {
+                        if (Files.notExists(filePath)) {
+                            openFileChannel();
+                        }
+                        // write buffer to file
                         positionInFile += fileChannel.write(outputStream.byteBuffer(), positionInFile);
                     } catch (IOException e) {
                         logger.error("Failed to flush file buffer", e);
@@ -453,6 +463,7 @@ class JsonFileWriter {
                         outputStream.clear();
                     }
                 }
+                iterationsWithoutEventsCounter = 0;
             }
 
             @Override
@@ -501,10 +512,13 @@ class JsonFileWriter {
                 final Path archivedFilePath = fileNamingPolicy.getNextName().toPath();
                 Files.move(filePath, archivedFilePath);
                 // create new file
-                fileChannel = FileChannel.open(filePath, StandardOpenOption.CREATE_NEW,
-                        StandardOpenOption.WRITE);
-                positionInFile = 0;
+                openFileChannel();
                 lastRotationTime = DateTime.now(DateTimeZone.UTC);
+            }
+
+            private void openFileChannel() throws IOException {
+                fileChannel = FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                positionInFile = fileChannel.size();
             }
 
             @Override
@@ -515,6 +529,10 @@ class JsonFileWriter {
             @Override
             public void registerRotationHooks(RotationHooks rotationHooks) {
                 // not implemented
+            }
+
+            int currentIterationsWithoutEvents() {
+                return ++iterationsWithoutEventsCounter;
             }
         }
     }

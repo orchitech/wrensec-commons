@@ -23,6 +23,7 @@ import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.selfservice.core.ServiceUtils.INITIAL_TAG;
 import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USER_FIELD;
+import static org.forgerock.selfservice.stages.email.VerifyEmailAccountStage.REQUIREMENT_KEY_CODE;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -81,14 +82,10 @@ public final class VerifyEmailAccountStageTest {
         verifyEmailStage = new VerifyEmailAccountStage(factory);
     }
 
-    @Test
+    @Test(expectedExceptions = BadRequestException.class)
     public void testGatherInitialRequirementsNoEmailInContext() throws Exception {
         // When
-        JsonValue jsonValue = verifyEmailStage.gatherInitialRequirements(context, config);
-
-        // Then
-        assertThat(jsonValue).stringAt("description").isEqualTo("Verify your email address");
-        assertThat(jsonValue).stringAt("properties/mail/description").isEqualTo("Email address");
+        verifyEmailStage.gatherInitialRequirements(context, config);
     }
 
     @Test
@@ -105,7 +102,7 @@ public final class VerifyEmailAccountStageTest {
     }
 
     @Test (expectedExceptions = BadRequestException.class,
-            expectedExceptionsMessageRegExp = "mail should not be empty")
+            expectedExceptionsMessageRegExp = "Unable to verify email")
     public void testAdvanceInitialStageWithoutEmailAddress() throws Exception {
         // Given
         given(context.getInput()).willReturn(newEmptyJsonValue());
@@ -137,8 +134,9 @@ public final class VerifyEmailAccountStageTest {
     @Test
     public void testAdvanceEmailProcessing() throws Exception {
         // Given
-        given(context.containsState(EMAIL_FIELD)).willReturn(false);
-        given(context.getInput()).willReturn(newJsonValueInputEmail());
+        given(context.containsState(EMAIL_FIELD)).willReturn(true);
+        given(context.getState(EMAIL_FIELD)).willReturn(json(TEST_EMAIL_ID));
+        given(context.getInput()).willReturn(newEmptyJsonValue());
 
         given(context.containsState(USER_FIELD)).willReturn(true);
         JsonValue user = newJsonValueUser();
@@ -151,10 +149,7 @@ public final class VerifyEmailAccountStageTest {
 
         // Then
         ArgumentCaptor<String> putStateArgumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(context).putState(eq(EMAIL_FIELD), putStateArgumentCaptor.capture());
-        assertThat(putStateArgumentCaptor.getValue()).isEqualTo(TEST_EMAIL_ID);
-
-        assertThat(user).stringAt(config.getIdentityEmailField()).isEqualTo(TEST_EMAIL_ID);
+        verify(context).putState(eq(REQUIREMENT_KEY_CODE), putStateArgumentCaptor.capture());
     }
 
 
@@ -187,6 +182,7 @@ public final class VerifyEmailAccountStageTest {
         ActionRequest actionRequest = actionRequestArgumentCaptor.getValue();
 
         assertThat(actionRequest.getAction()).isSameAs("send");
+        assertThat(actionRequest.getAdditionalParameter("someflag")).isEqualTo("true");
         assertThat(actionRequest.getContent()).stringAt("/to").isEqualTo(TEST_EMAIL_ID);
         assertThat(actionRequest.getContent()).stringAt("/from").isEqualTo(INFO_MAIL_ID);
         assertThat(actionRequest.getContent()).stringAt("/subject")
@@ -236,17 +232,26 @@ public final class VerifyEmailAccountStageTest {
         assertThat(stageResponse.getCallback()).isNull();
     }
 
+    @Test
+    public void testAdvanceSkipEmailValidateStage() throws Exception {
+        // Given
+        given(context.getState("skipValidation")).willReturn(json(true));
+
+        // When
+        StageResponse stageResponse = verifyEmailStage.advance(context, config);
+
+        // Then
+        assertThat(stageResponse.getStageTag()).isSameAs(INITIAL_TAG);
+        assertThat(stageResponse.getRequirements()).isEmpty();
+        assertThat(stageResponse.getCallback()).isNull();
+    }
+
     private JsonValue newEmptyJsonValue() {
         return json(object());
     }
 
     private JsonValue newJsonValueWithEmail() {
         return json(TEST_EMAIL_ID);
-    }
-
-    private JsonValue newJsonValueInputEmail() {
-        return json(object(
-                field(VerifyEmailAccountStage.REQUIREMENT_KEY_EMAIL, TEST_EMAIL_ID)));
     }
 
     private JsonValue newJsonValueUser() {
@@ -258,6 +263,7 @@ public final class VerifyEmailAccountStageTest {
     private VerifyEmailAccountConfig newVerifyEmailAccountConfig() {
         return new VerifyEmailAccountConfig()
                 .setIdentityEmailField("mail")
+                .setEmailServiceParameters(newParameterMap())
                 .setMessageTranslations(newMessageMap())
                 .setVerificationLinkToken("%link%")
                 .setVerificationLink("http://localhost:9999/example/#passwordReset/")
@@ -265,6 +271,12 @@ public final class VerifyEmailAccountStageTest {
                 .setFrom(INFO_MAIL_ID)
                 .setSubjectTranslations(newSubjectMap())
                 .setMimeType("html");
+    }
+
+    private Map<String, String> newParameterMap() {
+        Map<String, String> parameterMap = new HashMap<>();
+        parameterMap.put("someflag", "true");
+        return parameterMap;
     }
 
     private Map<Locale, String> newMessageMap() {

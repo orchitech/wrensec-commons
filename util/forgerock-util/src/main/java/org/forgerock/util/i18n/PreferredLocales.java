@@ -128,10 +128,15 @@ public class PreferredLocales {
     }
 
     /**
-     * Is the candidate locale the best match for the requested locale? Exclude {@code Locale.ROOT}, as it should be
-     * the fallback only when all locales are tried.
+     * Checks if the candidate locale the best match for the requested locale?
+     * Exclude {@code Locale.ROOT}, as it should be the fallback only when all locales are tried.
+     *
+     * @param requested The requested Locale
+     * @param candidate The candidate Locale
+     * @param remainingLocales The remaining locales
+     * @return The candidate is beast match for requested locale
      */
-    private boolean matches(Locale requested, Locale candidate, List<Locale> remainingLocales) {
+    public static boolean matches(Locale requested, Locale candidate, List<Locale> remainingLocales) {
         logger.trace("Checking candidate locale {} for match with requested {}", candidate, requested);
         if (requested.equals(candidate)) {
             return true;

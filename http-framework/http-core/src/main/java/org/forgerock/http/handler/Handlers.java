@@ -194,7 +194,7 @@ public final class Handlers {
 
         @Override
         public Swagger handleApiRequest(Context context, Request request) {
-            return null;
+            throw new UnsupportedOperationException("Handler is not describable");
         }
 
         @Override

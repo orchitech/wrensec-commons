@@ -124,11 +124,13 @@ public final class Services {
         public Builder put(String name, Resource resource) {
             if (isEmpty(name) || containsWhitespace(name)) {
                 throw new IllegalArgumentException(
-                    "name is required, must not be blank, and must not contain whitespace");
+                        "Resource name is required, must not be blank, and must not contain " +
+                        "whitespace; given: '" + name + "'");
             }
             if (services.containsKey(name) && !services.get(name).equals(resource)) {
                 throw new IllegalStateException(
-                    "name must be unique; two different services cannot have the same name");
+                        "Resource name already exists but Resource objects are not equal; " +
+                        "given: '" + name + "'");
             }
 
             services.put(name, checkNotNull(resource));

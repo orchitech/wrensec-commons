@@ -12,22 +12,18 @@
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
  * Copyright © 2010–2011 ApexIdentity Inc. All rights reserved.
- * Portions Copyrighted 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2011-2017 ForgeRock AS.
  */
 
 package org.forgerock.json;
 
-import java.net.URI;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -57,26 +53,13 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
      * @return A JSON array.
      */
     public static List<Object> array(final Object... objects) {
-        return new ArrayList<>(Arrays.asList(objects));
+        List<Object> array = new ArrayList<>(objects.length);
+        for (Object o : objects) {
+            array.add(unwrap(o));
+        }
+        return array;
     }
 
-    /**
-     * Returns a mutable JSON set containing the provided objects. This method
-     * is provided as a convenience method for constructing JSON set. Example
-     * usage:
-     *
-     * <pre>
-     * JsonValue value = json(set(1, 2, 3));
-     * </pre>
-     *
-     * @param objects
-     *            The set elements.
-     * @return A JSON set.
-     */
-    public static List<Object> set(final Object... objects) {
-        return new ArrayList<>(Arrays.asList(objects));
-    }
-    
     /**
      * Returns a JSON field for inclusion in a JSON object using
      * {@link #object(java.util.Map.Entry...) object} only if its value is not {@code null}.
@@ -117,7 +100,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
      * @return The JSON field for inclusion in a JSON object.
      */
     public static Map.Entry<String, Object> field(final String key, final Object value) {
-        return new AbstractMap.SimpleImmutableEntry<>(key, value);
+        return new AbstractMap.SimpleImmutableEntry<>(key, unwrap(value));
     }
 
     /**
@@ -136,7 +119,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
      * @return The JSON value.
      */
     public static JsonValue json(final Object object) {
-        return object instanceof JsonValue ? (JsonValue) object : new JsonValue(object);
+        return new JsonValue(unwrap(object));
     }
 
     /**
@@ -160,7 +143,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         final Map<String, Object> object = object(fields.length);
         for (final Map.Entry<String, Object> field : fields) {
             if (field != null) {
-                object.put(field.getKey(), field.getValue());
+                object.put(field.getKey(), unwrap(field.getValue()));
             }
         }
         return object;
@@ -210,6 +193,19 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
             result = result * 10 + (c - '0');
         }
         return result;
+    }
+
+    /**
+     * Unwrap the object if it is a JsonValue - used when combining JsonValues so we
+     * do not get nested JsonValue wrappers.
+     *
+     * @param object the object to unwrap.
+     * @return the unwrapped object.
+     */
+    private static Object unwrap(final Object object) {
+        return object instanceof JsonValue
+                ? ((JsonValue) object).getObject()
+                : object;
     }
 
     /** The Java object representing this JSON value. */
@@ -271,7 +267,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         if (index < 0 || index > list.size()) {
             throw new JsonValueException(this, "List index out of range: " + index);
         }
-        list.add(index, object);
+        list.add(index, unwrap(object));
         return this;
     }
 
@@ -341,7 +337,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
             if (map.containsKey(key)) {
                 throw new JsonValueException(this, "Map key " + key + " already exists");
             }
-            map.put(key, object);
+            map.put(key, unwrap(object));
         } else if (isList()) {
             add(toIndex(key), object);
         } else {
@@ -435,36 +431,6 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         return asList(Object.class);
     }
 
-    public Set<Object> asSet() {
-        return new HashSet<Object>(asCollection());
-    }
-    
-    /**
-     * Returns the JSON value as a {@link Set} containing objects of the
-     * specified type. If the value is {@code null}, this method returns
-     * {@code null}. If any of the elements of the set are not {@code null} and
-     * not of the specified type, {@code JsonValueException} is thrown.  If
-     * called on an object which wraps a List, this method will drop duplicates
-     * performing element comparisons using equals/hashCode.
-     * The returned {@link Set} is <b>not</b> a copy : any interaction with it
-     * will affect the {@link JsonValue}.
-     *
-     * @param <E>
-     *            the type of elements in this set
-     * @param type
-     *            the type of object that all elements are expected to be.
-     * @return the set value, or {@code null} if no value.
-     * @throws JsonValueException
-     *             if the JSON value is not a {@code Set}, not a {@code List},
-     *             or contains an unexpected type.
-     * @throws NullPointerException
-     *             if {@code type} is {@code null}.
-     */
-    @SuppressWarnings("unchecked")
-    public <E> Set<E> asSet(final Class<E> type) {
-    		return new HashSet<E>(asCollection(type));
-    }
-    
     /**
      * Returns the JSON value as a {@link Collection} containing objects of the
      * specified type. If the value is {@code null}, this method returns
@@ -587,32 +553,6 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         return (object == null ? null : (Map<String, Object>) (expect(Map.class).object));
     }
 
-    /**
-     * Returns the JSON string value as an enum constant of the specified enum
-     * type. The string value and enum constants are compared, ignoring case
-     * considerations. If the JSON value is {@code null}, this method returns
-     * {@code null}.
-     *
-     * @param <T>
-     *            the enum type sub-class.
-     * @param type
-     *            the enum type to match constants with the value.
-     * @return the enum constant represented by the string value.
-     * @throws IllegalArgumentException
-     *             if {@code type} does not represent an enum type. or
-     *             if the JSON value does not match any of the enum's constants.
-     * @throws NullPointerException
-     *             if {@code type} is {@code null}.
-     * @deprecated Use the method {@link #as(Function)} with the appropriate function. (Replace the following call
-     * {@code jv.asEnum(clazz)} with {@code jv.map(JsonValueFunctions.enumConstant(clazz)}).
-     * @see #as(Function)
-     * @see JsonValueFunctions#enumConstant(Class)
-     */
-    @Deprecated
-    public <T extends Enum<T>> T asEnum(final Class<T> type) {
-        return as(JsonValueFunctions.enumConstant(type));
-    }
-    
     /**
      * Returns the JSON value as a {@link Map} containing objects of the
      * specified type. If the value is {@code null}, this method returns
@@ -940,15 +880,6 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
     }
 
     /**
-     * Returns {@code true} if the JSON value is a {@link Set}.
-     *
-     * @return {@code true} if the JSON value is a {@link Set}.
-     */
-    public boolean isSet() {
-        return isCollection();
-    }
-    
-    /**
      * Returns {@code true} if the JSON value is a {@link Collection}.
      *
      * @return {@code true} if the JSON value is a {@link Collection}.
@@ -1141,9 +1072,9 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         if (index < 0 || index > list.size()) {
             throw new JsonValueException(this, "List index out of range: " + index);
         } else if (index == list.size()) { // appending to end of list
-            list.add(object);
+            list.add(unwrap(object));
         } else { // replacing existing element
-            list.set(index, object);
+            list.set(index, unwrap(object));
         }
         return this;
     }
@@ -1192,7 +1123,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
         if (key == null) {
             throw new NullPointerException();
         } else if (isMap()) {
-            asMap().put(key, object);
+            asMap().put(key, unwrap(object));
         } else if (isList()) {
             put(toIndex(key), object);
         } else {
@@ -1474,7 +1405,7 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
                 } else if (isIndexToken(nextToken)) {
                     throw new JsonValueException(this, "Expecting a value");
                 } else {
-                    jv.add(token, new LinkedHashMap<>());
+                    jv.putPermissive(new JsonPointer(token), new LinkedHashMap<>());
                     jv = jv.get(token);
                 }
             }
@@ -1530,10 +1461,4 @@ public class JsonValue implements Cloneable, Iterable<JsonValue> {
     public void patch(JsonValue patch) {
         JsonPatch.patch(this, patch);
     }
-    
-    @Deprecated
-    public URI asURI() {
-        return as(JsonValueFunctions.uri());
-    }
-
 }

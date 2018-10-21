@@ -12,7 +12,7 @@
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
  * Copyright © 2010–2011 ApexIdentity Inc. All rights reserved.
- * Portions Copyrighted 2011-2016 ForgeRock AS.
+ * Portions Copyrighted 2011-2017 ForgeRock AS.
  */
 
 package org.forgerock.json;
@@ -31,6 +31,7 @@ import static org.forgerock.json.JsonValueFunctions.url;
 import static org.testng.Assert.fail;
 
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -102,6 +103,122 @@ public class JsonValueTest {
                                          field("age", null)));
         assertThat(jv.get("uid").isNotNull()).isTrue();
         assertThat(jv.get("age").isNotNull()).isFalse();
+    }
+
+    // ----- jsonvalue composition tests ----------
+
+    @Test
+    public void shouldUnwrapJsonValuesInJsonObject() throws Exception {
+        JsonValue bjensen = json("bjensen");
+        JsonValue value = json(object());
+
+        value.put("uid", bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.put(new JsonPointer("/uid"), bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add("uid", bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.addPermissive(new JsonPointer("/uid"), bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.putPermissive(new JsonPointer("/uid"), bjensen);
+        assertThat(value.get("uid").asString()).isEqualTo("bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValuesInJsonArray() throws Exception {
+        JsonValue bjensen = json("bjensen");
+        JsonValue value = json(array());
+
+        value.put(0, bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.put(0, json("scarter"));
+        assertThat(value.get(0).asString()).isEqualTo("scarter");
+
+        value.clear();
+
+        value.put(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add(0, bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add("0", bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.add(bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.addPermissive(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+
+        value.clear();
+
+        value.putPermissive(new JsonPointer("/0"), bjensen);
+        assertThat(value.get(0).asString()).isEqualTo("bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValueConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue value = json(bjensen);
+
+        assertThat(value.asString()).isEqualTo("bjensen");
+
+        value = new JsonValue(bjensen, new JsonPointer("/pointer"));
+        assertThat(value.asString()).isEqualTo("bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValueObjectFromFieldConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue bjensenIsHisName = json(object(
+                new AbstractMap.SimpleImmutableEntry<String, Object>("name", bjensen)));
+
+        assertThat(bjensenIsHisName.asMap()).containsEntry("name", "bjensen");
+    }
+
+    @Test
+    public void shouldUnwrapJsonValueFieldConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue bjensenIsHisName = json(object(field("name", bjensen)));
+
+        assertThat(bjensenIsHisName.asMap()).containsEntry("name", "bjensen");
+    }
+
+
+    @Test
+    public void shouldUnwrapJsonValueArrayConstruction() {
+        JsonValue bjensen = json("bjensen");
+        JsonValue scarter = json("scarter");
+        JsonValue commonActors = json(array(bjensen, scarter));
+
+        assertThat(commonActors.asList()).containsExactly("bjensen", "scarter");
     }
 
     // ----- manipulation tests ----------
@@ -526,6 +643,13 @@ public class JsonValueTest {
         assertThat(value.toString()).isEqualTo(
                 "{ \"a \\\"silly\\\" key\": \"value containing a \\\\ and a \\\" and "
                         + "some controls \\b\\f\\n\\r\\t\\u0000\\u001F\\u007F\\u009F\" }");
+    }
+
+    @Test
+    public void testAddPermissiveOverNullTarget() {
+        final JsonValue value = json(object(field("rootfield", null)));
+        value.putPermissive(new JsonPointer("/rootfield/childfield"), object(field("foo", "bar")));
+        assertThat(value.get("rootfield").get("childfield").get("foo").asString()).isEqualTo("bar");
     }
 
     @DataProvider

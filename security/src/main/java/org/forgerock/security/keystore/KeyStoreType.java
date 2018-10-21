@@ -20,7 +20,10 @@ package org.forgerock.security.keystore;
  * Lists the various keystore/truststore types.
  * @see <a href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#KeyStore">
  *     List of Keystore Types in JDK 7</a>
+ *
+ * @deprecated  Specify the keystore type string directly in preference to this enum, as it is extensible at runtime
  */
+@Deprecated()
 public enum KeyStoreType {
     /** JKS keystore type. */
     JKS,

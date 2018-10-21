@@ -124,11 +124,13 @@ public final class Definitions {
         public Builder put(String name, Schema schema) {
             if (isEmpty(name) || containsWhitespace(name)) {
                 throw new IllegalArgumentException(
-                    "name is required, must not be blank, and must not contain whitespace");
+                    "Schema name is required, must not be blank, and must not contain " +
+                    "whitespace; given: '" + name + "'");
             }
             if (definitions.containsKey(name) && !definitions.get(name).equals(schema)) {
-                throw new IllegalStateException("The given Schema name"
-                        + " '" + name + "' already exists but the Schema objects are not equal");
+                throw new IllegalStateException(
+                    "Schema name already exists but Schema objects are not equal; " +
+                    "given: '" + name + "'");
             }
 
             definitions.put(name, checkNotNull(schema));

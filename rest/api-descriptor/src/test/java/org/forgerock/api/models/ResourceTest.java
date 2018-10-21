@@ -35,12 +35,15 @@ import org.forgerock.api.annotations.SingletonProvider;
 import org.forgerock.api.enums.CountPolicy;
 import org.forgerock.api.enums.CreateMode;
 import org.forgerock.api.enums.PagingMode;
+import org.forgerock.api.enums.ParameterSource;
 import org.forgerock.api.enums.PatchOperation;
 import org.forgerock.api.enums.QueryType;
 import org.forgerock.api.enums.Stability;
 import org.forgerock.api.jackson.JacksonUtils;
 import org.forgerock.http.util.Json;
+import org.forgerock.json.JsonValue;
 import org.forgerock.util.i18n.LocalizableString;
+import org.forgerock.util.i18n.PreferredLocales;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -564,6 +567,53 @@ public class ResourceTest {
         }
     }
 
+    @Test
+    public void testActionCollectionVsItem() throws Exception {
+        ApiDescription descriptor = createApiDescription();
+        final Parameter extraParameter = Parameter.parameter().name("testId").type("string").source(ParameterSource
+                .PATH).build();
+        final Items items = Items.fromAnnotatedType(CollectionActionsHandler.class, descriptor, null);
+        final Resource resource = fromAnnotatedType(CollectionActionsHandler.class, COLLECTION_RESOURCE_COLLECTION,
+                items, descriptor, extraParameter);
+        assertThat(resource.getActions()).isNotNull();
+        assertThat(resource.getActions()).hasSize(1);
+        assertThat(resource.getItems().getActions()).isNotNull();
+        assertThat(resource.getItems().getActions()).hasSize(1);
+
+        Action actionCollection = resource.getActions()[0];
+        assertThat(actionCollection.getDescription()).isEqualTo(new LocalizableString("Action for the collection."));
+        assertThat(actionCollection.getName()).isEqualTo("actionCollection");
+
+        Action actionItem = resource.getItems().getActions()[0];
+        assertThat(actionItem.getDescription()).isEqualTo(new LocalizableString("Action for the item."));
+        assertThat(actionItem.getName()).isEqualTo("actionItem");
+    }
+
+
+    @CollectionProvider(
+            details = @Handler(
+                    resourceSchema = @org.forgerock.api.annotations.Schema(fromType = Response.class),
+                    mvccSupported = true),
+            pathParam = @org.forgerock.api.annotations.Parameter(name = "testId", type = "string"))
+    private static final class CollectionActionsHandler {
+        @org.forgerock.api.annotations.Action(
+                operationDescription = @org.forgerock.api.annotations.Operation(
+                        description = "Action for the collection."),
+                name = "actionCollection")
+        public void actionCollection() {
+
+        }
+
+        @org.forgerock.api.annotations.Action(
+                operationDescription = @org.forgerock.api.annotations.Operation(
+                        description = "Action for the item."),
+                name = "actionItem")
+        public void actionItem(String testId) {
+
+        }
+
+    }
+
     @DataProvider
     public Object[][] queryAnnotations() {
         return new Object[][]{{QueryAnnotatedHandler.class}, {QueriesAnnotatedHandler.class}};
@@ -741,8 +791,8 @@ public class ResourceTest {
 
         String serialized = mapper.writeValueAsString(resource);
 
-        assertThat(serialized.matches(TRANSLATED_DISCRIPTION_TWICE_REGEX));
-        assertThat(serialized.matches(TRANSLATED_JSON_SCHEMA_DESC_TITLE));
+        assertThat(serialized.matches(TRANSLATED_DISCRIPTION_TWICE_REGEX)).isTrue();
+        assertThat(serialized.matches(TRANSLATED_JSON_SCHEMA_DESC_TITLE)).isTrue();
 
     }
 
@@ -756,9 +806,12 @@ public class ResourceTest {
         assertThat(referenced).isNotNull();
         assertThat(referenced.getResourceSchema()).isNotNull();
         assertThat(referenced.getRead()).isNotNull();
+        assertThat(referenced.getTitle().toTranslatedString(new PreferredLocales()))
+                .isEqualTo("ReferencedHandler Title");
     }
 
     @SingletonProvider(@Handler(id = "referenced",
+                                title = "i18n:#service.title",
             resourceSchema = @org.forgerock.api.annotations.Schema(fromType = Response.class),
             mvccSupported = true))
     private static final class ReferencedHandler {
@@ -789,6 +842,8 @@ public class ResourceTest {
 
     private Schema getI18nSchema() throws IOException {
         InputStream is = this.getClass().getResourceAsStream(I18NJSONSCHEMA_JSON);
-        return Schema.schema().schema(json(JacksonUtils.OBJECT_MAPPER.readValue(is, Object.class))).build();
+        JsonValue schema = json(JacksonUtils.OBJECT_MAPPER.readValue(is, Object.class))
+                .as(new TranslateJsonSchema(getClass().getClassLoader()));
+        return Schema.schema().schema(schema).build();
     }
 }

@@ -19,6 +19,7 @@ package org.forgerock.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.json.JsonValue.*;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class JsonPatchTest {
@@ -335,4 +336,18 @@ public class JsonPatchTest {
         v1.clear();
         JsonPatch.patch(v1, diff);
     }
+
+    @DataProvider
+    public Object[][] nonJsonPrimitives() {
+        return new Object[][] {
+                { json("string"), json(new Object()) },
+                { json(new Object()), json("string") }
+        };
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "nonJsonPrimitives")
+    public void nonJsonPrimitivesNotSupportedForEquality(JsonValue value1, JsonValue value2) {
+        JsonPatch.isEqual(value1, value2);
+    }
+
 }

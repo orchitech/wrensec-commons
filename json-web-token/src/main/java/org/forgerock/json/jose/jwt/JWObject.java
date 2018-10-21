@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2016 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwt;
@@ -154,5 +154,14 @@ public abstract class JWObject {
     @Override
     public String toString() {
         return Utils.writeJsonObject(jsonValue.asMap());
+    }
+
+    /**
+     * Returns a json representation of the JWObject.
+     *
+     * @return A JSON representation.
+     */
+    public JsonValue toJsonValue() {
+        return jsonValue.copy();
     }
 }

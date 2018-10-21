@@ -11,7 +11,7 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014 ForgeRock AS.
+* Copyright 2014-2017 ForgeRock AS.
 */
 package org.forgerock.jaspi.modules.openid.resolvers.service;
 
@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
 import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolver;
 import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolverFactory;
 import static org.mockito.BDDMockito.given;
@@ -42,7 +42,7 @@ public class OpenIdResolverServiceImplTest {
         OpenIdResolver mockResolver = mock(OpenIdResolver.class);
         URL testURL = new URL("http://www.google.com");
 
-        given(mockFactory.createJWKResolver("issuer", testURL, 0, 0)).willReturn(mockResolver);
+        given(mockFactory.createJWKResolver("issuer", testURL)).willReturn(mockResolver);
 
         //when
         boolean success = testResolverService.configureResolverWithJWK("issuer", testURL);
@@ -60,8 +60,7 @@ public class OpenIdResolverServiceImplTest {
         OpenIdResolverServiceImpl testResolverService = new OpenIdResolverServiceImpl(mockFactory, 0, 0);
         URL testURL = new URL("http://www.google.com");
 
-        given(mockFactory.createJWKResolver("issuer", testURL, 0, 0))
-                .willThrow(FailedToLoadJWKException.class);
+        given(mockFactory.createJWKResolver("issuer", testURL)).willThrow(FailedToLoadJWKException.class);
 
         //when
         boolean success = testResolverService.configureResolverWithJWK("issuer", testURL);

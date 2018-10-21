@@ -20,14 +20,13 @@
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>commons-parent</artifactId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>json-ref</artifactId>
     <packaging>pom</packaging>
     <name>Wren Security Commons JSON Reference - Libraries</name>
     <modules>
         <module>json-ref-core</module>
-        <module>json-ref-jackson</module>
     </modules>
     <dependencies>
         <dependency>

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2016 ForgeRock AS.
+ * Copyright 2014-2017 ForgeRock AS.
  */
 
 package org.forgerock.jaspi.modules.openid.resolvers.service;
@@ -25,7 +25,7 @@ import java.security.PublicKey;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
 import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolver;
 import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolverFactory;
 import org.forgerock.security.keystore.KeyStoreBuilder;
@@ -116,6 +116,7 @@ public class OpenIdResolverServiceImpl implements OpenIdResolverService {
 
             final OpenIdResolver impl = openIdResolverFactory.createPublicKeyResolver(issuer, key);
             openIdResolvers.put(issuer, impl);
+            return true;
         } catch (KeystoreManagerException kme) {
             LOG.debug("Error accessing the KeystoreManager", kme);
             return false;
@@ -126,8 +127,6 @@ public class OpenIdResolverServiceImpl implements OpenIdResolverService {
             LOG.debug("Unable to load keystore", e);
             return false;
         }
-
-        return true;
     }
 
     /**
@@ -162,8 +161,7 @@ public class OpenIdResolverServiceImpl implements OpenIdResolverService {
                                             final URL jwkUrl) {
 
         try {
-            final OpenIdResolver impl = openIdResolverFactory.createJWKResolver(issuer, jwkUrl,
-                    readTimeout, connTimeout);
+            final OpenIdResolver impl = openIdResolverFactory.createJWKResolver(issuer, jwkUrl);
             openIdResolvers.put(issuer, impl);
         } catch (FailedToLoadJWKException e) {
             LOG.debug("Unable to load JSON Web Keys", e);

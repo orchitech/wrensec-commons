@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.json.resource;
@@ -20,24 +20,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.http.routing.RoutingMode.EQUALS;
 import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
+import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
 import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
 import static org.forgerock.json.resource.Router.uriTemplate;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import java.util.Collections;
-
+import org.forgerock.api.models.ApiDescription;
 import org.forgerock.services.context.Context;
-import org.forgerock.http.routing.UriRouterContext;
+import org.forgerock.services.descriptor.Describable;
+import org.forgerock.services.routing.IncomparableRouteMatchException;
+import org.forgerock.services.routing.RouteMatch;
+import org.forgerock.services.routing.RouteMatcher;
 import org.forgerock.util.promise.Promise;
+import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class RouterTest {
 
     private Router router;
@@ -67,7 +74,6 @@ public class RouterTest {
         };
     }
 
-    @SuppressWarnings("unchecked")
     @Test(dataProvider = "data")
     public void creatingRouterFromExistingRouterShouldCopyAllRoutes(String requestUri, RequestHandler expectedHandler) {
 
@@ -145,7 +151,7 @@ public class RouterTest {
         if (expectedRequestToBeCopied) {
             verify(defaultRouteHandler).handleAction(any(Context.class), any(ActionRequest.class));
         } else {
-            verify(defaultRouteHandler).handleAction(any(Context.class), eq(request));
+            verify(defaultRouteHandler).handleAction(any(Context.class), same(request));
         }
     }
 
@@ -167,7 +173,7 @@ public class RouterTest {
         if (expectedRequestToBeCopied) {
             verify(defaultRouteHandler).handleCreate(any(Context.class), any(CreateRequest.class));
         } else {
-            verify(defaultRouteHandler).handleCreate(any(Context.class), eq(request));
+            verify(defaultRouteHandler).handleCreate(any(Context.class), same(request));
         }
     }
 
@@ -189,7 +195,7 @@ public class RouterTest {
         if (expectedRequestToBeCopied) {
             verify(defaultRouteHandler).handleDelete(any(Context.class), any(DeleteRequest.class));
         } else {
-            verify(defaultRouteHandler).handleDelete(any(Context.class), eq(request));
+            verify(defaultRouteHandler).handleDelete(any(Context.class), same(request));
         }
     }
 
@@ -211,7 +217,7 @@ public class RouterTest {
         if (expectedRequestToBeCopied) {
             verify(defaultRouteHandler).handlePatch(any(Context.class), any(PatchRequest.class));
         } else {
-            verify(defaultRouteHandler).handlePatch(any(Context.class), eq(request));
+            verify(defaultRouteHandler).handlePatch(any(Context.class), same(request));
         }
     }
 
@@ -235,7 +241,7 @@ public class RouterTest {
             verify(defaultRouteHandler).handleQuery(any(Context.class), any(QueryRequest.class),
                     any(QueryResourceHandler.class));
         } else {
-            verify(defaultRouteHandler).handleQuery(any(Context.class), eq(request),
+            verify(defaultRouteHandler).handleQuery(any(Context.class), same(request),
                     any(QueryResourceHandler.class));
         }
     }
@@ -258,7 +264,7 @@ public class RouterTest {
         if (expectedRequestToBeCopied) {
             verify(defaultRouteHandler).handleRead(any(Context.class), any(ReadRequest.class));
         } else {
-            verify(defaultRouteHandler).handleRead(any(Context.class), eq(request));
+            verify(defaultRouteHandler).handleRead(any(Context.class), same(request));
         }
     }
 
@@ -280,7 +286,51 @@ public class RouterTest {
         if (expectedRequestToBeCopied) {
             verify(defaultRouteHandler).handleUpdate(any(Context.class), any(UpdateRequest.class));
         } else {
-            verify(defaultRouteHandler).handleUpdate(any(Context.class), eq(request));
+            verify(defaultRouteHandler).handleUpdate(any(Context.class), same(request));
+        }
+    }
+
+    @DataProvider
+    private Object[][] testData2() {
+        return new Object[][]{
+            {"users", ""},
+            {"users/bjensen", "bjensen"},
+            {"groups", "groups"},
+        };
+    }
+
+    private interface DescribableRequestHandler extends RequestHandler, Describable<ApiDescription, Request> {
+    }
+
+    @Test(dataProvider = "testData2")
+    public void handleApiRequestShouldCallBestRoute(String requestedPath, String remainingUri) {
+
+        //Given
+        final String routesPath = "users";
+        final DescribableRequestHandler equalsRouteHandler = mock(DescribableRequestHandler.class);
+        final DescribableRequestHandler startsWithRouteHandler = mock(DescribableRequestHandler.class);
+        final DescribableRequestHandler defaultRouteHandler = mock(DescribableRequestHandler.class);
+
+        router.addRoute(requestUriMatcher(EQUALS, routesPath), equalsRouteHandler);
+        router.addRoute(requestUriMatcher(STARTS_WITH, routesPath), startsWithRouteHandler);
+        router.setDefaultRoute(defaultRouteHandler);
+
+        Context context = newRouterContext(mock(Context.class), remainingUri);
+        Request request = Requests.newApiRequest(ResourcePath.valueOf(requestedPath));
+
+        //When
+        router.handleApiRequest(context, request);
+
+        //Then
+        if (requestedPath.startsWith(routesPath)) {
+            final DescribableRequestHandler handler =
+                routesPath.equals(requestedPath) ? equalsRouteHandler : startsWithRouteHandler;
+
+            final ArgumentCaptor<Request> requestArg = ArgumentCaptor.forClass(Request.class);
+            verify(handler).handleApiRequest(any(Context.class), requestArg.capture());
+            assertThat(requestArg.getValue().getResourcePath()).isEqualTo(remainingUri);
+        } else {
+            verify(defaultRouteHandler).handleApiRequest(any(Context.class), same(request));
         }
     }
 
@@ -446,8 +496,42 @@ public class RouterTest {
         }
     }
 
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void handleApiRequestShouldThrowsIfNoRouteFound() {
+
+        //Given
+        Context context = mock(Context.class);
+        Request request = mock(Request.class);
+
+        given(request.getResourcePath()).willReturn("users/demo");
+        given(request.getRequestType()).willReturn(RequestType.API);
+        given(request.getResourcePathObject()).willReturn(ResourcePath.resourcePath("users/demo"));
+
+        //When
+        router.handleApiRequest(context, request);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void handleApiRequestShouldThrowsIfCannotMatch() throws Exception {
+
+        //Given
+        Context context = mock(Context.class);
+        Request request = mock(Request.class);
+        RouteMatch match = mock(RouteMatch.class);
+        RouteMatcher<Request> matcher = mock(RouteMatcher.class);
+
+        given(matcher.evaluate(context, request)).willReturn(match);
+        given(match.isBetterMatchThan(null)).willThrow(IncomparableRouteMatchException.class);
+
+        router.addRoute(matcher, routeOneHandler);
+
+        //When
+        router.handleApiRequest(context, request);
+    }
+
     private Context newRouterContext(Context parentContext, String remainingUri) {
-        return new UriRouterContext(parentContext, "MATCHED_URI", remainingUri, Collections.<String, String>emptyMap());
+        return uriRouterContext(parentContext).matchedUri("MATCHED_URI").remainingUri(remainingUri).build();
     }
 
     private <T extends Request> T mockRequest(Class<T> clazz, String resourcePath) {

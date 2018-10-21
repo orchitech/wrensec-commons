@@ -11,13 +11,19 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2016 ForgeRock AS.
+ * Copyright 2012-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.resource;
 
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.api.models.ApiDescription.apiDescription;
+import static org.forgerock.api.models.Paths.paths;
+import static org.forgerock.api.models.Read.read;
+import static org.forgerock.api.models.Resource.resource;
+import static org.forgerock.api.models.Schema.schema;
+import static org.forgerock.api.models.VersionedPath.versionedPath;
 import static org.forgerock.json.resource.Resources.HandlerVariant.*;
 import static org.forgerock.api.models.VersionedPath.UNVERSIONED;
 import static org.forgerock.json.JsonValue.*;
@@ -26,14 +32,10 @@ import static org.forgerock.json.resource.Resources.*;
 import static org.forgerock.json.resource.Responses.*;
 import static org.forgerock.json.resource.Router.*;
 import static org.forgerock.json.resource.TestUtils.*;
-import static org.forgerock.json.resource.TestUtils.filter;
 import static org.forgerock.json.resource.test.assertj.AssertJActionResponseAssert.assertThat;
 import static org.forgerock.json.resource.test.assertj.AssertJResourceResponseAssert.assertThat;
 import static org.forgerock.util.promise.Promises.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
@@ -54,12 +56,17 @@ import org.forgerock.api.annotations.Schema;
 import org.forgerock.api.annotations.SingletonProvider;
 import org.forgerock.api.annotations.Update;
 import org.forgerock.api.enums.QueryType;
+import org.forgerock.api.enums.Stability;
 import org.forgerock.api.models.ApiDescription;
 import org.forgerock.api.models.Resource;
+import org.forgerock.api.models.VersionedPath;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
+import org.forgerock.services.descriptor.Describable;
+import org.forgerock.util.i18n.LocalizableString;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.test.assertj.AssertJPromiseAssert;
 import org.mockito.ArgumentCaptor;
@@ -71,6 +78,13 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public final class ResourcesTest {
+
+    public static final String CREST_API_ID = "frapi:test";
+    public static final String CREST_API_VERSION = "1.0";
+    public static final String DESCRIPTION_CONTENT = "A description";
+    public static final String EMPTY_PATH = "";
+    public static final String SINGLETON_DESCRIPTION = "Singleton description";
+    public static final String SINGLETON_TITLE = "My singleton provider";
 
     @DataProvider
     public Object[][] testFilterData() {
@@ -219,7 +233,7 @@ public final class ResourcesTest {
         connection.readAsync(new RootContext(), read);
         ArgumentCaptor<ReadRequest> captor = ArgumentCaptor.forClass(ReadRequest.class);
         verify(collection).readInstance(any(Context.class), eq(expectedId), captor.capture());
-        Assertions.assertThat(captor.getValue().getResourcePath()).isEqualTo("");
+        Assertions.assertThat(captor.getValue().getResourcePath()).isEqualTo(EMPTY_PATH);
     }
 
     @DataProvider
@@ -256,8 +270,6 @@ public final class ResourcesTest {
         // Then
         if (create && type != SINGLETON_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("create");
-        } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -279,8 +291,6 @@ public final class ResourcesTest {
         // Then
         if (read && type != COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("read");
-        } else if (type != COLLECTION_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -305,7 +315,7 @@ public final class ResourcesTest {
         } else if (read && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("read-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -327,8 +337,6 @@ public final class ResourcesTest {
         // Then
         if (update && type != COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("update");
-        } else if (type != COLLECTION_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -353,7 +361,7 @@ public final class ResourcesTest {
         } else if (update && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("update-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -378,7 +386,7 @@ public final class ResourcesTest {
         } else if (delete && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("delete-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -400,8 +408,6 @@ public final class ResourcesTest {
         // Then
         if (patch && type != COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("patch");
-        } else if (type != COLLECTION_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -426,7 +432,7 @@ public final class ResourcesTest {
         } else if (patch && type == COLLECTION_RESOURCE) {
             assertThat(promise).succeeded().withId().isEqualTo("patch-fred");
         } else if (type != SINGLETON_RESOURCE) {
-            assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
+            assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         } else {
             assertThat(promise).failedWithException().isInstanceOf(NotFoundException.class);
         }
@@ -490,6 +496,27 @@ public final class ResourcesTest {
         }
     }
 
+    @Test
+    public void testActionCollectionItemAnnotatedRequestHandler() throws Exception {
+
+        // Given
+        AnnotationCollection provider = new AnnotationCollection();
+        Connection connection = Resources.newInternalConnection(newHandler(provider));
+        ActionRequest req1 = Requests.newActionRequest("/test/fred", "action");
+        ActionRequest req2 = Requests.newActionRequest("/test", "fred", "action");
+        ActionRequest req3 = Requests.newActionRequest("/test", "action");
+
+        // When
+        Promise<ActionResponse, ResourceException> promise1 = connection.actionAsync(new RootContext(), req1);
+        Promise<ActionResponse, ResourceException> promise2 = connection.actionAsync(new RootContext(), req2);
+        Promise<ActionResponse, ResourceException> promise3 = connection.actionAsync(new RootContext(), req3);
+
+        // Then
+        assertThat(promise1).succeeded().withContent().stringAt("result").isEqualTo("instanceAction-fred");
+        assertThat(promise2).succeeded().withContent().stringAt("result").isEqualTo("instanceAction-fred");
+        assertThat(promise3).succeeded().withContent().stringAt("result").isEqualTo("collectionAction");
+    }
+
     @Test(dataProvider = "annotatedRequestHandlerData")
     public void testQueryCollectionAnnotatedRequestHandler(Class<?> requestHandler, HandlerVariant type, boolean create,
             boolean read, boolean update, boolean delete, boolean patch, boolean resourceAction,
@@ -509,8 +536,6 @@ public final class ResourcesTest {
             AssertJPromiseAssert.assertThat(promise).succeeded();
             QueryResponse result = promise.get();
             Assertions.assertThat(result.getPagedResultsCookie()).isEqualTo("query");
-        } else if (type != SINGLETON_RESOURCE) {
-            AssertJPromiseAssert.assertThat(promise).failedWithException().isInstanceOf(NotSupportedException.class);
         } else {
             AssertJPromiseAssert.assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
         }
@@ -544,6 +569,25 @@ public final class ResourcesTest {
             ctx(), Requests.newReadRequest("/users/0").addField("age"));
         final Map<String, Object> result = response.getContent().asMap();
         Assertions.assertThat(result).isEqualTo(singletonMap("age", 20));
+    }
+
+    @Test
+    public void testSingletonImplementsDescribable() throws Exception {
+        RequestHandler handler = Resources.newHandler(new DescribedSingleton());
+        assertThat(handler).isInstanceOf(Describable.class);
+        CrestApiProducer producer = new CrestApiProducer("id", "version");
+        ApiDescription description = ((Describable<ApiDescription, Request>) handler).api(producer);
+        assertThat(description.getPaths().get("/resourcePath").get(UNVERSIONED).getTitle().toString())
+                .isEqualTo("from the interface implementation");
+    }
+
+    @Test
+    public void testCollectionImplementingDescribableDescriptorShouldNotContainItemsPath() throws Exception {
+        RequestHandler handler = Resources.newHandler(new DescribedCollection());
+        assertThat(handler).isInstanceOf(Describable.class);
+        CrestApiProducer producer = new CrestApiProducer("id", "version");
+        ApiDescription description = ((Describable<ApiDescription, Request>) handler).api(producer);
+        assertThat(description.getPaths().getNames()).containsOnly("/resourcePath");
     }
 
     private Connection getConnectionWithAlice() throws Exception {
@@ -612,6 +656,14 @@ public final class ResourcesTest {
         @Action(operationDescription = @Operation)
         public Promise<ActionResponse, ResourceException> collectionAction2() {
             return newResultPromise(newActionResponse(json(object(field("result", "collectionAction2")))));
+        }
+        @Action(operationDescription = @Operation)
+        public Promise<ActionResponse, ResourceException> action(String id) {
+            return newResultPromise(newActionResponse(json(object(field("result", "instanceAction-" + id)))));
+        }
+        @Action(operationDescription = @Operation)
+        public Promise<ActionResponse, ResourceException> action() {
+            return newResultPromise(newActionResponse(json(object(field("result", "collectionAction")))));
         }
         @Query(operationDescription = @Operation, type = QueryType.FILTER, queryableFields = "*")
         public Promise<QueryResponse, ResourceException> query(QueryRequest request, QueryResourceHandler handler) {
@@ -749,7 +801,7 @@ public final class ResourcesTest {
         Router router = (Router) Resources.newHandler(thingsProvider);
 
         // When
-        ApiDescription api = router.api(new CrestApiProducer("frapi:test", "1.0"));
+        ApiDescription api = router.api(new CrestApiProducer(CREST_API_ID, CREST_API_VERSION));
 
         // Then
         assertThat(api.getPaths().getNames()).containsOnly("/things");
@@ -798,6 +850,130 @@ public final class ResourcesTest {
         public Promise<ResourceResponse, ResourceException> get() {
             getCalls++;
             return null;
+        }
+    }
+
+    @Test
+    public void shouldInterfaceBasedSingletonProviderSucceedWithAnnotations() {
+        // Given
+        Describable<ApiDescription, Request> requestHandler = (Describable<ApiDescription, Request>)
+                Resources.newHandler(new MySingletonProvider());
+
+        // When
+        requestHandler.api(new CrestApiProducer(CREST_API_ID, CREST_API_VERSION));
+        ApiDescription api = requestHandler.handleApiRequest(
+                new RootContext(), Requests.newApiRequest(ResourcePath.resourcePath(EMPTY_PATH)));
+
+        // Then
+        assertThat(api.getId()).isEqualTo(CREST_API_ID);
+        assertThat(api.getVersion()).isEqualTo(CREST_API_VERSION);
+        assertThat(api.getPaths().getNames()).containsOnly(EMPTY_PATH);
+        Resource resource = api.getPaths().get(EMPTY_PATH).get(UNVERSIONED);
+        assertThat(resource.getDescription().toString()).isEqualTo(SINGLETON_DESCRIPTION);
+        assertThat(resource.getTitle().toString()).isEqualTo(SINGLETON_TITLE);
+        assertThat(resource.getResourceSchema()).isNotNull();
+        assertThat(resource.isMvccSupported()).isTrue();
+        assertThat(resource.getActions()).isEmpty();
+        assertThat(resource.getRead().getDescription().toString()).isEqualTo(DESCRIPTION_CONTENT);
+    }
+
+    @SingletonProvider(@Handler(title = SINGLETON_TITLE,
+                                description = SINGLETON_DESCRIPTION,
+                                resourceSchema = @Schema(fromType = SchemaType.class),
+                                mvccSupported = true))
+    private static final class MySingletonProvider implements SingletonResourceProvider {
+
+        @Override
+        public Promise<ActionResponse, ResourceException> actionInstance(Context context, ActionRequest request) {
+            return null;
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> patchInstance(Context context, PatchRequest request) {
+            return null;
+        }
+
+        @Override
+        @Read(operationDescription = @Operation(description = DESCRIPTION_CONTENT,
+                                                stability = Stability.EVOLVING))
+        public Promise<ResourceResponse, ResourceException> readInstance(Context context, ReadRequest request) {
+            return null;
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> updateInstance(Context context, UpdateRequest request) {
+            return null;
+        }
+    }
+
+    private static final ApiDescription DESCRIPTION = apiDescription()
+            .id("fake")
+            .version("1.0")
+            .paths(paths()
+                    .put("resourcePath", versionedPath().put(VersionedPath.UNVERSIONED, resource()
+                            .mvccSupported(true)
+                            .title(new LocalizableString("from the interface implementation"))
+                            .read(read().build())
+                            .resourceSchema(schema().schema(json(object())).build())
+                            .build()).build())
+                    .build())
+            .build();
+
+    @SingletonProvider(@Handler(mvccSupported = true))
+    private static final class DescribedSingleton implements Describable<ApiDescription, Request> {
+
+        @Read(operationDescription = @Operation)
+        public Promise<ResourceResponse, ResourceException> get() {
+            return null;
+        }
+
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            return DESCRIPTION;
+        }
+
+        @Override
+        public ApiDescription handleApiRequest(Context context, Request request) {
+            return DESCRIPTION;
+        }
+
+        @Override
+        public void addDescriptorListener(Listener listener) {
+
+        }
+
+        @Override
+        public void removeDescriptorListener(Listener listener) {
+
+        }
+    }
+
+    @CollectionProvider(details = @Handler(mvccSupported = true))
+    private static final class DescribedCollection implements Describable<ApiDescription, Request> {
+
+        @Read(operationDescription = @Operation)
+        public Promise<ResourceResponse, ResourceException> get() {
+            return null;
+        }
+
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            return DESCRIPTION;
+        }
+
+        @Override
+        public ApiDescription handleApiRequest(Context context, Request request) {
+            return DESCRIPTION;
+        }
+
+        @Override
+        public void addDescriptorListener(Listener listener) {
+
+        }
+
+        @Override
+        public void removeDescriptorListener(Listener listener) {
+
         }
     }
 

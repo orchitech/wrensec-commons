@@ -11,10 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2016 ForgeRock AS.
+ * Copyright 2016-2017 ForgeRock AS.
  */
 
 package org.forgerock.api.models;
+
+import static org.forgerock.api.models.ApiError.apiError;
+import static org.forgerock.api.models.Reference.reference;
+import static org.forgerock.api.util.ValidationUtil.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,12 +29,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.forgerock.api.enums.Stability;
 import org.forgerock.util.i18n.LocalizableString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that represents the Operation type in API descriptor.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class Operation {
+
+    private static final Logger logger = LoggerFactory.getLogger(Operation.class);
 
     private final LocalizableString description;
     private final String[] supportedLocales;
@@ -258,6 +266,13 @@ public abstract class Operation {
          */
         public T detailsFromAnnotation(org.forgerock.api.annotations.Operation operation,
                 ApiDescription descriptor, Class<?> relativeType) {
+            for (String ref : operation.errorRefs()) {
+                if (isEmpty(ref)) {
+                    logger.debug("Empty errorRefs array-element ignored on: " + relativeType.getCanonicalName());
+                } else {
+                    error(apiError().reference(reference().value(ref).build()).build());
+                }
+            }
             for (org.forgerock.api.annotations.ApiError apiApiError : operation.errors()) {
                 error(ApiError.fromAnnotation(apiApiError, descriptor, relativeType));
             }

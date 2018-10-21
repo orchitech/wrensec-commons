@@ -11,16 +11,17 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.stages.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.forgerock.selfservice.core.config.StageConfig;
 import org.testng.annotations.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 
 /**
  * Unit test for {@link UserQueryConfig}.
@@ -45,6 +46,8 @@ public final class UserQueryConfigTest {
         assertThat(queryConfig.getIdentityEmailField()).isEqualTo("email");
         assertThat(queryConfig.getValidQueryFields()).contains("email");
         assertThat(queryConfig.getValidQueryFields()).contains("username");
+        assertThat(queryConfig.getIdentityUsernameField()).isEqualTo("username");
+        assertThat(queryConfig.getIdentityAccountStatusField()).isEqualTo("accountStatus");
     }
 
 }

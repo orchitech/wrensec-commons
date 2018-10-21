@@ -311,12 +311,12 @@ public abstract class AbstractRouter<T extends AbstractRouter<T, R, H, D>, R, H,
                 return ((Describable<D, R>) handler).handleApiRequest(nextContext, request);
             }
         } catch (IncomparableRouteMatchException e) {
-            throw new IllegalStateException(e);
+            throw new UnsupportedOperationException(e);
         }
         if (thisRouterUriMatcher.evaluate(context, request) != null) {
             return this.api;
         }
-        throw new UnsupportedOperationException("No route matched the request " + request);
+        throw new IllegalStateException("No route matched the request " + request);
     }
 
     private void notifyListeners() {

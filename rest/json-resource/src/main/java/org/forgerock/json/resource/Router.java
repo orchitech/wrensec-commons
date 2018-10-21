@@ -376,12 +376,12 @@ public class Router extends AbstractRouter<Router, Request, RequestHandler, ApiD
                 }
             }
         } catch (IncomparableRouteMatchException e) {
-            throw new IllegalStateException(e);
+            throw new UnsupportedOperationException(e);
         }
         if (thisRouterUriMatcher.evaluate(context, request) != null) {
             return this.api;
         }
-        throw new UnsupportedOperationException(
+        throw new IllegalStateException(
             "No route matched the request resource path " + request.getResourcePath());
     }
 

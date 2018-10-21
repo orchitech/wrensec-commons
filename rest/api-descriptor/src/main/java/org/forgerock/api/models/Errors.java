@@ -130,11 +130,13 @@ public final class Errors {
         public Builder put(String name, ApiError apiError) {
             if (isEmpty(name) || containsWhitespace(name)) {
                 throw new IllegalArgumentException(
-                    "name is required, must not be blank, and must not contain whitespace");
+                    "Error name is required, must not be blank, and must not contain " +
+                    "whitespace; given: '" + name + "'");
             }
             if (errors.containsKey(name) && !errors.get(name).equals(apiError)) {
                 throw new IllegalStateException(
-                    "name must be unique; two different errors cannot have the same name");
+                    "Error name already exists but Error objects are not equal; " +
+                    "given: '" + name + "'");
             }
             errors.put(name, checkNotNull(apiError));
             return this;

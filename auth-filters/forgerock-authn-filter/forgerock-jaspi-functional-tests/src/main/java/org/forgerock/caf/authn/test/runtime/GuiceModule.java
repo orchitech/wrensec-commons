@@ -33,6 +33,7 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 
 import org.forgerock.caf.authentication.api.AsyncServerAuthModule;
+import org.forgerock.caf.authentication.api.AuthenticationException;
 import org.forgerock.caf.authentication.framework.AuditApi;
 import org.forgerock.caf.authentication.framework.AuthenticationFilter;
 import org.forgerock.caf.authn.test.configuration.ConfigurationResource;
@@ -42,7 +43,7 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.annotation.Nullable;
+
 /**
  * Guice module for wiring the JASPI runtime.
  *
@@ -66,8 +67,8 @@ public class GuiceModule extends AbstractModule {
 
     @Provides
     AuthenticationFilter getAuthenticationFilter(Logger logger, AuditApi auditApi,
-    		@Nullable @Named("SessionAuthModule") AsyncServerAuthModule sessionAuthModule,
-            @Named("AuthModules") List<AsyncServerAuthModule> authModules) {
+            @Named("SessionAuthModule") AsyncServerAuthModule sessionAuthModule,
+            @Named("AuthModules") List<AsyncServerAuthModule> authModules) throws AuthenticationException {
         List<AuthenticationModuleBuilder> authModuleBuilders = new ArrayList<>();
         for (AsyncServerAuthModule authModule : authModules) {
             authModuleBuilders.add(configureModule(authModule));

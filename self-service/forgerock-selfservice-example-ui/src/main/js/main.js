@@ -34,6 +34,7 @@ require.config({
             "UserProfileView": "org/forgerock/commons/ui/user/profile/UserProfileView",
             "LoginDialog": "org/forgerock/commons/ui/common/LoginDialog",
             "RegisterView": "org/forgerock/commons/ui/user/anonymousProcess/SelfRegistrationView",
+            "NavigationFilter" : "org/forgerock/commons/ui/common/components/navigation/filters/RoleFilter",
             // TODO: Remove this when there are no longer any references to the "underscore" dependency
             "underscore": "lodash"
         }
@@ -47,13 +48,13 @@ require.config({
         "backgrid-filter": "libs/backgrid-filter.min-0.3.5-min",
         "backgrid-paginator": "libs/backgrid-paginator.min-0.3.5-min",
         lodash: "libs/lodash-3.10.1-min",
-        js2form: "libs/js2form-2.0",
-        form2js: "libs/form2js-2.0",
+        js2form: "libs/js2form-2.0-769718a",
+        form2js: "libs/form2js-2.0-769718a",
         spin: "libs/spin-2.0.1-min",
         jquery: "libs/jquery-2.1.1-min",
         xdate: "libs/xdate-0.8-min",
         doTimeout: "libs/jquery.ba-dotimeout-1.0-min",
-        handlebars: "libs/handlebars-3.0.3-min",
+        handlebars: "libs/handlebars-4.0.5",
         moment: "libs/moment-2.8.1-min",
         bootstrap: "libs/bootstrap-3.3.5-custom",
         "bootstrap-dialog": "libs/bootstrap-dialog-1.34.4-min",
@@ -111,7 +112,7 @@ require.config({
         },
         i18next: {
             deps: ["jquery", "handlebars"],
-            exports: "i18next"
+            exports: "i18n"
         },
         moment: {
             exports: "moment"

@@ -12,13 +12,13 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.http.apache;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
@@ -42,22 +42,23 @@ import org.forgerock.http.util.CaseInsensitiveSet;
  * in both synchronous and asynchronous Apache HTTP Client libraries.
  */
 public abstract class AbstractHttpClient implements HttpClient {
+
     /** Headers that are suppressed in request. */
-    // FIXME: How should the "Expect" header be handled?
+    // FIXME: How should the the "Expect" header be handled?
     private static final CaseInsensitiveSet SUPPRESS_REQUEST_HEADERS = new CaseInsensitiveSet(
-        Arrays.asList(
-            // populated in outgoing request by EntityRequest (HttpEntityEnclosingRequestBase):
-            "Content-Encoding", "Content-Length", "Content-Type",
-            // hop-by-hop headers, not forwarded by proxies, per RFC 2616 13.5.1:
-            "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE",
-            "Trailers", "Transfer-Encoding", "Upgrade"));
+            Arrays.asList(
+                    // populated in outgoing request by EntityRequest (HttpEntityEnclosingRequestBase):
+                    "Content-Encoding", "Content-Length", "Content-Type",
+                    // hop-by-hop headers, not forwarded by proxies, per RFC 2616 13.5.1:
+                    "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE",
+                    "Trailers", "Transfer-Encoding", "Upgrade"));
 
     /** Headers that are suppressed in response. */
     private static final CaseInsensitiveSet SUPPRESS_RESPONSE_HEADERS = new CaseInsensitiveSet(
-        Arrays.asList(
-            // hop-by-hop headers, not forwarded by proxies, per RFC 2616 13.5.1:
-            "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE",
-            "Trailers", "Transfer-Encoding", "Upgrade"));
+            Arrays.asList(
+                    // hop-by-hop headers, not forwarded by proxies, per RFC 2616 13.5.1:
+                    "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE",
+                    "Trailers", "Transfer-Encoding", "Upgrade"));
 
     /** A request that encloses an entity. */
     private static class EntityRequest extends HttpEntityEnclosingRequestBase {
@@ -115,25 +116,22 @@ public abstract class AbstractHttpClient implements HttpClient {
      */
     protected HttpUriRequest createHttpUriRequest(final Request request) {
         // Create the Http request depending if there is an entity or not
-        final HttpRequestBase clientRequest =
-            request.getEntity().isRawContentEmpty()
+        HttpRequestBase clientRequest = request.getEntity().isRawContentEmpty()
                 ? new NonEntityRequest(request) : new EntityRequest(request);
-
         clientRequest.setURI(request.getUri().asURI());
 
         // Parse request Connection headers to be suppressed in message
-        final CaseInsensitiveSet removableHeaderNames = new CaseInsensitiveSet();
+        CaseInsensitiveSet removableHeaderNames = new CaseInsensitiveSet();
         removableHeaderNames.addAll(ConnectionHeader.valueOf(request).getTokens());
 
         // Populates request headers
-        for (final String name : request.getHeaders().keySet()) {
+        for (String name : request.getHeaders().keySet()) {
             if (!SUPPRESS_REQUEST_HEADERS.contains(name) && !removableHeaderNames.contains(name)) {
                 for (final String value : request.getHeaders().get(name).getValues()) {
                     clientRequest.addHeader(name, value);
                 }
             }
         }
-
         return clientRequest;
     }
 
@@ -146,22 +144,18 @@ public abstract class AbstractHttpClient implements HttpClient {
      */
     protected static Response createResponseWithoutEntity(final HttpResponse result) {
         // Response status line
-        final StatusLine statusLine = result.getStatusLine();
-
-        final Response   response   = new Response(
-            Status.valueOf(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
-
+        StatusLine statusLine = result.getStatusLine();
+        Response response = new Response(Status.valueOf(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
         response.setVersion(statusLine.getProtocolVersion().toString());
 
         // Parse response Connection headers to be suppressed in message
-        final CaseInsensitiveSet removableHeaderNames = new CaseInsensitiveSet();
+        CaseInsensitiveSet removableHeaderNames = new CaseInsensitiveSet();
         removableHeaderNames.addAll(ConnectionHeader.valueOf(response).getTokens());
 
         // Response headers
-        for (final HeaderIterator i = result.headerIterator(); i.hasNext(); /* no-op */) {
-            final Header header = i.nextHeader();
-            final String name   = header.getName();
-
+        for (HeaderIterator i = result.headerIterator(); i.hasNext();) {
+            Header header = i.nextHeader();
+            String name = header.getName();
             if (!SUPPRESS_RESPONSE_HEADERS.contains(name) && !removableHeaderNames.contains(name)) {
                 response.getHeaders().add(name, header.getValue());
             }

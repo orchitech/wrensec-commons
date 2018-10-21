@@ -21,7 +21,7 @@
      <groupId>org.forgerock.commons</groupId>
      <artifactId>commons-bom</artifactId>
      <relativePath>commons-bom/pom.xml</relativePath>
-     <version>21.0.0-SNAPSHOT</version>
+     <version>22.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>commons-parent</artifactId>
@@ -66,6 +66,7 @@
     <module>commons-bom</module>
     <module>audit</module>
     <module>auth-filters</module>
+    <module>backstage-connect</module>
     <module>http-framework</module>
     <module>json-crypto</module>
     <module>json-ref</module>

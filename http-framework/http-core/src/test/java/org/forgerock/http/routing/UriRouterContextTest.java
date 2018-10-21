@@ -11,16 +11,15 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
- * Portions Copyright 2018 Wren Security.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.http.routing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 
 import org.forgerock.services.context.Context;
@@ -56,15 +55,14 @@ public class UriRouterContextTest {
     }
 
     private UriRouterContext newContext(Context parentContext, String matchedUri) {
-        return new UriRouterContext(parentContext, matchedUri, "REMAINING", Collections.<String, String>emptyMap());
+        return uriRouterContext(parentContext).matchedUri(matchedUri).remainingUri("REMAINING").build();
     }
 
     @Test
     public void shouldLookupOnParentContextForOriginalUri() throws Exception {
         final URI originalUri = new URI("http://www.example.com");
-        UriRouterContext parent = new UriRouterContext(new RootContext(), null, null,
-                Collections.<String, String>emptyMap(), originalUri);
-        UriRouterContext context = new UriRouterContext(parent, null, null, Collections.<String, String>emptyMap());
+        UriRouterContext parent = uriRouterContext(new RootContext()).originalUri(originalUri).build();
+        UriRouterContext context = uriRouterContext(parent).build();
 
         assertThat(context.getOriginalUri()).isEqualTo(originalUri);
     }
@@ -73,26 +71,23 @@ public class UriRouterContextTest {
     public void shouldReturnTheFirstNotNullOriginalUri() throws Exception {
         final URI originalUri1 = null;
         final URI originalUri2 = new URI("http://www.forgerock.org");
-        UriRouterContext context1 = new UriRouterContext(new RootContext(), null, null,
-                Collections.<String, String>emptyMap(), originalUri1);
-        UriRouterContext context2 = new UriRouterContext(context1, null, null,
-                Collections.<String, String>emptyMap(), originalUri2);
+        UriRouterContext context1 = uriRouterContext(new RootContext()).originalUri(originalUri1).build();
+        UriRouterContext context2 = uriRouterContext(context1).originalUri(originalUri2).build();
 
         assertThat(context1.getOriginalUri()).isNull();
         assertThat(context2.getOriginalUri()).isEqualTo(originalUri2);
     }
 
     @Test
-    public void shouldAllowChildToOverrideParentOriginalUri() throws URISyntaxException {
-        final URI parentUri = new URI("http://www.example.com");
-        final URI childUri = new URI("http://www.forgerock.org");
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public void shouldGetTheClosestOriginalUri() {
+        final URI originalUri = URI.create("http://www.example.com");
+        UriRouterContext parent = uriRouterContext(new RootContext()).originalUri(originalUri).build();
 
-        UriRouterContext parent = new UriRouterContext(new RootContext(), null, null,
-                Collections.<String, String>emptyMap(), parentUri);
-        UriRouterContext child = new UriRouterContext(parent, null, null, Collections.<String, String>emptyMap(),
-                childUri);
+        UriRouterContext newUriRouterContext = new UriRouterContext(parent, null, null,
+                Collections.<String, String>emptyMap(), URI.create("http://www.forgerock.org"));
 
-        assertThat(parent.getOriginalUri()).isEqualTo(parentUri);
-        assertThat(child.getOriginalUri()).isEqualTo(childUri);
+        assertThat(newUriRouterContext.getOriginalUri()).isEqualTo(URI.create("http://www.forgerock.org"));
     }
+
 }

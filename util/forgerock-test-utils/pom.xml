@@ -11,8 +11,8 @@
   ~ Header, with the fields enclosed by brackets [] replaced by your own identifying
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
-  ~ Copyright 2015 ForgeRock AS.
-  ~ Portions Copyright 2017 Wren Security.  
+  ~ Copyright 2015-2016 ForgeRock AS.
+  ~ Portions Copyright 2017-2018 Wren Security.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-utilities</artifactId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>forgerock-test-utils</artifactId>
@@ -32,16 +32,20 @@
             <artifactId>forgerock-util</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+            <scope>compile</scope>
             <optional>true</optional>
         </dependency>
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
@@ -54,9 +58,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
+
                         <goals>
                             <goal>jar</goal>
                         </goals>

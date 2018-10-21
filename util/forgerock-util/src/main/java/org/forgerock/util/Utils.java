@@ -224,6 +224,26 @@ public final class Utils {
         return value == null || value.isEmpty();
     }
 
+    /**
+     * Check to see if a character sequence is null or blank.
+     *
+     * @param charSeq Sequence to test (String is also a CharSequence)
+     * @return true if the char sequence is null or blank.
+     */
+    public static boolean isBlank(CharSequence charSeq) {
+        if (charSeq == null) {
+            return true;
+        }
+        final int length = charSeq.length();
+        for (int i = 0; i < length; i++) {
+            if (!Character.isWhitespace(charSeq.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     private Utils() {
         // Prevent instantiation.
     }

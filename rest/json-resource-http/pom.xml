@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-rest</artifactId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>json-resource-http</artifactId>
     <name>Wren Security Commons REST - JSON Resource HTTP Binding</name>
@@ -51,6 +51,10 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.forgerock.commons.guava</groupId>
+            <artifactId>forgerock-guava-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

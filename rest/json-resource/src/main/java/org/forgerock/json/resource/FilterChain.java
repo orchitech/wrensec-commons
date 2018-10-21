@@ -281,7 +281,8 @@ public final class FilterChain implements RequestHandler, Describable<ApiDescrip
             return ((Describable<ApiDescription, Request>) target)
                     .handleApiRequest(context, request);
         }
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Target RequestHandler " + target.getClass().getName()
+                + " is not describable");
     }
 
     @Override

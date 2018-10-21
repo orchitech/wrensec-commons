@@ -11,8 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2016 ForgeRock AS.
- * Portions Copyright 2018 Wren Security.
+ * Copyright 2012-2017 ForgeRock AS.
  */
 
 package org.forgerock.http.routing;
@@ -52,7 +51,7 @@ import org.forgerock.services.context.Context;
  * happen that the URI received by the web server is not the same one that the
  * one sent by the user-agent (e.g. : behind a load balancer, in a cloud
  * environment, ... ). The real URI can be found by other means, it is possible to
- * "overwrite" it in other UriRouterContexts that can be accessed in the contexts
+ * “overwrite” it in other UriRouterContexts that can be accessed in the contexts
  * chain. Then in that case, we need to start a new routing process by considering
  * that given URI as the new originalUri.
  *
@@ -72,8 +71,10 @@ public final class UriRouterContext extends AbstractContext {
     private final Map<String, String> uriTemplateVariables;
 
     /**
-     * The original message's URI, as received by the web container. This value is set by the
-     * receiving servlet and is immutable.
+     * The original message's URI, considered as the starting of the current process.
+     * Most of the time, that will the URI received by web server, but it may
+     * happen that the URI received by the web server is not the real one that
+     * we want to process.
      */
     private URI originalUri;
 

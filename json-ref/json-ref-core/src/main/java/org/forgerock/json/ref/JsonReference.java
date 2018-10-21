@@ -16,6 +16,8 @@
 
 package org.forgerock.json.ref;
 
+import static org.forgerock.json.JsonValueFunctions.uri;
+
 import java.net.URI;
 import java.util.HashMap;
 
@@ -41,20 +43,11 @@ public class JsonReference {
      * Returns {@code true} if the specified JSON value contains a valid {@code $ref}
      * JSON object structure.
      *
-     * Note: This method does not suppress transformers in the specified value. Consequently,
-     * this method can return {@code false} if members are transformed, for example if a
-     * {@link JsonReferenceTransformer} transforms the value as it is being inspected.
-     *
      * @param value the value to test for a JSON Reference.
      * @return {@code true} if the value is a {@code $ref} JSON Reference.
      */
     public static boolean isJsonReference(JsonValue value) {
-        boolean result = false;
-        if (value.isDefined("$ref")) { // avoid transformer endless loops
-            JsonValue ref = value.get("$ref");
-            result = ref.isString();
-        }
-        return result;
+        return value.get("$ref").isString();
     }
 
     /**
@@ -85,7 +78,7 @@ public class JsonReference {
      * @throws NullPointerException if {@code value} is {@code null}.
      */
     public JsonReference fromJsonValue(JsonValue value) throws JsonValueException {
-        this.uri = value.get("$ref").required().asURI();
+        this.uri = value.get("$ref").required().as(uri());
         return this;
     }
 

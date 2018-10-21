@@ -16,6 +16,7 @@
 package org.forgerock.api.transform;
 
 import static java.lang.Boolean.TRUE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
@@ -24,12 +25,9 @@ import static org.forgerock.api.util.PathUtil.buildPath;
 import static org.forgerock.api.util.PathUtil.buildPathParameters;
 import static org.forgerock.api.util.PathUtil.mergeParameters;
 import static org.forgerock.api.util.ValidationUtil.isEmpty;
-import static org.forgerock.json.JsonValue.array;
-import static org.forgerock.json.JsonValue.field;
-import static org.forgerock.json.JsonValue.fieldIfNotNull;
-import static org.forgerock.json.JsonValue.json;
-import static org.forgerock.json.JsonValue.object;
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.json.JsonValueFunctions.listOf;
+import static org.forgerock.json.schema.validator.Constants.*;
 import static org.forgerock.util.Reject.checkNotNull;
 
 import java.util.ArrayList;
@@ -70,6 +68,9 @@ import org.forgerock.api.models.VersionedPath;
 import org.forgerock.api.util.PathUtil;
 import org.forgerock.api.util.ReferenceResolver;
 import org.forgerock.api.util.ValidationUtil;
+import org.forgerock.guava.common.base.Joiner;
+import org.forgerock.guava.common.hash.Hashing;
+import org.forgerock.guava.common.io.BaseEncoding;
 import org.forgerock.http.header.AcceptApiVersionHeader;
 import org.forgerock.http.routing.Version;
 import org.forgerock.http.swagger.SwaggerExtended;
@@ -96,6 +97,7 @@ import io.swagger.models.parameters.RefParameter;
 import io.swagger.models.properties.AbstractNumericProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
+import io.swagger.models.refs.RefType;
 
 /**
  * Transforms an {@link ApiDescription} into an OpenAPI/Swagger model.
@@ -117,7 +119,17 @@ public class OpenApiTransformer {
     private static final String PARAMETER_IF_NONE_MATCH_REV_ONLY = "If-None-Match: <rev>";
     private static final String PARAMETER_LOCATION = "Location";
 
-    static final String DEFINITIONS_REF = "#/definitions/";
+    /**
+     * Prefix for JSON Schema references prefixed with {@code urn:jsonschema:}.
+     * <p/>
+     * Note that, by default, Jackson uses this scheme in
+     * {@link com.fasterxml.jackson.module.jsonSchema.factories.VisitorContext}.
+     */
+    static final String URN_JSONSCHEMA_PREFIX = "urn:jsonschema:";
+
+    /** Prefix for ForgeRock API JSON Schema references, prefixed with {@code frapi:}. */
+    static final String FRAPI_PREFIX = "frapi:";
+
     private static final String I18N_PREFIX = LocalizableString.TRANSLATION_KEY_PREFIX + "ApiDescription#";
     private static final String FIELDS_PARAMETER_DESCRIPTION = I18N_PREFIX + "common.parameters.fields";
     private static final String PRETTYPRINT_PARAMETER_DESCRIPTION = I18N_PREFIX + "common.parameters.prettyprint";
@@ -719,13 +731,43 @@ public class OpenApiTransformer {
 
                 final Schema responsePayload;
                 if (resourceSchema.getSchema() != null
-                        && !"array".equals(resourceSchema.getSchema().get("type").asString())) {
+                        && !"array".equals(getType(resourceSchema.getSchema()))) {
                     // make query-response schema an array of values
                     responsePayload = Schema.schema().schema(
                             json(object(
-                                    field("type", "array"),
-                                    field("items", resourceSchema.getSchema())
-                            ))).build();
+                                    field(TYPE, TYPE_OBJECT),
+                                    field(TITLE, localizable("common.query.title")),
+                                    field(PROPERTIES, object(
+                                            field("result", object(
+                                                    field(TYPE, TYPE_ARRAY),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.result")),
+                                                    field(ITEMS, resourceSchema.getSchema()))),
+                                            field("resultCount", object(
+                                                    field(TYPE, TYPE_INTEGER),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.resultCount")),
+                                                    field(DEFAULT, "0"))),
+                                            field("pagedResultsCookie", object(
+                                                    field(TYPE, array(TYPE_NULL, TYPE_STRING)),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.pagedResultsCookie")))),
+                                            field("totalPagedResultsPolicy", object(
+                                                    field(TYPE, TYPE_STRING),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.totalPagedResultsPolicy")),
+                                                    field(DEFAULT, "NONE"))),
+                                            field("totalPagedResults", object(
+                                                    field(TYPE, TYPE_INTEGER),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.totalPagedResults")),
+                                                    field("default", "-1"))),
+                                            field("remainingPagedResults", object(
+                                                    field(TYPE, TYPE_INTEGER),
+                                                    field(DESCRIPTION, localizable(
+                                                            "common.query.properties.remainingPagedResults")),
+                                                    field(DEFAULT, "-1"))))))))
+                            .build();
                 } else {
                     // already an array or a reference (TODO might not be an array)
                     responsePayload = resourceSchema;
@@ -788,6 +830,17 @@ public class OpenApiTransformer {
                 addOperation(operation, "get", pathName, queryPathFragment, resourceVersion, tag, pathMap);
             }
         }
+    }
+
+    /**
+     * Constructs a LocalizableString where the value should be the key in the 'ApiDescription' bundle.
+     *
+     * @param value resource bundle key to the 'ApiDescription' bundle.
+     * @return LocalizableString where the value is prefixed with the I18N_PREFIX constant and uses the local
+     * classloader of this class.
+     */
+    private static LocalizableString localizable(String value) {
+        return new LocalizableString(I18N_PREFIX + value, OpenApiTransformer.class.getClassLoader());
     }
 
     /**
@@ -961,7 +1014,12 @@ public class OpenApiTransformer {
         if (schema != null) {
             final Model model;
             if (schema.getSchema() != null) {
-                model = buildModel(schema.getSchema());
+                if (hasReferenceableId(schema.getSchema())) {
+                    final String name = addDefinitionReference(schema.getSchema(), buildModel(schema.getSchema()));
+                    model = new RefModel(name);
+                } else {
+                    model = buildModel(schema.getSchema());
+                }
             } else {
                 final String ref = getDefinitionsReference(schema.getReference());
                 if (ref == null) {
@@ -992,10 +1050,13 @@ public class OpenApiTransformer {
             final Response response = new Response();
             response.description("Success");
             if (schema.getSchema() != null) {
-                // https://github.com/swagger-api/swagger-core/issues/1306
                 final Model model = buildModel(schema.getSchema());
-                final String name = UUID.randomUUID() + "-response";
-                definitionMap.put(name, model);
+                String name = addDefinitionReference(schema.getSchema(), model);
+                if (name == null) {
+                    // no suitable JSON Ref ID exists, so create a temporary one
+                    name = "urn:uuid:" + UUID.randomUUID();
+                    definitionMap.put(name, model);
+                }
                 response.schema(new RefProperty(name));
             } else {
                 final String ref = getDefinitionsReference(schema.getReference());
@@ -1042,41 +1103,6 @@ public class OpenApiTransformer {
                     }
                 }
 
-                Object errorCause = null;
-                if (apiError.getSchema() != null && apiError.getSchema().getSchema() != null) {
-                    // TODO support detailsSchema reference
-                    errorCause = apiError.getSchema().getSchema();
-                }
-
-                final JsonValue errorJsonSchema = json(object(
-                        field("type", "object"),
-                        field("required", array("code", "message")),
-                        field("properties", object(
-                                field("code", object(
-                                        field("type", "integer"),
-                                        field("title", "Code"),
-                                        field("description", "3-digit apiError code,"
-                                                + " corresponding to HTTP status codes.")
-                                )),
-                                field("message", object(
-                                        field("type", "string"),
-                                        field("title", "Message"),
-                                        field("description", "ApiError message.")
-                                )),
-                                field("reason", object(
-                                        field("type", "string"),
-                                        field("title", "Reason"),
-                                        field("description", "Short description corresponding to apiError code.")
-                                )),
-                                field("detail", object(
-                                        field("type", "string"),
-                                        field("title", "Detail"),
-                                        field("description", "Detailed apiError message.")
-                                )),
-                                fieldIfNotNull("cause", errorCause)
-                        ))
-                ));
-
                 final LocalizableResponse response = new LocalizableResponse();
                 if (descriptions.size() == 1) {
                     response.description(descriptions.get(0));
@@ -1094,16 +1120,58 @@ public class OpenApiTransformer {
                     });
                 }
 
-                // https://github.com/swagger-api/swagger-core/issues/1306
-                final Model model = buildModel(errorJsonSchema);
-                final String name = UUID.randomUUID() + "-error";
-                definitionMap.put(name, model);
+                final JsonValue errorSchema = buildErrorSchema(apiError);
+                final Model model = buildModel(errorSchema);
+                final String name = addDefinitionReference(errorSchema, model);
                 response.schema(new RefProperty(name));
 
                 responses.put(String.valueOf(code), response);
             }
         }
         operation.setResponses(responses);
+    }
+
+    /**
+     * Build JSON Schema for a given API error.
+     *
+     * @param apiError API error
+     * @return JSON Schema
+     */
+    JsonValue buildErrorSchema(final ApiError apiError) {
+        // generate unique JSON Schema ID for the error definition
+        String id = FRAPI_PREFIX + "models:ApiError";
+        JsonValue errorCauseSchema = null;
+        final Schema schema = apiError.getSchema();
+        if (schema != null && schema.getSchema().isNotNull()) {
+            errorCauseSchema = schema.getSchema();
+            id += ':' + urnSafeHash(errorCauseSchema.toString());
+        }
+
+        return json(object(
+                field(ID, id),
+                field(TYPE, TYPE_OBJECT),
+                field(REQUIRED, array("code", "message")),
+                field(TITLE, localizable("common.error.title")),
+                field(PROPERTIES, object(
+                        field("code", object(
+                                field(TYPE, TYPE_INTEGER),
+                                field(DESCRIPTION, localizable("common.error.properties.code"))
+                        )),
+                        field("message", object(
+                                field(TYPE, TYPE_STRING),
+                                field(DESCRIPTION, localizable("common.error.properties.message"))
+                        )),
+                        field("reason", object(
+                                field(TYPE, TYPE_STRING),
+                                field(DESCRIPTION, localizable("common.error.properties.reason"))
+                        )),
+                        field("detail", object(
+                                field(TYPE, TYPE_STRING),
+                                field(DESCRIPTION, localizable("common.error.properties.detail"))
+                        )),
+                        fieldIfNotNull("cause", errorCauseSchema)
+                ))
+        ));
     }
 
     private ApiError resolveErrorReference(ApiError apiError) {
@@ -1125,23 +1193,38 @@ public class OpenApiTransformer {
     @VisibleForTesting
     Schema buildPatchRequestPayload(final PatchOperation[] patchOperations) {
         // see org.forgerock.json.resource.PatchOperation#PatchOperation
-        final List<Object> enumArray = new ArrayList<>(patchOperations.length);
+        final List<String> enumArray = new ArrayList<>(patchOperations.length);
         for (final PatchOperation op : patchOperations) {
             enumArray.add(op.name().toLowerCase(Locale.ROOT));
         }
+
+        // sort patch-operations, so that we can generate a stable/unique value, to use as part of schema ID
+        Collections.sort(enumArray);
+        final String operations = Joiner.on("_").join(enumArray);
+        final String id = FRAPI_PREFIX + "models:Patch:" + operations;
+
         final JsonValue schemaValue = json(object(
-                field("type", "array"),
-                field("items", object(
-                        field("type", "object"),
-                        field("properties", object(
+                field(ID, id),
+                field(TITLE, localizable("common.patch.title")),
+                field(TYPE, TYPE_ARRAY),
+                field(ITEMS, object(
+                        field(TITLE, localizable("common.patch.items.title")),
+                        field(TYPE, TYPE_OBJECT),
+                        field(PROPERTIES, object(
                                 field("operation", object(
-                                        field("type", "string"),
-                                        field("enum", enumArray),
-                                        field("required", true)
-                                )),
-                                field("field", object(field("type", "string"))),
-                                field("from", object(field("type", "string"))),
-                                field("value", object(field("type", "string")))
+                                        field(TYPE, TYPE_STRING),
+                                        field(ENUM, enumArray),
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.operation")),
+                                        field(REQUIRED, true))),
+                                field("field", object(
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.field")),
+                                        field(TYPE, TYPE_STRING))),
+                                field("from", object(
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.from")),
+                                        field(TYPE, TYPE_STRING))),
+                                field("value", object(
+                                        field(DESCRIPTION, localizable("common.patch.items.properties.value")),
+                                        field(TYPE, TYPE_STRING)))
                         ))
                 ))
         ));
@@ -1190,7 +1273,7 @@ public class OpenApiTransformer {
      */
     @VisibleForTesting
     Model buildModel(final JsonValue schema) {
-        final String type = schema.get("type").asString();
+        final String type = getType(schema);
         if (type == null) {
             if (schema.isDefined("allOf")) {
                 return buildAllOfModel(schema);
@@ -1204,6 +1287,7 @@ public class OpenApiTransformer {
             return buildObjectModel(schema);
         case "array":
             return buildArrayModel(schema);
+        case "any":
         case "null":
             return new ModelImpl().type(type);
         case "boolean":
@@ -1317,7 +1401,7 @@ public class OpenApiTransformer {
         final LocalizableArrayModel model = new LocalizableArrayModel();
         setTitleAndDescriptionFromSchema(model, schema);
         model.setProperties(buildProperties(schema));
-        model.setItems(buildProperty(schema.get("items")));
+        model.setItems(buildItemsProperty(schema));
 
         // TODO external-docs URLs
 
@@ -1404,14 +1488,6 @@ public class OpenApiTransformer {
             return null;
         }
 
-        if (schema.get("$ref").isNotNull()) {
-            final String ref = getDefinitionsReference(schema.get("$ref").asString());
-            if (ref == null) {
-                throw new TransformerException("Invalid JSON ref: " + schema.get("$ref").asString());
-            }
-            return new RefProperty(ref);
-        }
-
         // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#dataTypeFormat
         final String format = schema.get("format").asString();
         final LocalizableProperty abstractProperty = toLocalizableProperty(schema, format);
@@ -1463,20 +1539,37 @@ public class OpenApiTransformer {
     }
 
     private LocalizableProperty toLocalizableProperty(final JsonValue schema, final String format) {
-        final String type = schema.get("type").asString();
-        switch (type) {
-        case "object": {
-            final LocalizableObjectProperty property = new LocalizableObjectProperty();
-            property.setProperties(buildProperties(schema));
-            property.setRequiredProperties(getArrayOfJsonString("required", schema));
-            if (schema.get("default").isNotNull()) {
-                property.setDefault(schema.get("default").getObject());
+        if (schema.get("$ref").isNotNull()) {
+            final String ref = getDefinitionsReference(schema.get("$ref").asString());
+            if (ref == null) {
+                throw new TransformerException("Invalid JSON ref: " + schema.get("$ref").asString());
             }
-            return property;
+            return new LocalizableRefProperty(ref);
+        }
+
+        final String type = getType(schema);
+        switch (type) {
+        case "any":
+        case "object": {
+            if (hasReferenceableId(schema)) {
+                // this object has a unique ID, so register it in the definitions, so that JSON References can be used
+                final Model model = buildObjectModel(schema);
+                final String name = addDefinitionReference(schema, model);
+                return new LocalizableRefProperty(RefType.DEFINITION.getInternalPrefix() + name);
+            } else {
+                final LocalizableObjectProperty property = new LocalizableObjectProperty();
+                property.setProperties(buildProperties(schema));
+                property.setRequiredProperties(getArrayOfJsonString("required", schema));
+                if (schema.get("default").isNotNull()) {
+                    property.setDefault(schema.get("default").getObject());
+                }
+                property.setType(type);
+                return property;
+            }
         }
         case "array": {
             final LocalizableArrayProperty property = new LocalizableArrayProperty();
-            property.setItems(buildProperty(schema.get("items")));
+            property.setItems(buildItemsProperty(schema));
             property.setMinItems(schema.get("minItems").asInteger());
             property.setMaxItems(schema.get("maxItems").asInteger());
             property.setUniqueItems(schema.get("uniqueItems").asBoolean());
@@ -1583,6 +1676,26 @@ public class OpenApiTransformer {
     }
 
     /**
+     * Builds a property representing an array-items type, using the "items" field, and if the "items" field is missing,
+     * constructs a property of type "any".
+     *
+     * @param schema JSON schema
+     * @return Property representing array-items type
+     */
+    private Property buildItemsProperty(final JsonValue schema) {
+        if (!schema.isDefined("items")) {
+            final LocalizableObjectProperty property = new LocalizableObjectProperty();
+            property.setType("any");
+            return property;
+        }
+        final JsonValue items = schema.get("items");
+        if (items.isNull()) {
+            throw new TransformerException("JSON-array 'items' field cannot be null: " + schema);
+        }
+        return buildProperty(items);
+    }
+
+    /**
      * Reads an array of JSON strings, given a field name.
      *
      * @param field Field name
@@ -1595,6 +1708,69 @@ public class OpenApiTransformer {
             return value.asList(String.class);
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Swagger 2.0 does not support a JSON Schema type field that is an array of types, nor does it support the
+     * "null" type, so this method makes a best effort to choose a single type under all circumstances. When there
+     * are multiple types to choose from, other than "null", the type "any" will be returned.
+     *
+     * @param schema Schema
+     * @return A single JSON Schema type
+     */
+    private String getType(final JsonValue schema) {
+        final JsonValue value = schema.get("type");
+        if (value.isList()) {
+            final List<String> list = value.asList(String.class);
+            list.remove("null");
+            if (list.size() == 1) {
+                return list.get(0);
+            }
+            logger.trace("Simplifying array of types {} to 'any' type", value);
+            return "any";
+        }
+        return value.asString();
+    }
+
+    /**
+     * Determines whether or not an "id" field is safe to use for JSON References.
+     *
+     * @param schema Schema
+     * @return {@code true} if schema as an "id" field is safe to use for JSON References and {@code false} otherwise
+     */
+    private boolean hasReferenceableId(final JsonValue schema) {
+        return isReferenceableId(schema.get("id").asString());
+    }
+
+    /**
+     * Determines whether or not an ID string is safe to use for JSON References.
+     *
+     * @param id ID
+     * @return {@code true} if ID is safe to use for JSON References and {@code false} otherwise
+     */
+    private boolean isReferenceableId(final String id) {
+        return id != null && (id.startsWith(URN_JSONSCHEMA_PREFIX) || id.startsWith(FRAPI_PREFIX));
+    }
+
+    /**
+     * Registers a JSON Schema in <em>definitions</em>, so that it can later be referred to using JSON Reference,
+     * but only if it has an {@code id} field that {@link #isReferenceableId(String)}.
+     *
+     * @param schema Schema
+     * @param model Model for schema
+     * @return Definition-name if schema was added to definitions or {@code null} otherwise
+     */
+    @VisibleForTesting
+    String addDefinitionReference(final JsonValue schema, final Model model) {
+        if (hasReferenceableId(schema)) {
+            final String id = schema.get("id").asString();
+            final Model existingModel = definitionMap.put(id, model);
+            if (existingModel != null && !existingModel.equals(model)) {
+                logger.info("Replacing schema definition with id: " + id);
+            }
+            return id;
+        }
+        return null;
     }
 
     /**
@@ -1622,9 +1798,12 @@ public class OpenApiTransformer {
     @VisibleForTesting
     String getDefinitionsReference(final String reference) {
         if (!isEmpty(reference)) {
-            final int start = reference.indexOf(DEFINITIONS_REF);
+            if (isReferenceableId(reference)) {
+                return reference;
+            }
+            final int start = reference.indexOf(RefType.DEFINITION.getInternalPrefix());
             if (start != -1) {
-                final String s = reference.substring(start + DEFINITIONS_REF.length());
+                final String s = reference.substring(start + RefType.DEFINITION.getInternalPrefix().length());
                 if (!s.isEmpty()) {
                     return s;
                 }
@@ -1652,5 +1831,9 @@ public class OpenApiTransformer {
         } else {
             model.description((LocalizableString) source.getObject());
         }
+    }
+
+    private static String urnSafeHash(final String s) {
+        return BaseEncoding.base64Url().encode(Hashing.sha1().hashString(s, UTF_8).asBytes());
     }
 }

@@ -28,7 +28,7 @@
     <parent>
         <artifactId>forgerock-selfservice</artifactId>
         <groupId>org.forgerock.commons</groupId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>forgerock-selfservice-example-ui</artifactId>
@@ -38,7 +38,7 @@
     <description>UI for Wren Security Self-Service Example</description>
 
     <properties>
-        <forgerock-ui.version>8.6.0</forgerock-ui.version>
+        <forgerock-ui.version>22.0.0-alpha-1</forgerock-ui.version>
     </properties>
 
     <build>

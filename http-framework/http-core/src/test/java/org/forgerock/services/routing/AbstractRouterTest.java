@@ -17,6 +17,7 @@
 package org.forgerock.services.routing;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.http.routing.RouteMatchers.selfApiMatcher;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
@@ -74,10 +75,10 @@ public class AbstractRouterTest {
 
     @SuppressWarnings("unchecked")
     @BeforeMethod
-    public void setup() {
+    public void setup() throws Exception {
         router = new TestAbstractRouter();
 
-        request = new Request();
+        request = new Request().setUri("http://localhost/path?query");
         MockitoAnnotations.initMocks(this);
         when(routeOneMatcher.transformApi(any(), any(ApiProducer.class))).thenAnswer(transformApiAnswer);
         when(routeTwoMatcher.transformApi(any(), any(ApiProducer.class))).thenAnswer(transformApiAnswer);
@@ -349,6 +350,7 @@ public class AbstractRouterTest {
     @Test
     public void shouldNotifyOnRouterDescribableAddition() {
         // Given
+        router.api(new StringApiProducer());
         Describable.Listener listener = mock(Describable.Listener.class);
         router.addDescriptorListener(listener);
 
@@ -360,14 +362,29 @@ public class AbstractRouterTest {
     }
 
     @Test
-    public void shouldNotifyOnRouterDescribableRemoval() {
+    public void shouldNotNotifyBeforeInitialisedWithProducer() {
         // Given
-        router.addRoute(routeOneMatcher, routeOneHandler);
         Describable.Listener listener = mock(Describable.Listener.class);
         router.addDescriptorListener(listener);
 
         // When
-        router.addRoute(routeOneMatcher, mock(Handler.class));
+        router.addRoute(routeOneMatcher, routeOneHandler);
+        router.removeRoute(routeOneMatcher);
+
+        // Then
+        verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void shouldNotifyOnRouterDescribableRemoval() {
+        // Given
+        router.addRoute(routeOneMatcher, routeOneHandler);
+        router.api(new StringApiProducer());
+        Describable.Listener listener = mock(Describable.Listener.class);
+        router.addDescriptorListener(listener);
+
+        // When
+        router.removeRoute(routeOneMatcher);
 
         // Then
         verify(listener).notifyDescriptorChange();
@@ -457,6 +474,40 @@ public class AbstractRouterTest {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
+    public void shouldHandleApiRequestIfRouterTargeted() throws Exception {
+        // Given
+        router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
+        router.addRoute(routeTwoMatcher, new TestAbstractRouter().setDefaultRoute(routeTwoHandler));
+        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
+        given(routeOneHandler.handleApiRequest(context, request)).willReturn("one");
+        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeTwoHandler.handleApiRequest(context, request)).willReturn("two");
+        router.api(new StringApiProducer());
+
+        given(routeOneMatcher.evaluate(context, request)).willReturn(null);
+
+        request.setUri("http://localhost");
+
+        // When
+        String api = router.handleApiRequest(context, request);
+
+        // Then
+        assertThat(api).isEqualTo("[[one], [two]]");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldThrowExceptionWhenNoRouteMatchTheApiRequest() throws Exception {
+        // Given
+        router.api(new StringApiProducer());
+        request.setUri("/test");
+
+        // When
+        router.handleApiRequest(context, request);
+    }
+
+    @SuppressWarnings("unchecked")
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void shouldThrowExceptionForNoApiSupport() throws Exception {
         // Given
@@ -468,16 +519,13 @@ public class AbstractRouterTest {
         given(routeOneMatcher.evaluate(context, request)).willReturn(routeOneRouteMatch);
         given(routeTwoMatcher.evaluate(context, request)).willReturn(routeTwoRouteMatch);
 
-        setupRouteMatch(routeOneRouteMatch, routeTwoRouteMatch, true);
-        setupRouteMatch(routeTwoRouteMatch, routeOneRouteMatch, false);
+        setupIncomparableRouteMatch(routeOneRouteMatch, routeTwoRouteMatch);
+        setupIncomparableRouteMatch(routeTwoRouteMatch, routeOneRouteMatch);
 
         request.setUri("/test");
 
         // When
-        String api = router.handleApiRequest(context, request);
-
-        // Then
-        assertThat(api).isEqualTo("one");
+        router.handleApiRequest(context, request);
     }
 
     private void setupRouteMatch(RouteMatch thisRouteMatch, RouteMatch thatRouteMatch,
@@ -504,6 +552,8 @@ public class AbstractRouterTest {
             extends AbstractRouter<TestAbstractRouter, Request, Handler, String>
             implements Handler {
 
+        private Handler selfApiHandler = new SelfApiHandler();
+
         protected TestAbstractRouter() {
             super();
         }
@@ -518,6 +568,11 @@ public class AbstractRouterTest {
         }
 
         @Override
+        protected Pair<RouteMatcher<Request>, Handler> getSelfApiHandler() {
+            return Pair.of(selfApiMatcher(), selfApiHandler);
+        }
+
+        @Override
         protected RouteMatcher<Request> uriMatcher(RoutingMode mode, String pattern) {
             return RouteMatchers.requestUriMatcher(mode, pattern);
         }
@@ -525,6 +580,34 @@ public class AbstractRouterTest {
         @Override
         public Promise<Response, NeverThrowsException> handle(Context context, Request request) {
             throw new UnsupportedOperationException();
+        }
+
+        private class SelfApiHandler implements Handler, Describable<String, Request> {
+
+            @Override
+            public String api(ApiProducer<String> producer) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public String handleApiRequest(Context context, Request request) {
+                return api;
+            }
+
+            @Override
+            public void addDescriptorListener(Listener listener) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void removeDescriptorListener(Listener listener) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Promise<Response, NeverThrowsException> handle(Context context, Request request) {
+                throw new UnsupportedOperationException();
+            }
         }
     }
 
@@ -566,4 +649,6 @@ public class AbstractRouterTest {
             return new StringApiProducer();
         }
     }
+
+
 }

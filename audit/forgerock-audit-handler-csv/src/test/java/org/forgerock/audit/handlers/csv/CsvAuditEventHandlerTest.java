@@ -59,6 +59,7 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
+import org.forgerock.util.Utils;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.ResultHandler;
 import org.mockito.ArgumentCaptor;
@@ -376,6 +377,34 @@ public class CsvAuditEventHandlerTest {
         assertThatFileRotationAddsCsvHeadersToStartOfNewFiles(logDirectory, csvHandler);
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testCreatingCsvAuditEventHandlerWithBothKeyStoreHandlerNameAndFilenamePassword() throws Exception {
+        //given
+        final Path logDirectory = Files.createTempDirectory("CsvAuditEventHandlerTest");
+        logDirectory.toFile().deleteOnExit();
+
+        // should throw an illegal argument exception when building the CsvAuditEventHandler
+        csvAuditEventHandler()
+                .loggingTo(logDirectory)
+                .withBufferingEnabled()
+                .withSecureLoggingEnabled("keyStoreHandlerName", "filename", "password")
+                .build();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testCreatingCsvAuditEventHandlerWithUnknownKeyStoreHandlerName() throws Exception {
+        //given
+        final Path logDirectory = Files.createTempDirectory("CsvAuditEventHandlerTest");
+        logDirectory.toFile().deleteOnExit();
+
+        // should throw an illegal argument exception when building the CsvAuditEventHandler
+        csvAuditEventHandler()
+                .loggingTo(logDirectory)
+                .withBufferingEnabled()
+                .withSecureLoggingEnabled("keyStoreHandlerName", null, null)
+                .build();
+    }
+
     private void assertThatFileRotationAddsCsvHeadersToStartOfNewFiles(
             Path logDirectory, CsvAuditEventHandler csvHandler) throws Exception {
         final Context context = new RootContext();
@@ -419,10 +448,24 @@ public class CsvAuditEventHandlerTest {
         }
 
         private CsvAuditEventHandlerBuilder withSecureLoggingEnabled() throws Exception {
+            return withSecureLoggingEnabled("csvSecure", null, null);
+        }
+
+        private CsvAuditEventHandlerBuilder withSecureLoggingEnabled(final String keyStoreHandlerName,
+                final String filename, final String password) throws Exception {
             CsvAuditEventHandlerConfiguration.CsvSecurity csvSecurity =
                     new CsvAuditEventHandlerConfiguration.CsvSecurity();
             csvSecurity.setEnabled(true);
-            csvSecurity.setKeyStoreHandlerName("csvSecure");
+            if (!Utils.isNullOrEmpty(keyStoreHandlerName)) {
+                csvSecurity.setKeyStoreHandlerName(keyStoreHandlerName);
+            }
+            if (!Utils.isNullOrEmpty(filename)) {
+                csvSecurity.setFilename(filename);
+            }
+            if (!Utils.isNullOrEmpty(password)) {
+                csvSecurity.setPassword(password);
+            }
+            csvSecurity.setSignatureInterval("5 minutes");
             config.setSecurity(csvSecurity);
             keystoreHandlerProvider = setupKeyStoreHandlerProvider();
             return this;

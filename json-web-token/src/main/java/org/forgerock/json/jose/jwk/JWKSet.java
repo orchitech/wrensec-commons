@@ -11,12 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwk;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +26,10 @@ import java.util.Map;
 
 import org.forgerock.json.JsonException;
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.jose.jwt.Algorithm;
 import org.forgerock.json.jose.jwt.JWObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,11 +38,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class JWKSet extends JWObject {
 
+    private static final Logger logger = LoggerFactory.getLogger(JWKSet.class);
+
     /**
      * Constructs an empty JWKSet.
      */
     public JWKSet() {
-
+        put("keys", Collections.EMPTY_LIST);
     }
 
     /**
@@ -48,18 +55,18 @@ public class JWKSet extends JWObject {
         if (jwk == null) {
             throw new JsonException("JWK must not be null");
         }
-        put("keys", jwk);
+        put("keys", Collections.singletonList(jwk.toJsonValue().asMap()));
     }
 
     /**
      * Construct a JWKSet from a single JWK.
-     * @param jwk contains a list of json web keys
+     * @param jwks contains a list of json web keys
      */
-    public JWKSet(JsonValue jwk) {
-        if (jwk == null) {
-            throw new JsonException("JWK must not be null");
+    public JWKSet(JsonValue jwks) {
+        if (jwks == null) {
+            throw new JsonException("JWK set must not be null");
         }
-        put("keys", jwk);
+        put("keys", jwks.expect(List.class));
     }
 
     /**
@@ -68,9 +75,14 @@ public class JWKSet extends JWObject {
      */
     public JWKSet(List<JWK> jwkList) {
         if (jwkList == null) {
-            throw new JsonException("The list cant be null");
+            throw new JsonException("The list cannot be null");
         }
-        put("keys", jwkList);
+        //transform to json, as it's our current way of storing jwks
+        List<Map<String, Object>> jwkListAsJson = new ArrayList<>();
+        for (JWK jwk : jwkList) {
+            jwkListAsJson.add(jwk.toJsonValue().asMap());
+        }
+        put("keys", jwkListAsJson);
     }
 
     /**
@@ -140,4 +152,43 @@ public class JWKSet extends JWObject {
         return super.toString();
     }
 
+    /**
+     * Search for a JWK that matches the algorithm and the key usage.
+     *
+     * @param algorithm the algorithm needed
+     * @param keyUse the key usage. If null, only the algorithm will be used as a search criteria.
+     * @return A jwk that matches the search criteria. If no JWK found for the key usage, then it searches for a JWK
+     * without key usage defined. If still no JWK found, then returns null.
+     */
+    public JWK findJwk(Algorithm algorithm, KeyUse keyUse) {
+        //First, we try to find a JWK that matches the keyUse
+        for (JWK jwk : getJWKsAsList()) {
+            try {
+                if (algorithm.getJwaAlgorithmName().equalsIgnoreCase(jwk.getAlgorithm()) && (keyUse == jwk.getUse())) {
+                    return jwk;
+                }
+            } catch (IllegalArgumentException e) {
+                // We raise a warning as the JWKs could be the client one, with some non-compliant JWK.
+                logger.warn("Can't load JWK with kid'" + jwk.getKeyId() + "'", e);
+            }
+        }
+
+        //At this point, no jwk was found. We can try to find a JWK without a keyUse now
+        return keyUse != null ? findJwk(algorithm, null) :  null;
+    }
+
+    /**
+     * Search for a JWK that matches the kid.
+     *
+     * @param kid Key ID
+     * @return A jwk that matches the kid. If no JWK found, returns null
+     */
+    public JWK findJwk(String kid) {
+        for (JWK jwk : getJWKsAsList()) {
+            if (kid.equals(jwk.getKeyId())) {
+                return jwk;
+            }
+        }
+        return null;
+    }
 }

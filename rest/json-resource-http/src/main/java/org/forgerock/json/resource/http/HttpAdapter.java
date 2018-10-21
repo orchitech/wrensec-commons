@@ -17,6 +17,7 @@ package org.forgerock.json.resource.http;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.forgerock.api.commons.CommonsApi.COMMONS_API_DESCRIPTION;
+import static org.forgerock.guava.common.base.Optional.absent;
 import static org.forgerock.guava.common.base.Strings.isNullOrEmpty;
 import static org.forgerock.http.util.Paths.addLeadingSlash;
 import static org.forgerock.http.util.Paths.removeTrailingSlash;
@@ -83,6 +84,7 @@ import org.forgerock.guava.common.base.Optional;
 import org.forgerock.guava.common.cache.CacheBuilder;
 import org.forgerock.guava.common.cache.CacheLoader;
 import org.forgerock.guava.common.cache.LoadingCache;
+import org.forgerock.guava.common.util.concurrent.UncheckedExecutionException;
 import org.forgerock.http.ApiProducer;
 import org.forgerock.http.Handler;
 import org.forgerock.http.header.AcceptLanguageHeader;
@@ -94,6 +96,7 @@ import org.forgerock.http.routing.UriRouterContext;
 import org.forgerock.http.routing.Version;
 import org.forgerock.http.swagger.SwaggerUtils;
 import org.forgerock.http.util.Json;
+import org.forgerock.http.util.Uris;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.AdviceContext;
@@ -181,7 +184,7 @@ final class HttpAdapter implements Handler, Describable<Swagger, org.forgerock.h
     private final String apiVersion;
     private final List<Describable.Listener> apiListeners = new CopyOnWriteArrayList<>();
     private ApiProducer<Swagger> apiProducer;
-    private LoadingCache<String, Swagger> descriptorCache;
+    private LoadingCache<String, Optional<Swagger>> descriptorCache;
 
     /**
      * Creates a new HTTP adapter with the provided connection factory and a
@@ -701,13 +704,13 @@ final class HttpAdapter implements Handler, Describable<Swagger, org.forgerock.h
             throws ResourceException {
         if (apiId == null || apiVersion == null) {
             logger.info("CREST API Descriptor API ID and Version are not set. Not describing.");
-            return Optional.absent();
+            return absent();
         }
         Connection connection = connectionFactory.getConnection();
         if (connection instanceof Describable) {
             return Optional.of((Describable<ApiDescription, Request>) connection);
         } else {
-            return Optional.absent();
+            return absent();
         }
     }
 
@@ -846,17 +849,21 @@ final class HttpAdapter implements Handler, Describable<Swagger, org.forgerock.h
                 ApiDescription api = describable.get().api(new CrestApiProducer(apiId, apiVersion));
                 if (api != null) {
                     this.descriptorCache = CacheBuilder.newBuilder().expireAfterAccess(30, MINUTES)
-                            .build(new CacheLoader<String, Swagger>() {
+                            .build(new CacheLoader<String, Optional<Swagger>>() {
                                 @Override
-                                public Swagger load(String uri) throws ResourceException {
+                                public Optional<Swagger> load(String uri) throws ResourceException {
                                     UriRouterContext context = new UriRouterContext(new RootContext(), "", uri,
                                             Collections.<String, String>emptyMap());
                                     ApiDescription api = getDescribableConnection().get()
                                             .handleApiRequest(context, newApiRequest(resourcePath(uri)));
+                                    // Avoid NPE later during transformation
+                                    if (api == null) {
+                                        return absent();
+                                    }
                                     Swagger swagger = OpenApiTransformer.execute(api, COMMONS_API_DESCRIPTION);
                                     uri = removeTrailingSlash(uri);
                                     if (!isNullOrEmpty(uri)) {
-                                        uri = addLeadingSlash(uri);
+                                        uri = addLeadingSlash(Uris.urlDecodePathElement(uri));
                                     }
                                     Map<String, Path> paths = new TreeMap<>();
                                     for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
@@ -869,11 +876,11 @@ final class HttpAdapter implements Handler, Describable<Swagger, org.forgerock.h
                                         paths.put(uri + pathString, path.getValue());
                                     }
                                     swagger.setPaths(paths);
-                                    return apiProducer.addApiInfo(swagger);
+                                    return Optional.of(apiProducer.addApiInfo(swagger));
                                 }
                             });
                     try {
-                        return descriptorCache.get("");
+                        return descriptorCache.get("").orNull();
                     } catch (ExecutionException e) {
                         throw (ResourceException) e.getCause();
                     }
@@ -890,16 +897,19 @@ final class HttpAdapter implements Handler, Describable<Swagger, org.forgerock.h
         if (descriptorCache == null) {
             return null;
         }
-        Swagger descriptor;
+        Optional<Swagger> result;
         try {
             if (context.containsContext(UriRouterContext.class)) {
-                descriptor = descriptorCache.get(context.asContext(UriRouterContext.class).getRemainingUri());
+                result = descriptorCache.get(context.asContext(UriRouterContext.class).getRemainingUri());
             } else {
-                descriptor = descriptorCache.get("");
+                result = descriptorCache.get("");
             }
         } catch (ExecutionException e) {
-            throw new IllegalStateException("Cannot get connection", e);
+            throw new UnsupportedOperationException("Cannot get connection", e);
+        } catch (UncheckedExecutionException e) {
+            throw (RuntimeException) e.getCause();
         }
+        Swagger descriptor = result.orNull();
         if (descriptor != null && descriptor.getHost() == null) {
             return SwaggerUtils.clone(descriptor).host(context.asContext(ClientContext.class).getLocalAddress());
         }

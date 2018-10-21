@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2016 ForgeRock AS.
+ * Copyright 2016-2017 ForgeRock AS.
  */
 
 package org.forgerock.http.swagger;
@@ -19,6 +19,7 @@ package org.forgerock.http.swagger;
 import static org.forgerock.http.protocol.Entity.APPLICATION_JSON_CHARSET_UTF_8;
 import static org.forgerock.http.protocol.Response.newResponsePromise;
 import static org.forgerock.http.protocol.Responses.newInternalServerError;
+import static org.forgerock.http.protocol.Responses.newNotFound;
 
 import java.net.URI;
 
@@ -69,24 +70,37 @@ public class OpenApiRequestFilter implements Filter {
             return next.handle(context, request);
         }
 
-        Swagger result = ((Describable<Swagger, Request>) next).handleApiRequest(context, request);
-        if (result == null) {
-            return newResponsePromise(new Response(Status.NOT_IMPLEMENTED));
-        }
         try {
-            result = setUriDetailsIfNotPresent(context, result);
+            Swagger result = ((Describable<Swagger, Request>) next).handleApiRequest(context, request);
+            if (result == null) {
+                return newResponsePromise(new Response(Status.NOT_IMPLEMENTED));
+            }
+
+            result = setUriDetailsIfNotPresent(request, context, result);
             ObjectWriter writer = Json.makeLocalizingObjectWriter(OBJECT_MAPPER, request);
             Response chfResponse = new Response(Status.OK).setEntity(writer.writeValueAsBytes(result));
             chfResponse.getHeaders().put(ContentTypeHeader.NAME, APPLICATION_JSON_CHARSET_UTF_8);
             return newResponsePromise(chfResponse);
+        } catch (IllegalStateException e) {
+            // This exception marks that the request couldn't be routed to an acceptable handler
+            logger.trace("Cannot route {} to an acceptable handler", request.getUri() , e);
+            return newResponsePromise(newNotFound());
         } catch (RuntimeException | JsonProcessingException | MalformedHeaderException e) {
             logger.error("Exception caught while generating OpenAPI descriptor", e);
             return newResponsePromise(newInternalServerError(e));
         }
     }
 
-    /** The URL of the application isn't known until runtime usually, so that is why this is delayed. */
-    private static Swagger setUriDetailsIfNotPresent(Context context, Swagger descriptor) {
+    /**
+     * Deduce and set the base URI of the request for the OpenAPI descriptor from the request context. This method
+     * should set the {@code basePath}, {@code schemes} and {@code host} properties on the descriptor.
+     *
+     * @param request The CHF request.
+     * @param context The CHF request context.
+     * @param descriptor The descriptor object.
+     * @return The updated descriptor object.
+     */
+    protected Swagger setUriDetailsIfNotPresent(Request request, Context context, Swagger descriptor) {
         if (context.containsContext(UriRouterContext.class)) {
             final UriRouterContext uriRouterContext = context.asContext(UriRouterContext.class);
             final URI originalUri = uriRouterContext.getOriginalUri();

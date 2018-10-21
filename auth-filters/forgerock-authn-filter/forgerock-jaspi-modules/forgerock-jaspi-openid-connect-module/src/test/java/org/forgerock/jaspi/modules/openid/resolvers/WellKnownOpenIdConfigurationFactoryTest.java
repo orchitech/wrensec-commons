@@ -11,14 +11,14 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014 ForgeRock AS.
+* Copyright 2014-2017 ForgeRock AS.
 */
 package org.forgerock.jaspi.modules.openid.resolvers;
 
 import java.io.IOException;
 import java.net.URL;
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
-import org.forgerock.jaspi.modules.openid.helpers.SimpleHTTPClient;
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
+import org.forgerock.util.SimpleHTTPClient;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;

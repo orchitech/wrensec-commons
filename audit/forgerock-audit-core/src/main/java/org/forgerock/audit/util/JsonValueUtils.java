@@ -151,8 +151,6 @@ public final class JsonValueUtils {
     public static String extractValueAsString(final JsonValue json, final JsonPointer pointer) {
         Object value = json.getObject();
         for (String name : pointer.toArray()) {
-	        	if (value instanceof JsonValue)
-	        		value=((JsonValue)value).getObject();
             if (value instanceof Map<?, ?>) {
                 value = ((Map<?, ?>) value).get(name);
             } else if (value instanceof Collection<?>) {
@@ -174,7 +172,6 @@ public final class JsonValueUtils {
                 value = null;
                 break;
             }
-            
         }
         if (value == null) {
             return null;

@@ -77,13 +77,14 @@ public abstract class Schema {
 
     private boolean isSchemaPropertyMatches(Schema schema1) {
         return getSchema() != null && schema1.getSchema() != null
-                ? getSchema().isEqualTo(schema1.getSchema())
+                ? Objects.equals(getSchema().getObject(), schema1.getSchema().getObject())
                 : schema1.getSchema() == getSchema();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getReference(), getSchema());
+        JsonValue schema = getSchema();
+        return Objects.hash(getReference(), schema == null ? null : schema.getObject());
     }
 
     /**

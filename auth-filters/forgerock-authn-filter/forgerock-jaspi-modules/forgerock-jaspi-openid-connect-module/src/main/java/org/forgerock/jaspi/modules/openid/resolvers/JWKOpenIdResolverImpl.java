@@ -11,25 +11,26 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014-2016 ForgeRock AS.
+* Copyright 2014-2017 ForgeRock AS.
 */
 
 package org.forgerock.jaspi.modules.openid.resolvers;
 
 import static org.forgerock.caf.authentication.framework.AuthenticationFramework.LOG;
 
-import java.net.URL;
-import java.security.Key;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.PublicKey;
 
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
+
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
 import org.forgerock.jaspi.modules.openid.exceptions.InvalidSignatureException;
 import org.forgerock.jaspi.modules.openid.exceptions.OpenIdConnectVerificationException;
-import org.forgerock.jaspi.modules.openid.helpers.JWKSetParser;
-import org.forgerock.jaspi.modules.openid.helpers.SimpleHTTPClient;
+import org.forgerock.util.SimpleHTTPClient;
+import org.forgerock.json.jose.jwk.store.JwksStore;
+import org.forgerock.json.jose.jwk.EcJWK;
+import org.forgerock.json.jose.jwk.RsaJWK;
 import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jws.SigningManager;
+import org.forgerock.json.jose.jwk.JWK;
 
 /**
  * This class exists to allow Open Id Providers to supply or promote a JWK exposure point for
@@ -47,92 +48,30 @@ public class JWKOpenIdResolverImpl extends BaseOpenIdResolver {
 
     private final SigningManager signingManager;
 
-    private final URL jwkUrl;
-
-    private final Map<String, Key> keyMap = new HashMap<>();
-
-    private final JWKSetParser jwkParser;
+    private final JwksStore jwksStore;
 
     /**
      * Constructor using provided timeout values to generate the
      * {@link SimpleHTTPClient} used for communicating over HTTP.
      *
-     * @param issuer The issuer (provider) of the Open Id Connect id token
-     * @param jwkUrl the URL from which we will attempt to read and parse our JWKSet
-     * @param readTimeout the read timeout associated with HTTP requests
-     * @param connTimeout the connection timeout associated with HTTP requests
+     * @param jwksStore The jwks store
+
      * @throws FailedToLoadJWKException if there were issues resolving or parsing the JWK
      */
-    public JWKOpenIdResolverImpl(final String issuer, final URL jwkUrl, final int readTimeout,
-                                 final int connTimeout) throws FailedToLoadJWKException {
-        super(issuer);
-
+    public JWKOpenIdResolverImpl(JwksStore jwksStore) throws FailedToLoadJWKException {
+        super(jwksStore.getUid());
+        this.jwksStore = jwksStore;
         this.signingManager = new SigningManager();
-        jwkParser = new JWKSetParser(readTimeout, connTimeout);
-        this.jwkUrl = jwkUrl;
-
-        try {
-            reloadKeys();
-        } catch (FailedToLoadJWKException e) {
-            LOG.debug("Unable to load keys from the JWK over HTTP");
-            throw new FailedToLoadJWKException("Unable to load keys from the JWK over HTTP", e);
-        }
     }
 
-    /**
-     * Constructor using an already-created {@link SimpleHTTPClient}.
-     *
-     * @param issuer The issuer (provider) of the Open Id Connect id token
-     * @param jwkUrl The URL from which we will attempt to read and parse our JWKSet
-     * @param httpClient The http client through which we will attempt to read the jwkUrl
-     * @throws FailedToLoadJWKException if there were issues resolving or parsing the JWK.
-     */
-    public JWKOpenIdResolverImpl(final String issuer, final URL jwkUrl, final SimpleHTTPClient httpClient)
-            throws FailedToLoadJWKException {
-        super(issuer);
-
-        this.signingManager = new SigningManager();
-        jwkParser = new JWKSetParser(httpClient);
-        this.jwkUrl = jwkUrl;
-
-        try {
-            reloadKeys();
-        } catch (FailedToLoadJWKException e) {
-            LOG.debug("Unable to load keys from the JWK over HTTP");
-            throw new FailedToLoadJWKException("Unable to load keys from the JWK over HTTP", e);
-        }
-    }
-
-
-    /**
-     * Test constructor using an already-created JwkParser.
-     *
-     * @param issuer The issuer (provider) of the Open Id Connect id token
-     * @param jwkUrl The URL from which we will attempt to read and parse our JWKSet
-     */
-    JWKOpenIdResolverImpl(final String issuer, final URL jwkUrl, final JWKSetParser jwkParser)
-            throws FailedToLoadJWKException {
-        super(issuer);
-
-        this.signingManager = new SigningManager();
-        this.jwkParser = jwkParser;
-        this.jwkUrl = jwkUrl;
-
-        try {
-            reloadKeys();
-        } catch (FailedToLoadJWKException e) {
-            LOG.debug("Unable to load keys from the JWK over HTTP");
-            throw new FailedToLoadJWKException("Unable to load keys from the JWK over HTTP", e);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void validateIdentity(final SignedJwt idClaim) throws OpenIdConnectVerificationException {
         super.validateIdentity(idClaim);
-        verifySignature(idClaim);
+        try {
+            verifySignature(idClaim);
+        } catch (FailedToLoadJWKException e) {
+            throw new OpenIdConnectVerificationException(e);
+        }
     }
 
     /**
@@ -144,33 +83,23 @@ public class JWKOpenIdResolverImpl extends BaseOpenIdResolver {
      */
     public void verifySignature(final SignedJwt idClaim) throws InvalidSignatureException,
             FailedToLoadJWKException {
-
-        final Key key;
-
-        synchronized (keyMap) {
-            if (!keyMap.containsKey(idClaim.getHeader().getKeyId())) {
-                reloadKeys();
-            }
-        }
-
-        key = keyMap.get(idClaim.getHeader().getKeyId());
-        if (key == null || !idClaim.verify(createSigningHandlerForKey(signingManager, key))) {
+        final JWK jwk = jwksStore.findJwk(idClaim.getHeader().getKeyId());
+        if (jwk == null || !idClaim.verify(createSigningHandlerForKey(signingManager, getPublicKeyFromJWK(jwk)))) {
             LOG.debug("JWS unable to be verified");
             throw new InvalidSignatureException("JWS unable to be verified");
         }
     }
 
-    /**
-     * Communicates with the configured server, attempting to download the latest keyset
-     * for use.
-     *
-     * @throws FailedToLoadJWKException if there were issues parsing the supplied URL
-     */
-    private void reloadKeys() throws FailedToLoadJWKException {
-        synchronized (keyMap) {
-            keyMap.clear();
-            keyMap.putAll(jwkParser.generateMapFromJWK(jwkUrl));
+    private PublicKey getPublicKeyFromJWK(org.forgerock.json.jose.jwk.JWK jwk) {
+        switch (jwk.getKeyType()) {
+        case RSA:
+            RsaJWK rsaJWK = (RsaJWK) jwk;
+            return rsaJWK.toRSAPublicKey();
+        case EC:
+            EcJWK ecJWK = (EcJWK) jwk;
+            return ecJWK.toECPublicKey();
+        default:
+            throw new IllegalArgumentException("Key type '" + jwk.getKeyType() + "' not supported");
         }
     }
-
 }
