@@ -46,9 +46,10 @@ public class KeyStoreConfigurationManagerTest {
     @DataProvider
     private Object[][] defaultConfig() {
         return new Object[][]{
-                {"default", "PKCS12"},
-                {"legacy", "JKS"},
-                {"legacy-jceks", "JCEKS"}
+                {"default",                     "PKCS12"},
+                {"legacy",                      "JKS"},
+                {"legacy-jceks",                "JCEKS"},
+                {"password-file-with-newline",  "PKCS12"},
         };
     }
 

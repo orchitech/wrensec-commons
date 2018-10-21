@@ -164,16 +164,35 @@ public class KeyStoreConfiguration {
     /**
      * Get the keystore password. This results in the store password file being opened and read into memory.
      *
+     * <p>If the keystore password file ends with a new line, the new line is automatically stripped from the password
+     * before it is returned. This ensures that a password file edited with a POSIX-compliant editor continues to
+     * function as it did before editing. Note that only the last, platform-dependent newline is stripped from the
+     * password; whitespace or multiple newlines at the end of the password file are left intact.
+     *
      * @param pathPrefix The path prefix where files will be opened relative to. This can be null or ""
      *                   in which case the current directory is assumed. This will not be applied
      *                   to any files that start with a file separator.
      * @return The keystore password as a char array
-     * @throws IOException IF the keystore password file can not be opened
+     * @throws IOException If the keystore password file cannot be opened
      */
     @JsonIgnore
     public char[] getKeyStorePassword(final String pathPrefix) throws IOException {
-        String fileName = prefix(pathPrefix, getKeyStorePasswordFile());
-        return new String(Files.readAllBytes(Paths.get(fileName)), UTF_8).toCharArray();
+        final String fileName         = prefix(pathPrefix, getKeyStorePasswordFile()),
+                     fileContents     = new String(Files.readAllBytes(Paths.get(fileName)), UTF_8),
+                     newLine          = System.lineSeparator(),
+                     trimmedContents;
+
+        if (fileContents.endsWith(newLine)) {
+            final int   fileLength      = fileContents.length(),
+                        newlineLength   = newLine.length(),
+                        passwordLength  = fileLength - newlineLength;
+
+            trimmedContents = fileContents.substring(0, passwordLength);
+        } else {
+            trimmedContents = fileContents;
+        }
+
+        return trimmedContents.toCharArray();
     }
 
     /**
