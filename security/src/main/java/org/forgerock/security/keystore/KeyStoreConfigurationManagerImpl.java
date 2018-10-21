@@ -47,7 +47,7 @@ import java.util.Map;
  *         "providerName": "OpenDJ",
  *         "providerArg": "src/test/resources/keystore.conf",
  *         "keyStoreType": "LDAP",
- *         "providerClass": "org.forgerock.opendj.security.OpenDjSecurityProvider",
+ *         "providerClass": "org.forgerock.opendj.security.OpenDJProvider",
  *         "keyStorePasswordFile": "dj_storepass",
  *         "keyPasswordFile": "dj_storepass"
  *     }

@@ -28,7 +28,7 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
-import org.forgerock.opendj.security.OpenDjSecurityProvider;
+import org.forgerock.opendj.security.OpenDJProvider;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -41,7 +41,7 @@ import javax.security.auth.DestroyFailedException;
  */
 public class KeyStoreConfigurationManagerTest {
     // for testing dynamic class loading
-    static final String OPENDJ_CLASSNAME = OpenDjSecurityProvider.class.getName();
+    static final String OPENDJ_CLASSNAME = OpenDJProvider.class.getName();
 
     @DataProvider
     private Object[][] defaultConfig() {
