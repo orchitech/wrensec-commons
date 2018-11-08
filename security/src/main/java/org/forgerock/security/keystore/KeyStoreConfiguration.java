@@ -47,6 +47,11 @@ public class KeyStoreConfiguration {
     private String providerName;
     private Map<String, Object> parameters;
 
+    private static final String[] NEWLINE_TYPES = {
+        "\r\n",
+        "\n",
+    };
+
     // Private no arg constructor is provided for Jackson
     private KeyStoreConfiguration() {
     }
@@ -162,34 +167,38 @@ public class KeyStoreConfiguration {
     }
 
     /**
-     * Get the keystore password. This results in the store password file being opened and read into memory.
+     * Get the keystore password. This results in the store password file being opened and read into
+     * memory.
      *
-     * <p>If the keystore password file ends with a new line, the new line is automatically stripped from the password
-     * before it is returned. This ensures that a password file edited with a POSIX-compliant editor continues to
-     * function as it did before editing. Note that only the last, platform-dependent newline is stripped from the
-     * password; whitespace or multiple newlines at the end of the password file are left intact.
+     * <p>If the keystore password file ends with a new line, the new line is automatically stripped
+     * from the password before it is returned. This ensures that a password file edited with a
+     * POSIX-compliant editor continues to function as it did before editing. Note that only the
+     * last, platform-dependent newline is stripped from the password; whitespace or multiple
+     * newlines at the end of the password file are left intact.
      *
-     * @param pathPrefix The path prefix where files will be opened relative to. This can be null or ""
-     *                   in which case the current directory is assumed. This will not be applied
-     *                   to any files that start with a file separator.
+     * @param pathPrefix
+     *   The path prefix where files will be opened relative to. This can be null or "" in which
+     *   case the current directory is assumed. This will not be applied to any files that start
+     *   with a file separator.
+     *
      * @return The keystore password as a char array
-     * @throws IOException If the keystore password file cannot be opened
+     *
+     * @throws IOException
+     *   If the keystore password file cannot be opened
      */
     @JsonIgnore
     public char[] getKeyStorePassword(final String pathPrefix) throws IOException {
-        final String fileName         = prefix(pathPrefix, getKeyStorePasswordFile()),
-                     fileContents     = new String(Files.readAllBytes(Paths.get(fileName)), UTF_8),
-                     newLine          = System.lineSeparator(),
-                     trimmedContents;
+        final String fileName        = prefix(pathPrefix, getKeyStorePasswordFile()),
+                     fileContents    = new String(Files.readAllBytes(Paths.get(fileName)), UTF_8);
+        String       trimmedContents = fileContents;
 
-        if (fileContents.endsWith(newLine)) {
-            final int   fileLength      = fileContents.length(),
-                        newlineLength   = newLine.length(),
-                        passwordLength  = fileLength - newlineLength;
+        for (String newLine : NEWLINE_TYPES) {
+            trimmedContents = trimFromEnd(trimmedContents, newLine);
 
-            trimmedContents = fileContents.substring(0, passwordLength);
-        } else {
-            trimmedContents = fileContents;
+            if (!trimmedContents.equals(fileContents)) {
+                // Only replace a single newline
+                break;
+            }
         }
 
         return trimmedContents.toCharArray();
@@ -211,7 +220,6 @@ public class KeyStoreConfiguration {
         String fileName = prefix(pathPrefix, getKeyPasswordFile());
         return new String(Files.readAllBytes(Paths.get(fileName)), UTF_8).toCharArray();
     }
-
 
     /**
      * Initialize and load the keystore described by this configuration
@@ -288,5 +296,36 @@ public class KeyStoreConfiguration {
             return file;
         }
         return pathPrefix + (pathPrefix.endsWith(File.separator) ? "" : File.separator) + file;
+    }
+
+    /**
+     * Trims the specified pattern from the end of the provided value.
+     *
+     * <p>If the provided value does not end with the specified pattern, the value is returned
+     * as-is.
+     *
+     * @param value
+     *   The value that needs trimming.
+     * @param pattern
+     *   The pattern to remove from the end of the value, if it exists.
+     *
+     * @return
+     *   The trimmed string (if the pattern was present); or the original string (if the pattern was
+     *   not present).
+     */
+    private static String trimFromEnd(final String value, final String pattern) {
+        final String trimmedValue;
+
+        if (value.endsWith(pattern)) {
+            final int   valueLength   = value.length(),
+                        patternLength = pattern.length(),
+                        trimmedLength = valueLength - patternLength;
+
+            trimmedValue = value.substring(0, trimmedLength);
+        } else {
+            trimmedValue = value;
+        }
+
+        return trimmedValue;
     }
 }
