@@ -11,35 +11,46 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.forgerock.json.resource.http;
 
-import static org.forgerock.json.JsonValue.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
+import static org.forgerock.json.resource.Requests.newCreateRequest;
 import static org.forgerock.json.resource.ResourceException.newResourceException;
 import static org.forgerock.json.resource.Responses.newQueryResponse;
 import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.util.promise.Promises.newExceptionPromise;
 import static org.forgerock.util.promise.Promises.newResultPromise;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 
-import org.forgerock.services.context.Context;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
+import org.forgerock.http.protocol.Status;
+import org.forgerock.http.routing.UriRouterContext;
 import org.forgerock.json.resource.Connection;
+import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.Requests;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
+import org.forgerock.services.context.Context;
+import org.forgerock.services.context.RootContext;
+import org.forgerock.util.i18n.LocalizableString;
 import org.forgerock.util.promise.Promise;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -87,6 +98,21 @@ public class RequestRunnerTest {
     }
 
     @Test
+    public void testIdAndRevisionInPayload()
+            throws Exception {
+        Response response = getAnonymousQueryResourceHandler(QUERY_RESULT,
+                newResourceResponse("id", "rev",
+                        json(object(
+                                field("_id", "id"),
+                                field("_rev", "rev"),
+                                field("aField", new LocalizableString("val"))))));
+        assertEquals(getResponseContent(response), "{" + "\"result\":["
+                + "{\"_id\":\"id\",\"_rev\":\"rev\",\"aField\":\"val\"}],"
+                + "\"resultCount\":1,\"pagedResultsCookie\":null,\"totalPagedResultsPolicy\":\"NONE\","
+                + "\"totalPagedResults\":-1,\"remainingPagedResults\":-1}");
+    }
+
+    @Test
     public void testHandleErrorAnonymousQueryResourceHandlerInVisitQueryAsync() throws Exception {
         Response response = getAnonymousQueryResourceHandler(RESOURCE_EXCEPTION);
         assertEquals(getResponseContent(response), "{\"code\":404,\"reason\":\"Not Found\",\"message\":\"Not Found\"}");
@@ -101,6 +127,72 @@ public class RequestRunnerTest {
         assertEquals(getResponseContent(response), "{\"code\":404,\"reason\":\"Not Found\",\"message\":\"Not Found\"}");
     }
 
+    @Test
+    public void testLocationIsCorrectWhenCreatingResourceWithUserProvidedResourceId() throws Exception {
+        // given
+        UriRouterContext context = uriRouterContext(new RootContext()).matchedUri("/openidm")
+                .remainingUri("/managed/user/bjensen").build();
+        CreateRequest create = newCreateRequest("managed/user", json(object())).setNewResourceId("bjensen");
+        Request request = new Request().setUri("http://localhost:8080/openidm/managed/user/bjensen");
+        RequestRunner runner = new RequestRunner(context, create, request, new Response(Status.CREATED));
+
+        Promise<ResourceResponse, ResourceException> result =
+                newResultPromise(newResourceResponse("bjensen", null, json(object())));
+        Connection connection = mock(Connection.class);
+        when(connection.createAsync(context, create)).thenReturn(result);
+
+        // when
+        Response response = runner.handleResult(connection).getOrThrow();
+
+        // then
+        assertThat(response.getHeaders().getFirst("Location"))
+                .isEqualTo("http://localhost:8080/openidm/managed/user/bjensen");
+    }
+
+    @Test
+    public void testLocationIsCorrectWhenCreatingResourceWithUserProvidedResourceId2() throws Exception {
+        // given
+        UriRouterContext context = uriRouterContext(new RootContext()).matchedUri("/openig")
+                .remainingUri("/router/routes/wordpress").build();
+        context = uriRouterContext(context).matchedUri("router").remainingUri("/routes/wordpress").build();
+        context = uriRouterContext(context).matchedUri("routes").remainingUri("/wordpress").build();
+        CreateRequest create = newCreateRequest("", json(object())).setNewResourceId("wordpress");
+        Request request = new Request().setUri("http://localhost:8080/openig/router/routes/wordpress");
+        RequestRunner runner = new RequestRunner(context, create, request, new Response(Status.CREATED));
+
+        Promise<ResourceResponse, ResourceException> result =
+                newResultPromise(newResourceResponse("wordpress", null, json(object())));
+        Connection connection = mock(Connection.class);
+        when(connection.createAsync(context, create)).thenReturn(result);
+
+        // when
+        Response response = runner.handleResult(connection).getOrThrow();
+
+        // then
+        assertThat(response.getHeaders().getFirst("Location"))
+                .isEqualTo("http://localhost:8080/openig/router/routes/wordpress");
+    }
+
+    @Test
+    public void testLocationIsCorrectWhenCreatingResourceWithoutUserProvidedResourceId() throws Exception {
+        // given
+        UriRouterContext context = uriRouterContext(new RootContext()).matchedUri("users").remainingUri("").build();
+        CreateRequest create = newCreateRequest("", json(object()));
+        Request request = new Request().setUri("http://localhost/users");
+        RequestRunner runner = new RequestRunner(context, create, request, new Response(Status.CREATED));
+
+        Promise<ResourceResponse, ResourceException> result =
+                newResultPromise(newResourceResponse("bjensen", null, json(object())));
+        Connection connection = mock(Connection.class);
+        when(connection.createAsync(context, create)).thenReturn(result);
+
+        // when
+        Response response = runner.handleResult(connection).getOrThrow();
+
+        // then
+        assertThat(response.getHeaders().getFirst("Location")).isEqualTo("http://localhost/users/bjensen");
+    }
+
     private String getResponseContent(Response response) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         response.getEntity().copyDecodedContentTo(outputStream);
@@ -112,7 +204,7 @@ public class RequestRunnerTest {
         // mock everything
         Context context = mock(Context.class);
         QueryRequest request = Requests.newQueryRequest("");
-        Response httpResponse = new Response();
+        Response httpResponse = new Response(Status.OK);
         org.forgerock.http.protocol.Request httpRequest = newRequest();
         Connection connection = mock(Connection.class);
 

@@ -11,35 +11,45 @@
   ~ Header, with the fields enclosed by brackets [] replaced by your own identifying
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
-  ~ Copyright 2015 ForgeRock AS.
-  ~ Portions Copyright 2017 Wren Security.
-  -->
+  ~ Copyright 2015-2016 ForgeRock AS.
+  ~ Portions Copyright 2017-2018 Wren Security.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>commons-parent</artifactId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>forgerock-utilities</artifactId>
-    <name>Wren Security Commons Utility Classes - Parent</name>
-    <description>Miscellaneous utility classes used within Wren Security projects.</description>
     <packaging>pom</packaging>
+
+    <name>Wren Security Commons Utility Classes - Parent</name>
+    <description>
+      Miscellaneous utility classes used within Wren Security projects.
+    </description>
+
     <properties>
-        <clirrComparisonVersion>3.0.0</clirrComparisonVersion>
+        <clirrComparisonVersion>20.0.0</clirrComparisonVersion>
     </properties>
+
     <modules>
         <module>forgerock-util</module>
         <module>forgerock-test-utils</module>
     </modules>
+
     <build>
         <plugins>
             <plugin>
               <artifactId>maven-compiler-plugin</artifactId>
               <version>3.3</version>
+
               <configuration>
                 <compilerId>eclipse</compilerId>
               </configuration>
+
               <dependencies>
                 <dependency>
                   <groupId>org.codehaus.plexus</groupId>

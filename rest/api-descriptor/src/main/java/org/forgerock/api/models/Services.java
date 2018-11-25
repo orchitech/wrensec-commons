@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security
  */
 
 package org.forgerock.api.models;
@@ -122,10 +123,14 @@ public final class Services {
         @JsonAnySetter
         public Builder put(String name, Resource resource) {
             if (isEmpty(name) || containsWhitespace(name)) {
-                throw new IllegalArgumentException("name required and may not contain whitespace");
+                throw new IllegalArgumentException(
+                        "Resource name is required, must not be blank, and must not contain " +
+                        "whitespace; given: '" + name + "'");
             }
             if (services.containsKey(name) && !services.get(name).equals(resource)) {
-                throw new IllegalStateException("name not unique");
+                throw new IllegalStateException(
+                        "Resource name already exists but Resource objects are not equal; " +
+                        "given: '" + name + "'");
             }
 
             services.put(name, checkNotNull(resource));

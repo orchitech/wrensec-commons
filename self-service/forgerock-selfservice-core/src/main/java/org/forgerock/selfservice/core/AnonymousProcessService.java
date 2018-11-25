@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.core;
@@ -24,6 +24,7 @@ import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.selfservice.core.ServiceUtils.emptyJson;
 
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.AbstractRequestHandler;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
@@ -36,7 +37,7 @@ import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.selfservice.core.config.ProcessInstanceConfig;
 import org.forgerock.selfservice.core.config.StageConfig;
 import org.forgerock.selfservice.core.config.StageConfigException;
-import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandler;
+import org.forgerock.tokenhandler.TokenHandler;
 import org.forgerock.selfservice.core.snapshot.SnapshotTokenHandlerFactory;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Reject;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
 import java.util.List;
 
 /**
@@ -99,7 +101,7 @@ public final class AnonymousProcessService extends AbstractRequestHandler {
         stageConfigs = config.getStageConfigs();
         configVersion = config.hashCode();
 
-        SnapshotTokenHandler snapshotTokenHandler = tokenHandlerFactory.get(config.getSnapshotTokenConfig());
+        TokenHandler snapshotTokenHandler = tokenHandlerFactory.get(config.getSnapshotTokenConfig());
         snapshotAuthor = config.getStorageType().newSnapshotAuthor(snapshotTokenHandler, processStore);
     }
 
@@ -135,8 +137,11 @@ public final class AnonymousProcessService extends AbstractRequestHandler {
             logger.error("Internal error intercepted", iseE);
             return iseE;
         } catch (ResourceException rE) {
-            logger.warn("Resource exception intercepted", rE);
+            logger.debug("Resource exception intercepted", rE);
             return rE;
+        } catch (JsonValueException jvE) {
+            logger.debug("Invalid JSON input", jvE);
+            return new BadRequestException(jvE.getMessage(), jvE);
         } catch (Exception ex) {
             logger.error("Exception intercepted", ex);
             return new InternalServerErrorException("Exception intercepted", ex);

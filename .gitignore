@@ -1,3 +1,4 @@
+.DS_Store
 #--- Java ignores ---
 *.class
 
@@ -92,5 +93,8 @@ local.properties
 # TeXlipse plugin
 .texlipse
 
-# TestNG Eclipse plugin
-*/test-output
+# TestNG Eclipse plugin default output directory
+test-output/
+
+# NodeJS modules
+node_modules/

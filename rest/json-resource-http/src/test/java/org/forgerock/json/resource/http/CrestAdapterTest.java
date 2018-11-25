@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.json.resource.http;
@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
 import static org.forgerock.http.routing.Version.version;
 import static org.forgerock.json.JsonValue.array;
 import static org.forgerock.json.JsonValue.field;
@@ -496,10 +497,8 @@ public class CrestAdapterTest {
                     }
                 });
 
-        UriRouterContext context = new UriRouterContext(newContext(),
-                                                        "/users/bjensen",
-                                                        null,
-                                                        singletonMap("name", "bjensen"));
+        UriRouterContext context = uriRouterContext(newContext()).matchedUri("/users/bjensen")
+                .templateVariable("name", "bjensen").build();
         ResourceResponse response = handler.handleCreate(context, newCreateRequest("users/bjensen", json(object())))
                                            .getOrThrow();
 
@@ -801,7 +800,7 @@ public class CrestAdapterTest {
         reg.setAsyncSupported(true);
         reg.setLoadOnStartup(1);
 
-        HttpServer server = HttpServer.createSimpleServer(".", new PortRange(6000, 7000));
+        HttpServer server = HttpServer.createSimpleServer(".", "localhost", new PortRange(6000, 7000));
         try (HttpClientHandler httpClientHandler = new HttpClientHandler()) {
             webappContext.deploy(server);
             server.start();
@@ -812,7 +811,8 @@ public class CrestAdapterTest {
 
             // Read -------------
             ReadRequest readRequest = newReadRequest("users/bjensen");
-            ResourceResponse readResponse = handler.handleRead(new RootContext(), readRequest).getOrThrow();
+            Promise<ResourceResponse, ResourceException> promise = handler.handleRead(new RootContext(), readRequest);
+            ResourceResponse readResponse = promise.getOrThrow();
             assertThat(readResponse.getId()).isEqualTo("ae32f");
             assertThat(readResponse.getRevision()).isEqualTo("1");
             assertThat(readResponse.getContent()).isEqualTo(readRequest.toJsonValue());
@@ -910,6 +910,7 @@ public class CrestAdapterTest {
                 @Override
                 public Promise<ResourceResponse, ResourceException> handleRead(final Context context,
                                                                                final ReadRequest request) {
+                	
                     return newResourceResponse("ae32f", "1", request.toJsonValue()).asPromise();
                 }
 

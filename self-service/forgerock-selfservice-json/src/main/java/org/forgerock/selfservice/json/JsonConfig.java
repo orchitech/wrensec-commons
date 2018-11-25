@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.json;
 
@@ -44,6 +44,7 @@ import org.forgerock.selfservice.stages.user.EmailUsernameConfig;
 import org.forgerock.selfservice.stages.user.RetrieveUsernameConfig;
 import org.forgerock.selfservice.stages.user.UserDetailsConfig;
 import org.forgerock.selfservice.stages.user.UserQueryConfig;
+import org.forgerock.selfservice.stages.user.ValidateActiveAccountConfig;
 
 /**
  * Encapsulation of custom configuration for deserializing JSON to {@link ProcessInstanceConfig}.
@@ -61,6 +62,7 @@ final class JsonConfig {
         new NamedType(ResetStageConfig.class, ResetStageConfig.NAME),
         new NamedType(UserRegistrationConfig.class, UserRegistrationConfig.NAME),
         new NamedType(UserQueryConfig.class, UserQueryConfig.NAME),
+        new NamedType(ValidateActiveAccountConfig.class, ValidateActiveAccountConfig.NAME),
         new NamedType(VerifyEmailAccountConfig.class, VerifyEmailAccountConfig.NAME),
         new NamedType(UserDetailsConfig.class, UserDetailsConfig.NAME),
         new NamedType(SecurityAnswerDefinitionConfig.class, SecurityAnswerDefinitionConfig.NAME),

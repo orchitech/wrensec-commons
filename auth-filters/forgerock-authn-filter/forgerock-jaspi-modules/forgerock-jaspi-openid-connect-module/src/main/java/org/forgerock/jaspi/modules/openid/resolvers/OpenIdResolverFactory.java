@@ -11,13 +11,15 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014 ForgeRock AS.
+* Copyright 2014-2017 ForgeRock AS.
 */
 package org.forgerock.jaspi.modules.openid.resolvers;
 
 import java.net.URL;
 import java.security.PublicKey;
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
+import org.forgerock.json.jose.jwk.store.JwksStore;
+import org.forgerock.json.jose.jwk.store.JwksStoreService;
 
 /**
  * For producing OpenId Resolvers.
@@ -69,8 +71,8 @@ public class OpenIdResolverFactory {
     }
 
     /**
-     * Creates a public key resolver for the supplied issuer using
-     * keys supplied at the JWK Set URL.
+     * See {@link #createJWKResolver(String, URL)} ()}.
+     * @deprecated Replaced by {@link #createJWKResolver(String, URL)} ()}
      *
      * @param issuer The issuer's reference name
      * @param jwkUrl From which to read the JWK Set
@@ -79,9 +81,28 @@ public class OpenIdResolverFactory {
      * @return a configured and usable JWKOpenIdResolverImpl
      * @throws FailedToLoadJWKException If there were problems reading or configuring data from the URL
      */
+    @Deprecated
     public OpenIdResolver createJWKResolver(String issuer, URL jwkUrl, int readTimeout, int connTimeout)
             throws FailedToLoadJWKException {
-        return new JWKOpenIdResolverImpl(issuer, jwkUrl, readTimeout, connTimeout);
+        return createJWKResolver(issuer, jwkUrl);
+    }
+
+    /**
+     * Creates a public key resolver for the supplied issuer using
+     * keys supplied at the JWK Set URL.
+     *
+     * @param issuer The issuer's reference name
+     * @param jwkUrl From which to read the JWK Set
+     * @return a configured and usable JWKOpenIdResolverImpl
+     * @throws FailedToLoadJWKException If there were problems reading or configuring data from the URL
+     */
+    public OpenIdResolver createJWKResolver(String issuer, URL jwkUrl)
+            throws FailedToLoadJWKException {
+        JwksStore jwksStore = openIdConfigurationFactory.getJwksStoreService().configureJwksStore(
+                issuer,
+                JwksStoreService.JWKS_STORE_DEFAULT_CACHE_TIMEOUT_MS,
+                JwksStoreService.JWKS_STORE_DEFAULT_CACHE_MISS_CACHE_TIME_MS, jwkUrl);
+        return new JWKOpenIdResolverImpl(jwksStore);
     }
 
     /**

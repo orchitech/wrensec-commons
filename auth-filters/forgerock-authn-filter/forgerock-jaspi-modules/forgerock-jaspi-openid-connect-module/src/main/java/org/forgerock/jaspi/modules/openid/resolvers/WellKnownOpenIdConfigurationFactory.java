@@ -11,7 +11,7 @@
 * Header, with the fields enclosed by brackets [] replaced by your own identifying
 * information: "Portions copyright [year] [name of copyright owner]".
 *
-* Copyright 2014-2015 ForgeRock AS.
+* Copyright 2014-2017 ForgeRock AS.
 */
 
 package org.forgerock.jaspi.modules.openid.resolvers;
@@ -23,8 +23,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import org.forgerock.jaspi.modules.openid.exceptions.FailedToLoadJWKException;
-import org.forgerock.jaspi.modules.openid.helpers.SimpleHTTPClient;
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
+import org.forgerock.util.SimpleHTTPClient;
+import org.forgerock.json.jose.jwk.store.JwksStore;
+import org.forgerock.json.jose.jwk.store.JwksStoreService;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.jose.utils.Utils;
 
@@ -37,7 +39,9 @@ public class WellKnownOpenIdConfigurationFactory {
     private final static String ISSUER = "issuer";
     private final static String JWKS_URI = "jwks_uri";
 
+
     private final SimpleHTTPClient simpleHTTPClient;
+    private final JwksStoreService jwksStoreService;
 
     /**
      * Generates a factory that will use the given timeouts when attempting to
@@ -47,7 +51,7 @@ public class WellKnownOpenIdConfigurationFactory {
      * @param connTimeout set the connection timeout of HTTP operations in this factory
      */
     public WellKnownOpenIdConfigurationFactory(final int readTimeout, final int connTimeout) {
-        this.simpleHTTPClient = new SimpleHTTPClient(readTimeout, connTimeout);
+        this(new SimpleHTTPClient(readTimeout, connTimeout), new JwksStoreService(readTimeout, connTimeout));
     }
 
     /**
@@ -55,7 +59,17 @@ public class WellKnownOpenIdConfigurationFactory {
      * @param simpleHTTPClient A passed-in simple client implementation
      */
     WellKnownOpenIdConfigurationFactory(SimpleHTTPClient simpleHTTPClient) {
+        this(simpleHTTPClient, new JwksStoreService(simpleHTTPClient));
+    }
+
+    /**
+     * For tests.
+     * @param jwksStoreService a JwksStore service
+     * @param simpleHTTPClient A passed-in simple client implementation
+     */
+    WellKnownOpenIdConfigurationFactory(SimpleHTTPClient simpleHTTPClient, JwksStoreService jwksStoreService) {
         this.simpleHTTPClient = simpleHTTPClient;
+        this.jwksStoreService = jwksStoreService;
     }
 
     /**
@@ -100,7 +114,18 @@ public class WellKnownOpenIdConfigurationFactory {
             throw new FailedToLoadJWKException("Invalid URL supplied to generate JWKs", e);
         }
 
-        return new JWKOpenIdResolverImpl(issuer, jwkUrl, simpleHTTPClient);
+        JwksStore jwksStore = jwksStoreService.configureJwksStore(issuer,
+                JwksStoreService.JWKS_STORE_DEFAULT_CACHE_TIMEOUT_MS,
+                JwksStoreService.JWKS_STORE_DEFAULT_CACHE_MISS_CACHE_TIME_MS, jwkUrl);
+        return new JWKOpenIdResolverImpl(jwksStore);
     }
 
+    /**
+     * Get the JWKS store service.
+     *
+     * @return JWKS store service.
+     */
+    public JwksStoreService getJwksStoreService() {
+        return jwksStoreService;
+    }
 }

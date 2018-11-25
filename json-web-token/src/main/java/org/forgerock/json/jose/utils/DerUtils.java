@@ -11,13 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2016 ForgeRock AS.
- * Portions copyright 2017 Wren Security
+ * Copyright 2016-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.utils;
 
-import java.math.BigInteger;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
@@ -71,8 +69,17 @@ public final class DerUtils {
      */
     public static void writeInteger(final ByteBuffer buffer, final byte[] data) {
         buffer.put(INTEGER_TAG);
-        writeLength(buffer, data.length);
-        buffer.put(data);
+        // according to DER specification, the data cannot start with a leading 0
+        int startIndex = data.length - 1;
+        for (int index = 0; index < data.length; index++) {
+            if (data[index] != 0) {
+                startIndex = index;
+                break;
+            }
+        }
+        final int length = data.length - startIndex;
+        writeLength(buffer, length);
+        buffer.put(data, startIndex, length);
     }
 
     /**
@@ -102,31 +109,34 @@ public final class DerUtils {
 
     /**
      * Writes a length field to the output.
+     * If the length is 127 or less, the byte is the length.
+     * If the length is 128 or greater, the first byte is a combination of 0x80 to indicate the length is defined and
+     * the number of bytes to specify that length. See DER specification for more information.
      *
      * @param output the output buffer.
      * @param length the length to write.
      */
-    public static void writeLength(final ByteBuffer output, final int len) {
-        if (len < 128) {
-            output.put((byte) len);
-        } else if (len < (1 << 8)) {
-            output.put((byte) 0x081);
-            output.put((byte) len);
-        } else if (len < (1 << 16)) {
+    public static void writeLength(final ByteBuffer output, final int length) {
+        if ((length & 0x0000007F) == length) {
+            output.put((byte) length);
+        } else if ((length & 0x000000FF) == length) {
+            output.put((byte) 0x81);
+            output.put((byte) length);
+        } else if ((length & 0x0000FFFF) == length) {
             output.put((byte) 0x82);
-            output.put((byte) (len >> 8));
-            output.put((byte) len);
-        } else if (len < (1 << 24)) {
+            output.put((byte) (length >> 8));
+            output.put((byte) length);
+        } else if ((length & 0x00FFFFFF) == length) {
             output.put((byte) 0x83);
-            output.put((byte) (len >> 16));
-            output.put((byte) (len >> 8));
-            output.put((byte) len);
+            output.put((byte) (length >> 16));
+            output.put((byte) (length >> 8));
+            output.put((byte) length);
         } else {
             output.put((byte) 0x84);
-            output.put((byte) (len >> 24));
-            output.put((byte) (len >> 16));
-            output.put((byte) (len >> 8));
-            output.put((byte) len);
+            output.put((byte) (length >> 24));
+            output.put((byte) (length >> 16));
+            output.put((byte) (length >> 8));
+            output.put((byte) length);
         }
     }
 }

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.audit;
 
@@ -36,6 +36,7 @@ import org.forgerock.audit.events.EventTopicsMetaData;
 import org.forgerock.audit.events.handlers.AuditEventHandler;
 import org.forgerock.audit.filter.Filter;
 import org.forgerock.audit.filter.FilterChainBuilder;
+import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
@@ -55,7 +56,10 @@ import org.forgerock.json.resource.ServiceUnavailableException;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.generator.IdGenerator;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.RuntimeExceptionHandler;
+import org.forgerock.util.query.QueryFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +90,7 @@ import org.slf4j.LoggerFactory;
 final class AuditServiceImpl implements AuditService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuditServiceImpl.class);
+    private static final String PUBLISH_EXCEPTION_TEXT = "Failure in publishing audit event to {} : {}";
 
     /**
      * User-facing configuration.
@@ -139,7 +144,8 @@ final class AuditServiceImpl implements AuditService {
         this.auditEventHandlersByTopic = getAuditEventHandlersByTopic(auditEventHandlers, eventTopicsMetaData);
 
         String queryHandlerName = configuration.getHandlerForQueries();
-        if (queryHandlerName != null && this.auditEventHandlersByName.containsKey(queryHandlerName)) {
+        if (queryHandlerName != null && this.auditEventHandlersByName.containsKey(queryHandlerName)
+                && this.auditEventHandlersByName.get(queryHandlerName).isEnabled()) {
             queryHandler = this.auditEventHandlersByName.get(queryHandlerName);
         } else {
             queryHandler = new NullQueryHandler(config.getHandlerForQueries());
@@ -259,7 +265,7 @@ final class AuditServiceImpl implements AuditService {
      *         with an empty body.
      */
     private Promise<ResourceResponse, ResourceException> publishEventToHandlers(Context context, JsonValue event,
-            String topic, Collection<AuditEventHandler> auditEventHandlersForEvent) {
+            final String topic, Collection<AuditEventHandler> auditEventHandlersForEvent) {
         Promise<ResourceResponse, ResourceException> promise = newUnhandledEventResponse().asPromise();
         if (auditEventHandlersForEvent.isEmpty()) {
             // if the event is known but not registered with a handler, it's ok to ignore it
@@ -272,9 +278,21 @@ final class AuditServiceImpl implements AuditService {
         for (AuditEventHandler auditEventHandler : auditEventHandlersForEvent) {
             Promise<ResourceResponse, ResourceException> handlerResult;
             try {
-                handlerResult = auditEventHandler.publishEvent(context, topic, event);
+                handlerResult = auditEventHandler.publishEvent(context, topic, event)
+                        .thenOnException(new ExceptionHandler<ResourceException>() {
+                            @Override
+                            public void handleException(ResourceException exception) {
+                                logger.warn(PUBLISH_EXCEPTION_TEXT, topic, exception.getMessage());
+                            }
+                        })
+                        .thenOnRuntimeException(new RuntimeExceptionHandler() {
+                            @Override
+                            public void handleRuntimeException(RuntimeException exception) {
+                                logger.warn(PUBLISH_EXCEPTION_TEXT, topic, exception.getMessage());
+                            }
+                        });
             } catch (Exception ex) {
-                logger.warn(ex.getMessage());
+                logger.warn("Unable to publish event to {} : {}", topic, ex.getMessage());
                 handlerResult = adapt(ex).asPromise();
             }
             if (auditEventHandler == queryHandler) {
@@ -306,6 +324,15 @@ final class AuditServiceImpl implements AuditService {
         try {
             logger.debug("Audit query called for {}", request.getResourcePath());
             checkLifecycleStateIsRunning();
+
+            if (request.getQueryId() != null || request.getQueryExpression() != null) {
+                return new BadRequestException("QueryId and QueryExpression are not supported for audit").asPromise();
+            }
+
+            if (request.getQueryFilter() == null) {
+                request.setQueryFilter(QueryFilter.<JsonPointer>alwaysTrue());
+            }
+
             final String topic = establishTopic(request.getResourcePathObject(), true);
             return queryHandler.queryEvents(context, topic, request, handler);
         } catch (Exception e) {
@@ -460,7 +487,7 @@ final class AuditServiceImpl implements AuditService {
                 this.errorMessage = "No handler defined for queries.";
             } else {
                 this.errorMessage = "The handler defined for queries, '" + handlerForQueries
-                        + "', has not been registered to the audit service.";
+                        + "', has not been registered to the audit service, or it is disabled.";
             }
         }
 

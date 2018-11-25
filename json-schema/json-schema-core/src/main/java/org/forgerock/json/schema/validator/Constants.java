@@ -69,7 +69,6 @@ public final class Constants {
      * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#appendix-A">
      *     JSON schema draft 04 - any</a>
      */
-    @Deprecated
     public static final String TYPE_ANY = "any";
     /**
      * The {@code type} field name.
@@ -231,6 +230,22 @@ public final class Constants {
      *     JSON schema draft 04 - default</a>
      */
     public static final String DEFAULT = "default";
+    /**
+     * The {@code type} field name.
+     * @see <a href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.21">
+     *     JSON schema draft 03 - description</a>
+     * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.1">
+     *     JSON schema draft 04 - title and description</a>
+     */
+    public static final String TITLE = "title";
+    /**
+     * The {@code type} field name.
+     * @see <a href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.22">
+     *     JSON schema draft 03 - description</a>
+     * @see <a href="http://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.1">
+     *     JSON schema draft 04 - title and description</a>
+     */
+    public static final String DESCRIPTION = "description";
     /**
      * The {@code format} field name.
      * @see <a href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.23">JSON schema draft 03 - format</a>

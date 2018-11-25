@@ -10,6 +10,9 @@
     {
       "name" : "emailValidation",
       "emailServiceUrl": "/email",
+      "emailServiceParameters" : {
+        "someflag" : "true"
+      },
       "subjectTranslations": {
         "en": "Register new account",
         "fr": "Créer un nouveau compte"
@@ -30,7 +33,13 @@
       "identityIdField" : "userId",
       "identityEmailField" : "email",
       "identityUsernameField" : "username",
+      "identityAccountStatusField" : "accountStatus",
       "validQueryFields" : ["username", "email"]
+    },
+    {
+      "name" : "validateActiveAccount",
+      "accountStatusField" : "accountStatus",
+      "validStatusValue" : "active"
     },
     {
       "name" : "retrieveUsername"
@@ -38,6 +47,9 @@
     {
       "name" : "emailUsername",
       "emailServiceUrl": "/email",
+      "emailServiceParameters" : {
+        "someflag" : "true"
+      },
       "from": "info@admin.org",
       "mimeType": "text/html",
       "subjectTranslations": {

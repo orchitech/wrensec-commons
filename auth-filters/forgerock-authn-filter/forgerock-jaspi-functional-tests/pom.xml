@@ -13,7 +13,7 @@
   * information: "Portions copyright [year] [name of copyright owner]".
   *
   * Copyright 2014-2016 ForgeRock AS.
-  * Portions Copyright 2017 Wren Security.
+  * Portions Copyright 2017-2018 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-authn-filter</artifactId>
-        <version>21.0.0-SNAPSHOT</version>
+        <version>22.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>forgerock-jaspi-functional-tests</artifactId>
@@ -43,31 +43,39 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
+
                 <configuration>
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+
                 <configuration>
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+
                 <configuration>
                     <workingDirectory>target/</workingDirectory>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+
                 <configuration>
                     <includes>
                         <include>**/*.java</include>
                     </includes>
+
                     <systemPropertyVariables>
                         <HTTP_PORT>${servlet.http.port}</HTTP_PORT>
                         <HOSTNAME>${hostname}</HOSTNAME>
@@ -75,10 +83,12 @@
                         <ROOT_PATH>${project.build.directory}</ROOT_PATH>
                     </systemPropertyVariables>
                 </configuration>
+
                 <executions>
                     <execution>
                         <id>integration-test</id>
                         <phase>integration-test</phase>
+
                         <goals>
                             <goal>integration-test</goal>
                             <goal>verify</goal>
@@ -86,16 +96,20 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+
                 <executions>
                     <execution>
                         <id>reserve-ports</id>
                         <phase>initialize</phase>
+
                         <goals>
                             <goal>reserve-network-port</goal>
                         </goals>
+
                         <configuration>
                             <portNames>
                                 <portName>servlet.http.port</portName>
@@ -113,32 +127,44 @@
             <artifactId>forgerock-jaspi-runtime</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.http</groupId>
             <artifactId>chf-http-servlet</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.http</groupId>
             <artifactId>chf-http-core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource-http</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-guice-core</artifactId>
             <version>${forgerock.guice.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-guice-test</artifactId>
             <version>${forgerock.guice.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>RELEASE</version>
         </dependency>
     </dependencies>
 </project>

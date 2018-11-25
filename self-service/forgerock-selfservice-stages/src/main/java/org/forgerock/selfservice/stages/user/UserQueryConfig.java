@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.stages.user;
 
@@ -37,6 +37,7 @@ public final class UserQueryConfig implements StageConfig {
     private String identityIdField;
     private String identityEmailField;
     private String identityUsernameField;
+    private String identityAccountStatusField;
 
     /**
      * Gets the set of query fields to be used when looking up the user.
@@ -148,6 +149,28 @@ public final class UserQueryConfig implements StageConfig {
         return this;
     }
 
+    /**
+     * Gets the field name for the account status.
+     *
+     * @return the account status
+     */
+    public String getIdentityAccountStatusField() {
+        return identityAccountStatusField;
+    }
+
+    /**
+     * Sets the field name for the identity account status.
+     *
+     * @param identityAccountStatusField
+     *         the identity account status
+     *
+     * @return this config instance
+     */
+    public UserQueryConfig setIdentityAccountStatusField(String identityAccountStatusField) {
+        this.identityAccountStatusField = identityAccountStatusField;
+        return this;
+    }
+
     @Override
     public String getName() {
         return NAME;
@@ -175,14 +198,15 @@ public final class UserQueryConfig implements StageConfig {
                 && Objects.equals(identityServiceUrl, that.identityServiceUrl)
                 && Objects.equals(identityIdField, that.identityIdField)
                 && Objects.equals(identityEmailField, that.identityEmailField)
-                && Objects.equals(identityUsernameField, that.identityUsernameField);
+                && Objects.equals(identityUsernameField, that.identityUsernameField)
+                && Objects.equals(identityAccountStatusField, that.identityAccountStatusField);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getProgressStageClassName(),
                 validQueryFields, identityServiceUrl, identityIdField,
-                identityEmailField, identityUsernameField);
+                identityEmailField, identityUsernameField, identityAccountStatusField);
     }
 
 }

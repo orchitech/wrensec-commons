@@ -212,6 +212,53 @@
           "connectionFactoryName": "ConnectionFactory"
         }
       }
+    },
+    {
+      "class": "org.forgerock.audit.handlers.splunk.SplunkAuditEventHandler",
+      "config": {
+        "name": "splunk",
+        "enabled": false,
+        "topics": [
+          "access",
+          "activity",
+          "config",
+          "authentication"
+        ],
+        "authzToken": "00000000-0000-0000-0000-000000000000",
+        "buffering": {
+          "maxSize" : 10000,
+          "writeInterval" : "250 millis",
+          "maxBatchedEvents" : 500
+        },
+        "connection" : {
+          "useSSL" : false,
+          "host" : "localhost",
+          "port" : 8088
+        }
+      }
+    },
+    {
+      "class" : "org.forgerock.audit.handlers.json.JsonAuditEventHandler",
+      "config" : {
+        "name" : "json",
+        "enabled" : false,
+        "topics": [ "access", "activity", "config", "authentication" ],
+        "logDirectory" : "/tmp/audit",
+        "fileRotation" : {
+          "rotationFileSuffix" : "-yyyy.MM.dd-HH.mm.ss",
+          "rotationEnabled" : false,
+          "rotationInterval" : "5 seconds",
+          "maxFileSize" : 32768,
+          "rotationFilePrefix" : "prefix-"
+        },
+        "fileRetention" : {
+          "maxNumberOfHistoryFiles": 0
+        },
+        "buffering": {
+          "maxSize" : 100000,
+          "writeInterval" : "1 millis"
+        }
+      }
     }
   ]
 }

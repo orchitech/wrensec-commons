@@ -17,10 +17,13 @@ package org.forgerock.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.json.JsonValue.array;
+import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.JsonValueFunctions.charset;
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.file;
+import static org.forgerock.json.JsonValueFunctions.identity;
 import static org.forgerock.json.JsonValueFunctions.listOf;
 import static org.forgerock.json.JsonValueFunctions.pattern;
 import static org.forgerock.json.JsonValueFunctions.pointer;
@@ -168,7 +171,6 @@ public class JsonValueFunctionsTest {
     @Test
     public void shouldConvertToList() throws Exception {
         assertThat(listOf(integer).apply(json(array("1", null, "1")))).containsExactly(1, null, 1);
-        assertThat(listOf(integer).apply(json(JsonValue.set("1", null)))).containsExactly(1, null);
     }
 
     @Test
@@ -190,8 +192,7 @@ public class JsonValueFunctionsTest {
 
     @Test
     public void shouldConvertToSet() throws Exception {
-        assertThat(setOf(integer).apply(json(JsonValue.set("1", null)))).containsExactly(1, null);
-        assertThat(setOf(integer).apply(json(JsonValue.array("1", null, "1")))).containsExactly(1, null);
+        assertThat(setOf(integer).apply(json(array("1", null, "1")))).containsExactly(1, null);
     }
 
     @Test
@@ -202,11 +203,6 @@ public class JsonValueFunctionsTest {
     @Test
     public void shouldReturnNullIfJsonValueIsNotCollectionWhenConvertingToSet() throws Exception {
         assertThat(setOf(integer).apply(json(true))).isNull();
-    }
-
-    @Test(expectedExceptions = JsonValueException.class)
-    public void shouldReturnNullIfJsonValueStringNotValidWhenConvertingToSet() throws Exception {
-        setOf(integer).apply(json(JsonValue.set("foo")));
     }
 
     private Function<JsonValue, Integer, JsonValueException> integer =
@@ -227,4 +223,26 @@ public class JsonValueFunctionsTest {
             }
         };
 
+    @Test
+    public void shouldConvertToSetOfType() throws Exception {
+        assertThat(setOf(Integer.class).apply(json(array(1, null, 1)))).containsExactly(1, null);
+    }
+
+    @Test(expectedExceptions = JsonValueException.class)
+    public void shouldThrowJsonValueExceptionOnSetOfWrongType() throws Exception {
+        setOf(Integer.class).apply(json(array(1, null, "X")));
+    }
+
+    // --- Identity
+
+
+    @Test
+    public void shouldReturnACopyWhenCallingIdentity() throws Exception {
+        JsonValue orig = json(object(field("foo", "bar")));
+        JsonValue copy = orig.as(identity());
+
+        orig.remove("foo");
+
+        assertThat(copy.get("foo").asString()).isEqualTo("bar");
+    }
 }

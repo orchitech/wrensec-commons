@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.audit.handlers.csv;
 
@@ -149,12 +150,15 @@ public class SecureCsvWriterTest {
         final File actual = new File("target/test-classes/shouldGenerateHMACColumn-actual.txt");
         actual.delete();
         final String header = "FOO";
+        CsvAuditEventHandlerConfiguration config = createBasicSecureConfig();
+
+        // Ensure no periodically added signatures during the test.
+        this.avoidSignaturesDuringTest(config);
+
         try (SecureCsvWriter secureCsvWriter = new SecureCsvWriter(
-                actual, new String[]{header}, CsvPreference.EXCEL_PREFERENCE, createBasicSecureConfig(),
+                actual, new String[] { header }, CsvPreference.EXCEL_PREFERENCE, config,
                 keyStoreHandler, random)) {
             Map<String, String> values;
-
-//            secureCsvWriter.writeHeader(header);
 
             values = singletonMap(header, "bar");
             secureCsvWriter.writeEvent(values);
@@ -218,6 +222,22 @@ public class SecureCsvWriterTest {
         return configuration;
     }
 
+    /**
+     * Configure the CSV Audit Event Handler not to periodically add signatures during the test.
+     *
+     * <p>This configures the signature thread and retention check thread to run only after 5 mins,
+     * which is significantly longer than a single test should ever take.
+     *
+     * The retention check interval usually defaults to 5 secs, which can be too short on slower
+     * machines. The retention check interval is problematic because it forcibly writes out file
+     * signatures before rotating files. This is why it has to be increased along with the signature
+     * interval; increasing just the signature interval is not sufficient.
+     */
+    private void avoidSignaturesDuringTest(final CsvAuditEventHandlerConfiguration config) {
+        config.getSecurity().setSignatureInterval("5 minutes");
+        config.setRotationRetentionCheckInterval("5 minutes");
+    }
+
     @Test
     public void shouldRotateCsvAndKeyStoreFile() throws Exception {
         final Path logDirectory = Files.createTempDirectory("SecureCsvWriterTest");
@@ -226,10 +246,12 @@ public class SecureCsvWriterTest {
         final String header = "FOO";
         CsvAuditEventHandlerConfiguration config = new CsvAuditEventHandlerConfiguration();
         config.getSecurity().setEnabled(true);
-        config.getSecurity().setSignatureInterval("5 minutes"); // ensure no periodically added signatures during test
         config.getFileRotation().setRotationEnabled(true);
         config.getFileRotation().setRotationFileSuffix("-yyyy.MM.dd-HH.mm.ss.SSS");
         config.getFileRotation().setMaxFileSize(20);
+
+        // Ensure no periodically added signatures during the test.
+        this.avoidSignaturesDuringTest(config);
 
         try (SecureCsvWriter secureCsvWriter = new SecureCsvWriter(
                 actual, new String[]{header}, CsvPreference.EXCEL_PREFERENCE, config, keyStoreHandler, random)) {

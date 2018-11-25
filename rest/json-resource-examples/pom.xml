@@ -13,92 +13,115 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2014-2016 ForgeRock AS.
-  Portions Copyright 2017 Wren Security.
+  Portions Copyright 2017-2018 Wren Security.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.forgerock.commons</groupId>
     <artifactId>forgerock-rest</artifactId>
-    <version>21.0.0-SNAPSHOT</version>
+    <version>22.0.0-SNAPSHOT</version>
   </parent>
+
   <artifactId>json-resource-examples</artifactId>
-  <name>Wren Security Commons REST - JSON Resource Examples</name>
-  <description>Examples showing how to develop client applications and resource providers.</description>
   <packaging>war</packaging>
+
+  <name>Wren Security Commons REST - JSON Resource Examples</name>
+  <description>
+    Examples showing how to develop client applications and resource providers.
+  </description>
+
   <dependencies>
-      <dependency>
-          <groupId>org.forgerock.http</groupId>
-          <artifactId>chf-http-servlet</artifactId>
-      </dependency>
+    <dependency>
+      <groupId>org.forgerock.http</groupId>
+      <artifactId>chf-http-servlet</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-util</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource-http</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons.guava</groupId>
       <artifactId>forgerock-guava-base</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>openapi-war-overlay</artifactId>
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
+
     <dependency>
       <groupId>org.asciidoctor</groupId>
       <artifactId>asciidoctorj</artifactId>
       <version>1.5.4</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.http</groupId>
       <artifactId>http-descriptor-example</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+
         <configuration>
           <createDependencyReducedPom>false</createDependencyReducedPom>
         </configuration>
+
         <executions>
           <execution>
             <phase>package</phase>
+
             <goals>
               <goal>shade</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+
         <executions>
           <execution>
             <id>war</id>
             <phase>package</phase>
+
             <goals>
               <goal>war</goal>
             </goals>
+
             <configuration>
               <classifier>servlet</classifier>
+
               <overlays>
                 <overlay>
                   <groupId>org.forgerock.commons</groupId>
@@ -109,6 +132,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
@@ -116,21 +140,25 @@
       </plugin>
     </plugins>
   </build>
+
   <reporting>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+
         <configuration>
           <links>
             <link>http://commons.forgerock.org/forgerock-util/apidocs</link>
           </links>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jxr-plugin</artifactId>
         <version>2.2</version>
+        
         <reportSets>
           <reportSet>
             <reports>

@@ -65,6 +65,7 @@ import org.forgerock.api.models.VersionedPath;
 import org.forgerock.api.util.ReferenceResolver;
 import org.forgerock.api.util.ValidationUtil;
 import org.forgerock.http.routing.Version;
+import org.forgerock.http.util.Json;
 import org.forgerock.util.i18n.LocalizableString;
 import org.forgerock.util.i18n.PreferredLocales;
 
@@ -80,7 +81,8 @@ public final class ApiDocGenerator {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-            .enable(SerializationFeature.INDENT_OUTPUT);
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .registerModules(new Json.LocalizableStringModule(), new Json.JsonValueModule());
 
     private static final PreferredLocales PREFERRED_LOCALES = new PreferredLocales();
 
@@ -402,7 +404,7 @@ public final class ApiDocGenerator {
         final AsciiDoc resourceDoc = asciiDoc();
 
         final String descriptionFilename = outputDescriptionBlock(
-                resource.getDescription().toTranslatedString(PREFERRED_LOCALES), namespace);
+                toTranslatedString(resource.getDescription()), namespace);
         resourceDoc.include(descriptionFilename);
 
         outputOperation(CrestMethod.CREATE, resource, sectionLevel, parameters, namespace, resourceDoc);
@@ -739,7 +741,7 @@ public final class ApiDocGenerator {
         }
 
         final String descriptionFilename = outputDescriptionBlock(
-                query.getDescription().toTranslatedString(PREFERRED_LOCALES), namespace);
+                toTranslatedString(query.getDescription()), namespace);
         operationDoc.include(descriptionFilename);
 
         final List<String> headers = new ArrayList<>();
@@ -956,6 +958,12 @@ public final class ApiDocGenerator {
         table.tableEnd();
     }
 
+    /**
+     * Translates text, using preferred locales.
+     *
+     * @param localizableString Text to translate or {@code null}
+     * @return Translated text or {@code null}
+     */
     private String toTranslatedString(LocalizableString localizableString) {
         return localizableString == null
                         ? null
@@ -1041,14 +1049,14 @@ public final class ApiDocGenerator {
             for (final ApiError error : resolvedErrors) {
                 table.columnCell(String.valueOf(error.getCode()), MONO_CELL);
                 if (error.getSchema() == null) {
-                    table.columnCell(error.getDescription().toTranslatedString(PREFERRED_LOCALES));
+                    table.columnCell(toTranslatedString(error.getDescription()));
                 } else {
                     final Schema schema = error.getSchema().getReference() == null
                             ? error.getSchema()
                             : referenceResolver.getDefinition(error.getSchema().getReference());
 
                     final AsciiDoc blockDoc = asciiDoc()
-                            .rawParagraph(error.getDescription().toTranslatedString(PREFERRED_LOCALES))
+                            .rawParagraph(toTranslatedString(error.getDescription()))
                             .rawParagraph("This error may contain an underlying `cause` that conforms to the following "
                                     + "schema:")
                             .listingBlock(OBJECT_MAPPER.writeValueAsString(schema.getSchema().getObject()), "json");

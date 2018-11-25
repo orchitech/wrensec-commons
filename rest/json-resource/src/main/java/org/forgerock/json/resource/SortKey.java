@@ -16,6 +16,10 @@
 
 package org.forgerock.json.resource;
 
+import static org.forgerock.util.Reject.checkNotNull;
+
+import java.util.Arrays;
+
 import org.forgerock.json.JsonException;
 import org.forgerock.json.JsonPointer;
 
@@ -98,7 +102,7 @@ public final class SortKey {
     private final boolean isAscendingOrder;
 
     private SortKey(final JsonPointer field, final boolean isAscendingOrder) {
-        this.field = field;
+        this.field = checkNotNull(field, "SortKey field cannot be null");
         this.isAscendingOrder = isAscendingOrder;
     }
 
@@ -161,5 +165,17 @@ public final class SortKey {
         builder.append(isAscendingOrder ? '+' : '-');
         builder.append(field);
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof SortKey
+                && ((SortKey) obj).isAscendingOrder() == isAscendingOrder()
+                && ((SortKey) obj).getField().equals(getField());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(new Object[] { isAscendingOrder, field });
     }
 }

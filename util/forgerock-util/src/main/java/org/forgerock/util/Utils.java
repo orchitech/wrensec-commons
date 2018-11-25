@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.util;
 
@@ -214,6 +214,35 @@ public final class Utils {
         sb.append(joinAsString(" ", (Object[]) constants));
         throw new IllegalArgumentException(sb.toString());
     }
+
+    /**
+     * Check to see if the provided String is {@code null} or empty.
+     * @param value The value to check.
+     * @return {@code true} if the value is either {@code null} or is empty.
+     */
+    public static boolean isNullOrEmpty(String value) {
+        return value == null || value.isEmpty();
+    }
+
+    /**
+     * Check to see if a character sequence is null or blank.
+     *
+     * @param charSeq Sequence to test (String is also a CharSequence)
+     * @return true if the char sequence is null or blank.
+     */
+    public static boolean isBlank(CharSequence charSeq) {
+        if (charSeq == null) {
+            return true;
+        }
+        final int length = charSeq.length();
+        for (int i = 0; i < length; i++) {
+            if (!Character.isWhitespace(charSeq.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     private Utils() {
         // Prevent instantiation.

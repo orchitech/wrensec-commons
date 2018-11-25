@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security
  */
 
 package org.forgerock.api.models;
@@ -122,10 +123,14 @@ public final class Definitions {
         @JsonAnySetter
         public Builder put(String name, Schema schema) {
             if (isEmpty(name) || containsWhitespace(name)) {
-                throw new IllegalArgumentException("name required and may not contain whitespace");
+                throw new IllegalArgumentException(
+                    "Schema name is required, must not be blank, and must not contain " +
+                    "whitespace; given: '" + name + "'");
             }
             if (definitions.containsKey(name) && !definitions.get(name).equals(schema)) {
-                throw new IllegalStateException("name not unique");
+                throw new IllegalStateException(
+                    "Schema name already exists but Schema objects are not equal; " +
+                    "given: '" + name + "'");
             }
 
             definitions.put(name, checkNotNull(schema));

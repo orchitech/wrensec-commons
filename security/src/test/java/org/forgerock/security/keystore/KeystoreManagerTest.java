@@ -36,14 +36,14 @@ public class KeystoreManagerTest {
     @DataProvider
     private Object[][] fileBasedKeyStores() {
         return new Object[][] {
-                {KeyStoreType.JKS, "/keystore.jks"},
-                {KeyStoreType.JCEKS, "/keystore.jceks"},
-                {KeyStoreType.PKCS12, "/keystore.pfx"}
+                {"JKS", "/keystore.jks"},
+                {"JCEKS", "/keystore.jceks"},
+                {"PKCS12", "/keystore.pfx"}
         };
     }
 
     @Test(dataProvider = "fileBasedKeyStores")
-    public void shouldInitialize(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldInitialize(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given
         final KeyStore keyStore = loadKeyStore(keyStoreType, keyStoreFileName);
@@ -56,7 +56,7 @@ public class KeystoreManagerTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStores")
-    public void shouldGetPublicKey(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldGetPublicKey(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given
         final KeyStore keyStore = loadKeyStore(keyStoreType, keyStoreFileName);
@@ -70,7 +70,7 @@ public class KeystoreManagerTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStores")
-    public void shouldGetPrivateKey(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldGetPrivateKey(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given
         final KeyStore keyStore = loadKeyStore(keyStoreType, keyStoreFileName);
@@ -84,7 +84,7 @@ public class KeystoreManagerTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStores")
-    public void shouldGetCertificate(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldGetCertificate(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given
         final KeyStore keyStore = loadKeyStore(keyStoreType, keyStoreFileName);
@@ -98,7 +98,7 @@ public class KeystoreManagerTest {
     }
 
     @Test(dataProvider = "fileBasedKeyStores")
-    public void shouldGetX509Certificate(final KeyStoreType keyStoreType, final String keyStoreFileName)
+    public void shouldGetX509Certificate(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
         // given
         final KeyStore keyStore = loadKeyStore(keyStoreType, keyStoreFileName);
@@ -111,12 +111,14 @@ public class KeystoreManagerTest {
         assertThat(certificate).isNotNull();
     }
 
-    private KeyStore loadKeyStore(final KeyStoreType keyStoreType, final String keyStoreFileName)
+
+    private KeyStore loadKeyStore(final String keyStoreType, final String keyStoreFileName)
             throws Exception {
-        final KeyStore keyStore = KeyStore.getInstance(keyStoreType.name());
+        final KeyStore keyStore = KeyStore.getInstance(keyStoreType);
         try (final InputStream keyStoreFile = getClass().getResourceAsStream(keyStoreFileName)) {
             keyStore.load(keyStoreFile, KEY_STORE_PASSWORD.toCharArray());
         }
         return keyStore;
     }
+
 }

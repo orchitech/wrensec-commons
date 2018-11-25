@@ -126,7 +126,7 @@ final class InternalConnection extends AbstractAsynchronousConnection
             return ((Describable<ApiDescription, Request>) requestHandler)
                     .handleApiRequest(context, request);
         }
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Wrapped RequestHandler is not describable");
     }
 
     @Override

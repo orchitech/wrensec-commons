@@ -11,13 +11,15 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 
 package org.forgerock.selfservice.core.snapshot;
 
+import org.forgerock.tokenhandler.TokenHandler;
+
 /**
- * Factory for delivering up for snapshot token handlers.
+ * Factory for delivering snapshot token handlers.
  *
  * @since 0.1.0
  */
@@ -31,6 +33,6 @@ public interface SnapshotTokenHandlerFactory {
      *
      * @return snapshot token handler
      */
-    SnapshotTokenHandler get(SnapshotTokenConfig snapshotTokenConfig);
+    TokenHandler get(SnapshotTokenConfig snapshotTokenConfig);
 
 }

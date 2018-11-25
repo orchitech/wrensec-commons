@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2017 ForgeRock AS.
  */
 
 package org.forgerock.json.jose.jwt;
@@ -32,4 +32,11 @@ public interface Algorithm {
      * @return The name of the algorithm.
      */
     String getAlgorithm();
+
+    /**
+     * Gets the name of the algorithm as defined in the JWA standard.
+     *
+     * @return The name of the algorithm.
+     */
+    String getJwaAlgorithmName();
 }

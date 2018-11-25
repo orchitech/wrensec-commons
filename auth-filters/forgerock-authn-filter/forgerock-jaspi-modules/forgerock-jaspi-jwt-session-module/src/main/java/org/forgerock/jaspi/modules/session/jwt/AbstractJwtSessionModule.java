@@ -42,6 +42,7 @@ import javax.security.auth.message.callback.CallerPrincipalCallback;
 import org.forgerock.caf.authentication.api.AuthenticationException;
 import org.forgerock.caf.authentication.framework.AuthenticationFramework;
 import org.forgerock.json.jose.builders.JwtBuilderFactory;
+import org.forgerock.json.jose.exceptions.InvalidJwtException;
 import org.forgerock.json.jose.exceptions.JweDecryptionException;
 import org.forgerock.json.jose.jwe.EncryptionMethod;
 import org.forgerock.json.jose.jwe.JweAlgorithm;
@@ -269,6 +270,9 @@ abstract class AbstractJwtSessionModule<C extends JwtSessionCookie> {
             final Jwt jwt;
             try {
                 jwt = verifySessionJwt(jwtSessionCookie.getValue());
+            } catch (InvalidJwtException e) {
+                LOG.debug("Invalid Jwt content", e);
+                return null;
             } catch (JweDecryptionException e) {
                 LOG.debug("Failed to decrypt Jwt", e);
                 return null;
@@ -461,13 +465,13 @@ abstract class AbstractJwtSessionModule<C extends JwtSessionCookie> {
             jwtParameters.put(AuthenticationFramework.ATTRIBUTE_AUTH_CONTEXT, getContextMap(messageInfo));
         }
 
-        if (map.containsKey(SKIP_SESSION_PARAMETER_NAME) && ((Boolean) map.get(SKIP_SESSION_PARAMETER_NAME))) {
-            LOG.debug("Skipping creating session as jwtParameters contains, {}", SKIP_SESSION_PARAMETER_NAME);
+        if (isLogoutRequest(messageInfo)) {
+            deleteSessionJwtCookie(messageInfo);
             return AuthStatus.SEND_SUCCESS;
         }
 
-        if (isLogoutRequest(messageInfo)) {
-            deleteSessionJwtCookie(messageInfo);
+        if (map.containsKey(SKIP_SESSION_PARAMETER_NAME) && ((Boolean) map.get(SKIP_SESSION_PARAMETER_NAME))) {
+            LOG.debug("Skipping creating session as jwtParameters contains, {}", SKIP_SESSION_PARAMETER_NAME);
             return AuthStatus.SEND_SUCCESS;
         }
 

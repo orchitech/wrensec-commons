@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
- * Copyright 2011-2015 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.json;
@@ -66,7 +66,7 @@ public class JsonPointer implements Iterable<String> {
      *
      * @param tokens an array of string reference tokens.
      */
-    public JsonPointer(String[] tokens) {
+    public JsonPointer(String... tokens) {
         this.tokens = Arrays.copyOf(tokens, tokens.length);
     }
 
@@ -81,6 +81,37 @@ public class JsonPointer implements Iterable<String> {
             list.add(element);
         }
         tokens = list.toArray(tokens);
+    }
+
+    /**
+     * Constructs a JSON pointer, identifying the specified pointer value.
+     *
+     * @param pointer a string containing the JSON pointer of the value to identify.
+     * @return The new JSON pointer
+     * @throws JsonException if the pointer is malformed.
+     */
+    public static JsonPointer ptr(final String pointer) {
+        return new JsonPointer(pointer);
+    }
+
+    /**
+     * Constructs a JSON pointer from an array of reference tokens.
+     *
+     * @param tokens an array of string reference tokens.
+     * @return The new json pointer
+     */
+    public static JsonPointer ptr(final String... tokens) {
+        return new JsonPointer(tokens);
+    }
+
+    /**
+     * Constructs a JSON pointer from an iterable collection of reference tokens.
+     *
+     * @param iterable an iterable collection of reference tokens.
+     * @return The new json pointer
+     */
+    public static JsonPointer ptr(final Iterable<String> iterable) {
+        return new JsonPointer(iterable);
     }
 
     /**

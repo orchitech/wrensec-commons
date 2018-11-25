@@ -25,7 +25,7 @@ import org.forgerock.selfservice.core.snapshot.SnapshotTokenConfig;
 import java.util.Objects;
 
 /**
- * Configuration for the {@link JwtTokenHandler}.
+ * Configuration for a JwtTokenHandler.
  *
  * @since 0.2.0
  */

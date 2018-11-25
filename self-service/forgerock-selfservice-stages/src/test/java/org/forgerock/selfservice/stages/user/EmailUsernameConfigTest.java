@@ -41,6 +41,7 @@ public final class EmailUsernameConfigTest {
         EmailUsernameConfig emailUsernameConfig = (EmailUsernameConfig) config;
 
         assertThat(emailUsernameConfig.getEmailServiceUrl()).isEqualTo("/email");
+        assertThat(emailUsernameConfig.getEmailServiceParameters()).containsEntry("someflag", "true");
         assertThat(emailUsernameConfig.getFrom()).isEqualTo("info@admin.org");
         assertThat(emailUsernameConfig.getUsernameToken()).isEqualTo("%username%");
     }

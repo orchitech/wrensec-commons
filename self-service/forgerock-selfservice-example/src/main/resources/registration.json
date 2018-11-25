@@ -13,6 +13,10 @@
       "rightValue" : 4
     },
     {
+      "name" : "userDetails",
+      "identityEmailField" : "mail"
+    },
+    {
       "name" : "emailValidation",
       "emailServiceUrl": "/email",
       "from": "info@admin.org",
@@ -27,10 +31,6 @@
       },
       "verificationLinkToken": "%link%",
       "verificationLink": "http://localhost:9999/example/#register/",
-      "identityEmailField" : "mail"
-    },
-    {
-      "name" : "userDetails",
       "identityEmailField" : "mail"
     },
     {

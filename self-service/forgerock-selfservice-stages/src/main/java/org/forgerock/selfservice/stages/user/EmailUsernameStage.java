@@ -20,6 +20,8 @@ import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USERNAME_FIELD;
 import static org.forgerock.selfservice.stages.utils.LocaleUtils.getTranslationFromLocaleMap;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ActionRequest;
@@ -101,6 +103,10 @@ public final class EmailUsernameStage implements ProgressStage<EmailUsernameConf
                                             field("subject", subjectText),
                                             field("type", config.getMimeType()),
                                             field("body", bodyText))));
+
+            for (Map.Entry<String, String> parameter : config.getEmailServiceParameters().entrySet()) {
+                request.setAdditionalParameter(parameter.getKey(), parameter.getValue());
+            }
 
             connection.action(processContext.getRequestContext(), request);
         }

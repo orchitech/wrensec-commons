@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2017 ForgeRock AS.
  */
 package org.forgerock.selfservice.json;
 
@@ -25,15 +25,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.forgerock.guava.common.base.Function;
 import org.forgerock.guava.common.collect.FluentIterable;
+import org.forgerock.json.JsonValue;
 import org.forgerock.selfservice.core.StorageType;
 import org.forgerock.selfservice.core.config.ProcessInstanceConfig;
-import org.forgerock.json.JsonValue;
 import org.forgerock.selfservice.core.config.StageConfig;
 import org.testng.annotations.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Unit test for {@link JsonConfig}.
@@ -54,6 +54,7 @@ public final class JsonConfigTest {
         "termsAndConditions",
         "emailValidation",
         "userQuery",
+        "validateActiveAccount",
         "retrieveUsername",
         "emailUsername",
         "userDetails",
