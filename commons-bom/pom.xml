@@ -47,7 +47,7 @@
         <servlet-api.version>4.0.1</servlet-api.version>
         <slf4j.version>1.8.0-beta2</slf4j.version>
         <testng.version>7.0.0-beta1</testng.version>
-        <swagger.version>2.0.0-rc2</swagger.version>
+        <swagger.version>1.5.21</swagger.version>
         <apache-httpcore.version>4.4.5</apache-httpcore.version>
         <apache-httpclient.version>4.5.2</apache-httpclient.version>
         <apache-httpasyncclient.version>4.1.2</apache-httpasyncclient.version>
