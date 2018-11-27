@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.json.test.assertj;
@@ -521,7 +522,7 @@ public final class AssertJJsonValueAssert {
 
     /** Class for assertions on array {@link JsonValue}. */
     public static final class ArrayJsonValueAssert extends AbstractJsonValueAssert<ArrayJsonValueAssert> {
-        private AbstractListAssert<?, ? extends List<?>, Object> listAssert;
+        private AbstractListAssert<?, ? extends List<?>, Object, ?> listAssert;
 
         private ArrayJsonValueAssert(JsonValue value) {
             super(ArrayJsonValueAssert.class, value);
