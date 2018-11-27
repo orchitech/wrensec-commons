@@ -42,7 +42,7 @@
     </modules>
 
     <properties>
-        <javax.inject.version>1_2</javax.inject.version>
+        <javax.inject.version>1_3</javax.inject.version>
         <jackson-mapper-asl.version>1.9.2</jackson-mapper-asl.version>
     </properties>
 
