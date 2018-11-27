@@ -83,7 +83,20 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
-   </repositories>
+    </repositories>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <!-- TODO: Move into `wrensec-parent` -->
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>clirr-maven-plugin</artifactId>
+                    <version>${clirrPluginVersion}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <dependencyManagement>
         <dependencies>
