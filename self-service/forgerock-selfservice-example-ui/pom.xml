@@ -39,7 +39,7 @@
     <description>UI for Wren Security Self-Service Example</description>
 
     <properties>
-        <forgerock-ui.version>22.0.0-SNAPSHOT</forgerock-ui.version>
+        <forgerock-ui.version>22.0.0-M2</forgerock-ui.version>
     </properties>
 
     <build>
