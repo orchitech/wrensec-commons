@@ -12,15 +12,17 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.api.markdown;
+
+import org.forgerock.util.test.MavenResourceUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,14 +52,16 @@ public class MarkdownReader {
     }
 
     private List<String> readMarkdown() {
-        Path path = Paths.get(FILE_NAME);
-
         List<String> lines = null;
+
         try {
+            Path path = MavenResourceUtil.getPath(FILE_NAME);
+
             lines = Files.readAllLines(path, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+
         return lines;
     }
 

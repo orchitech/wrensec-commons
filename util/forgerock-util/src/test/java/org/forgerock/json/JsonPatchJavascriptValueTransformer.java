@@ -12,6 +12,7 @@
  * information: "Portions Copyrighted [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.json;
@@ -61,7 +62,7 @@ public class JsonPatchJavascriptValueTransformer implements JsonPatchValueTransf
         }
 
         try {
-            ScriptEngineManager factory = new ScriptEngineManager();
+            ScriptEngineManager factory = new ScriptEngineManager(null);
             ScriptEngine engine = factory.getEngineByName("JavaScript");
             String finalScript = "var content = " + content.toString() + "; " + script.getObject();
             return String.valueOf(engine.eval(finalScript));

@@ -12,16 +12,19 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.audit.handlers.csv;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.forgerock.audit.secure.JcaKeyStoreHandler;
 import org.forgerock.audit.secure.KeyStoreHandlerDecorator;
 import org.forgerock.audit.secure.KeyStoreSecureStorage;
+import org.forgerock.util.test.MavenResourceUtil;
 import org.supercsv.prefs.CsvPreference;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -29,28 +32,37 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class CsvSecureVerifierTest {
 
-    static final String TRUSTSTORE_FILENAME = "src/test/resources/keystore-verifier.jks";
+    static final String TRUSTSTORE_FILENAME =
+        MavenResourceUtil.getFileForPath("src/test/resources/keystore-verifier.jks").getPath();
+
     static final String TRUSTSTORE_PASSWORD = "password";
 
     @Test
     public void shouldVerifyValidFile() throws Exception {
-        File csvFile = new File("src/test/resources/shouldGeneratePeriodicallySignature-expected.txt");
+        File csvFile =
+            MavenResourceUtil.getFileForPath("src/test/resources/shouldGeneratePeriodicallySignature-expected.txt");
+
         KeyStoreHandlerDecorator keyStoreHandler = new KeyStoreHandlerDecorator(
                 new JcaKeyStoreHandler(CsvSecureConstants.KEYSTORE_TYPE, TRUSTSTORE_FILENAME, TRUSTSTORE_PASSWORD));
+
         CsvSecureVerifier csvVerifier = new CsvSecureVerifier(csvFile, CsvPreference.EXCEL_PREFERENCE,
                 new KeyStoreSecureStorage(keyStoreHandler,
                         keyStoreHandler.readPublicKeyFromKeyStore(KeyStoreSecureStorage.ENTRY_SIGNATURE)));
+
         assertThat(csvVerifier.verify().hasPassedVerification()).isTrue();
     }
 
     @Test(dataProvider = "invalidContent")
     public void shouldNotVerify(String filename) throws Exception {
-        File csvFile = new File(filename);
+        File csvFile = MavenResourceUtil.getFileForPath(filename);
+
         KeyStoreHandlerDecorator keyStoreHandler = new KeyStoreHandlerDecorator(
                 new JcaKeyStoreHandler(CsvSecureConstants.KEYSTORE_TYPE, TRUSTSTORE_FILENAME, TRUSTSTORE_PASSWORD));
+
         CsvSecureVerifier csvVerifier = new CsvSecureVerifier(csvFile, CsvPreference.EXCEL_PREFERENCE,
                 new KeyStoreSecureStorage(keyStoreHandler,
                         keyStoreHandler.readPublicKeyFromKeyStore(KeyStoreSecureStorage.ENTRY_SIGNATURE)));
+
         assertThat(csvVerifier.verify().hasPassedVerification()).isFalse();
     }
 
