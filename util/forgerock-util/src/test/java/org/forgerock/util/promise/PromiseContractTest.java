@@ -136,24 +136,22 @@ public class PromiseContractTest {
     public void shouldReturnNewPromiseUsingThenWithFunction(Promise<?, Exception> rootPromise) throws Exception {
         Promise<?, Exception> leafPromise;
 
-        leafPromise = rootPromise.then((Function)mock(Function.class));
+        leafPromise = rootPromise.then(mock(Function.class));
         assertThat(leafPromise).isNotSameAs(rootPromise);
 
-        leafPromise = rootPromise.then((Function)mock(Function.class), (Function)mock(Function.class));
+        leafPromise = rootPromise.then(mock(Function.class), mock(Function.class));
         assertThat(leafPromise).isNotSameAs(rootPromise);
 
-        leafPromise = rootPromise.thenAsync((AsyncFunction)mock(AsyncFunction.class));
+        leafPromise = rootPromise.thenAsync(mock(AsyncFunction.class));
         assertThat(leafPromise).isNotSameAs(rootPromise);
 
-        leafPromise =
-            rootPromise.thenAsync(
-                (AsyncFunction)mock(AsyncFunction.class), (AsyncFunction)mock(AsyncFunction.class));
+        leafPromise = rootPromise.thenAsync(mock(AsyncFunction.class), mock(AsyncFunction.class));
         assertThat(leafPromise).isNotSameAs(rootPromise);
 
-        leafPromise = rootPromise.thenCatch((Function)mock(Function.class));
+        leafPromise = rootPromise.thenCatch(mock(Function.class));
         assertThat(leafPromise).isNotSameAs(rootPromise);
 
-        leafPromise = rootPromise.thenCatchAsync((AsyncFunction)mock(AsyncFunction.class));
+        leafPromise = rootPromise.thenCatchAsync(mock(AsyncFunction.class));
         assertThat(leafPromise).isNotSameAs(rootPromise);
 
         leafPromise = rootPromise.thenCatchRuntimeException(mock(Function.class));
