@@ -83,23 +83,6 @@ public class SetCookieHeaderTest {
     }
 
     @Test
-    public void shouldThrowIllegalArgumentWithNegativeMaxAge() {
-        //Given
-        Cookie cookie = new Cookie()
-            .setName("NAME")
-            .setValue("VALUE");
-
-        try {
-            cookie.setMaxAge(-1);
-
-            fail("Expected IllegalArgumentException, but nothing was thrown.");
-        } catch (IllegalArgumentException ex) {
-            assertThat(ex.getMessage()).isEqualTo("maxAge cannot be negative");
-            // Expected exception
-        }
-    }
-
-    @Test
     public void shouldCreateSetCookieHeaderWithZeroMaxAge() {
 
         //Given

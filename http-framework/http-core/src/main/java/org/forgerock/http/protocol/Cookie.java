@@ -343,19 +343,10 @@ public class Cookie {
      * Sets the lifetime of the cookie, expressed in seconds.
      *
      * @param maxAge
-     *            The lifetime of the cookie, expressed in seconds. Can be zero
-     *            for a cookie that should expire at the end of the browser
-     *            session.
+     *            The lifetime of the cookie, expressed in seconds.
      * @return This cookie.
-     * @throws IllegalArgumentException
-     *         If given a negative number.
      */
-    public Cookie setMaxAge(final Integer maxAge)
-    throws IllegalArgumentException {
-        if (maxAge < 0) {
-            throw new IllegalArgumentException("maxAge cannot be negative");
-        }
-
+    public Cookie setMaxAge(final Integer maxAge) {
         this.maxAge = maxAge;
         return this;
     }
