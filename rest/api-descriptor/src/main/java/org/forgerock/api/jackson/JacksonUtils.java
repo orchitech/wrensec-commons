@@ -12,36 +12,69 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.api.jackson;
 
-import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.JsonValue.json;
 
 import java.io.IOException;
 import java.util.Set;
 
 import javax.validation.ValidationException;
 
+import org.forgerock.http.util.Json;
+import org.forgerock.util.i18n.LocalizableString;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import io.swagger.util.ReferenceSerializationConfigurer;
+
 /**
- * Some utilities for dealing with Jackson schemas.
+ * Some utilities for working with Jackson, JSON object mapping, and JSON schema.
  */
 public final class JacksonUtils {
+    /**
+     * A public static {@code ObjectMapper} instance, so that they do not have to be instantiated
+     * all over the place, as they are expensive to construct.
+     */
+    public static final ObjectMapper OBJECT_MAPPER = io.swagger.util.Json.mapper();
 
     /**
-     * A public static {@code ObjectMapper} instance, so that they do not have to be instantiated all over the place,
-     * as they are expensive to construct. Note that the {@code SerializationFeature.WRITE_DATES_AS_TIMESTAMPS}
-     * option is <em>disabled</em>, so that dates will be in JSON Schema v4 format (e.g., "type":"string",
-     * "format":"date-time").
+     * Create a Jackson JSON object mapper that is best-suited for general-purpose use by
+     * documentation and tests.
+     *
+     * <p>The new mapper is configured separately from the mapper used by {@link #OBJECT_MAPPER};
+     * it does not include any of the normal customizations for Swagger except for elimination of
+     * the {@code originalRef} property. This ensures that the JSON output is a reliable
+     * representation of each object, without any of the tweaks that are normally needed for
+     * Swagger output.
+     *
+     * <p>Unlike a vanilla {@link ObjectMapper}, the mapper returned by this method is configured to
+     * be able to serialize {@link LocalizableString} instances.
+     *
+     * @return
+     *  A Jackson {@code ObjectMapper} that can generically handle most POJOs and localize-able
+     *  strings.
      */
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    public static ObjectMapper createGenericMapper() {
+        final ObjectMapper mapper =
+            new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .registerModules(new Json.LocalizableStringModule(), new Json.JsonValueModule());
+
+        ReferenceSerializationConfigurer.serializeAsComputedRef(mapper);
+
+        return mapper;
+    }
 
     /**
      * Validate that the provided JSON conforms to the schema.
