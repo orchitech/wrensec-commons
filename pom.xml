@@ -56,12 +56,10 @@
 
   <properties>
     <!-- Maven minimal version -->
+    <!-- This is enforced by wrensec-parent via the `enforce` profile, which is enabled unless -->
+    <!-- -Dskip-enforce=true -->
     <maven.min.version>3.0.1</maven.min.version>
   </properties>
-
-  <prerequisites>
-    <maven>${maven.min.version}</maven>
-  </prerequisites>
 
   <modules>
     <module>commons-bom</module>
