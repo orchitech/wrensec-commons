@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2017 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.audit;
@@ -28,7 +29,7 @@ import static org.forgerock.json.resource.Requests.newCreateRequest;
 import static org.forgerock.json.resource.Requests.newQueryRequest;
 import static org.forgerock.json.resource.Responses.newQueryResponse;
 import static org.forgerock.json.resource.Responses.newResourceResponse;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -109,7 +110,7 @@ public class AuditServiceImplTest {
 
         //then
         assertThat(auditService.isAuditing("access")).isTrue();
-        assertThat(promise)
+        assertThatPromise(promise)
                 .succeeded()
                 .withObject()
                 .isInstanceOf(ResourceResponse.class);
@@ -134,7 +135,7 @@ public class AuditServiceImplTest {
 
         //then
         assertThat(auditService.isAuditing(topic)).isFalse();
-        assertThat(promise)
+        assertThatPromise(promise)
                 .succeeded()
                 .withObject()
                 .isInstanceOf(ResourceResponse.class);
@@ -159,7 +160,7 @@ public class AuditServiceImplTest {
 
         //then
         assertThat(auditService.isAuditing("unknownTopic")).isFalse();
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(ResourceException.class);
     }
@@ -188,7 +189,7 @@ public class AuditServiceImplTest {
         //then
         verify(queryHandler, times(1)).publishEvent(any(Context.class), eq("access"), any(JsonValue.class));
         verify(otherHandler, times(1)).publishEvent(any(Context.class), eq("access"), any(JsonValue.class));
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(InternalServerErrorException.class);
     }
@@ -245,7 +246,7 @@ public class AuditServiceImplTest {
                 auditService.handleRead(new RootContext(), readRequest);
 
         //then
-        assertThat(promise).isSameAs(dummyResponse);
+        assertThatPromise(promise).isSameAs(dummyResponse);
         verifyZeroInteractions(otherAuditEventHandler);
     }
 
@@ -261,7 +262,7 @@ public class AuditServiceImplTest {
                         Requests.newDeleteRequest("_id"));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(NotSupportedException.class);
     }
@@ -279,7 +280,7 @@ public class AuditServiceImplTest {
                         Requests.newPatchRequest("_id"));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(NotSupportedException.class);
     }
@@ -297,7 +298,7 @@ public class AuditServiceImplTest {
                         Requests.newUpdateRequest("_id", new JsonValue(new HashMap<String, Object>())));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(NotSupportedException.class);
     }
@@ -315,7 +316,7 @@ public class AuditServiceImplTest {
                         Requests.newActionRequest("access", "unknownAction"));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(BadRequestException.class);
     }
@@ -343,7 +344,7 @@ public class AuditServiceImplTest {
         //then
         verify(eventHandler).queryEvents(
                 any(Context.class), any(String.class), any(QueryRequest.class), any(QueryResourceHandler.class));
-        assertThat(promise).isSameAs(queryResponsePromise);
+        assertThatPromise(promise).isSameAs(queryResponsePromise);
     }
 
     @Test
@@ -365,7 +366,7 @@ public class AuditServiceImplTest {
                 auditService.handleCreate(new RootContext(), createRequest);
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(BadRequestException.class);
     }
@@ -389,7 +390,7 @@ public class AuditServiceImplTest {
                 auditService.handleCreate(new RootContext(), createRequest);
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(BadRequestException.class);
     }
@@ -560,7 +561,7 @@ public class AuditServiceImplTest {
                 auditService.handleCreate(new RootContext(), createRequest);
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(ServiceUnavailableException.class)
                 .hasMessage("AuditService not running");
@@ -577,7 +578,7 @@ public class AuditServiceImplTest {
                 auditService.handleRead(new RootContext(), readRequest);
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(ServiceUnavailableException.class)
                 .hasMessage("AuditService not running");
@@ -595,7 +596,7 @@ public class AuditServiceImplTest {
                 mock(QueryResourceHandler.class));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(ServiceUnavailableException.class)
                 .hasMessage("AuditService not running");
@@ -655,7 +656,7 @@ public class AuditServiceImplTest {
 
         //then
         assertThat(auditService.isAuditing(topic)).isFalse();
-        assertThat(promise)
+        assertThatPromise(promise)
                 .succeeded()
                 .withObject()
                 .isInstanceOf(ResourceResponse.class);
@@ -690,7 +691,7 @@ public class AuditServiceImplTest {
 
         //then
         assertThat(auditService.isAuditing(topic)).isTrue();
-        assertThat(promise)
+        assertThatPromise(promise)
                 .succeeded()
                 .withObject()
                 .isInstanceOf(ResourceResponse.class);
@@ -722,7 +723,7 @@ public class AuditServiceImplTest {
                 auditService.handleRead(new RootContext(), readRequest);
 
         //then
-        assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
+        assertThatPromise(promise).failedWithException().isInstanceOf(BadRequestException.class);
         verifyZeroInteractions(otherAuditEventHandler);
     }
 
@@ -748,7 +749,7 @@ public class AuditServiceImplTest {
                 auditService.handleRead(new RootContext(), readRequest);
 
         //then
-        assertThat(promise).failedWithException().isInstanceOf(BadRequestException.class);
+        assertThatPromise(promise).failedWithException().isInstanceOf(BadRequestException.class);
         verifyZeroInteractions(otherAuditEventHandler);
     }
 
@@ -772,7 +773,7 @@ public class AuditServiceImplTest {
                 auditService.handleQuery(new RootContext(), queryRequest, mock(QueryResourceHandler.class));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(BadRequestException.class);
     }
@@ -797,7 +798,7 @@ public class AuditServiceImplTest {
                 auditService.handleQuery(new RootContext(), queryRequest, mock(QueryResourceHandler.class));
 
         //then
-        assertThat(promise)
+        assertThatPromise(promise)
                 .failedWithException()
                 .isInstanceOf(BadRequestException.class);
     }
@@ -827,7 +828,7 @@ public class AuditServiceImplTest {
         //then
         verify(eventHandler).queryEvents(
                 any(Context.class), any(String.class), any(QueryRequest.class), any(QueryResourceHandler.class));
-        assertThat(promise).isSameAs(queryResponsePromise);
+        assertThatPromise(promise).isSameAs(queryResponsePromise);
         assertThat(queryRequest.getQueryFilter()).isEqualTo(QueryFilter.alwaysTrue());
     }
 

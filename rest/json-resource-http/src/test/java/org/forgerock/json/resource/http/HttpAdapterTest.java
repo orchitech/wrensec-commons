@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.json.resource.http;
 
@@ -33,7 +34,7 @@ import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.services.context.ClientContext.newInternalClientContext;
 import static org.forgerock.util.promise.Promises.newResultPromise;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.times;
@@ -130,7 +131,7 @@ public class HttpAdapterTest {
         Promise<Response, NeverThrowsException> result = adapter.handle(context, request);
 
         // Then
-        assertThat(result).succeeded();
+        assertThatPromise(result).succeeded();
         Entity entity = result.get().getEntity();
         assertThat(JsonValue.json(entity.getJson())).isObject().stringAt("id").isEqualTo("test:descriptor");
         assertThat(entity.getString()).startsWith("{\"id\":\"test:descriptor\",\"version\":\"1.0\",");
@@ -148,7 +149,7 @@ public class HttpAdapterTest {
         Promise<Response, NeverThrowsException> result = adapter.handle(context, request);
 
         // Then
-        assertThat(result).succeeded();
+        assertThatPromise(result).succeeded();
         Entity entity = result.get().getEntity();
         assertThat(JsonValue.json(entity.getJson())).isObject().stringAt("id").isEqualTo("test:descriptor");
         assertThat(entity.getString()).startsWith("{\n  \"id\" : \"test:descriptor\",\n  \"version\" : \"1.0\",\n");

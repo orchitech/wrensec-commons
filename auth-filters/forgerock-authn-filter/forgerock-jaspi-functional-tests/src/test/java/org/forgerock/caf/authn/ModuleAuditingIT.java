@@ -12,17 +12,21 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.caf.authn;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.forgerock.caf.authn.AuthModuleParameters.moduleArray;
 import static org.forgerock.caf.authn.AuthModuleParameters.moduleParams;
-import static org.forgerock.caf.authn.TestFramework.*;
-import static org.forgerock.caf.authn.test.modules.SessionAuthModule.*;
+import static org.forgerock.caf.authn.TestFramework.getAuditRecords;
+import static org.forgerock.caf.authn.TestFramework.given;
+import static org.forgerock.caf.authn.test.modules.SessionAuthModule.SEND_FAILURE_AUTH_STATUS;
+import static org.forgerock.caf.authn.test.modules.SessionAuthModule.SEND_SUCCESS_AUTH_STATUS;
+import static org.forgerock.caf.authn.test.modules.SessionAuthModule.SUCCESS_AUTH_STATUS;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.testng.Assert.fail;
 
 import java.util.List;
@@ -163,7 +167,7 @@ public class ModuleAuditingIT extends HandlerHolder {
 
         Promise<Response, NeverThrowsException> result = handler.handle(new AttributesContext(new RootContext()),
                 request);
-        assertThat(result).succeeded();
+        assertThatPromise(result).succeeded();
         assertThat(result.get().getStatus().getCode()).isEqualTo(expectedResponseStatus);
 
         JsonValue auditRecords = getAuditRecords(handler);

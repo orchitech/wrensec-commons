@@ -12,15 +12,19 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.caf.authn;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.caf.authn.test.ProtectedResource.*;
-import static org.forgerock.json.JsonValue.*;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.forgerock.caf.authn.test.ProtectedResource.RESOURCE_CALLED_HEADER;
+import static org.forgerock.json.JsonValue.array;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
@@ -45,7 +49,7 @@ import org.forgerock.util.promise.Promise;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Test framework for running tests and verifing results against the JASPI runtime.
+ * Test framework for running tests and verifying results against the JASPI runtime.
  *
  * @since 1.5.0
  */
@@ -84,7 +88,7 @@ class TestFramework {
         request.getHeaders().add("If-Match", "*");
         Promise<Response, NeverThrowsException> result = handler.handle(new AttributesContext(new RootContext()),
                 request);
-        assertThat(result).succeeded();
+        assertThatPromise(result).succeeded();
         assertThat(result.get().getStatus()).isEqualTo(Status.OK);
     }
 
@@ -101,7 +105,7 @@ class TestFramework {
         request.getHeaders().add(ContentTypeHeader.valueOf("application/json; charset=UTF-8"));
         Promise<Response, NeverThrowsException> result = handler.handle(new AttributesContext(new RootContext()),
                 request);
-        assertThat(result).succeeded();
+        assertThatPromise(result).succeeded();
         assertThat(result.get().getStatus()).isEqualTo(Status.OK);
         return json(result.get().getEntity().getJson());
     }
@@ -176,7 +180,7 @@ class TestFramework {
 
         Promise<Response, NeverThrowsException> result = handler.handle(new AttributesContext(new RootContext()),
                 request);
-        assertThat(result).succeeded();
+        assertThatPromise(result).succeeded();
 
         Response response = result.get();
 

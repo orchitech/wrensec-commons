@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.audit.handlers.elasticsearch;
 
@@ -22,7 +23,7 @@ import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.util.promise.Promises.newResultPromise;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,8 +42,8 @@ import org.forgerock.audit.AuditServiceBuilder;
 import org.forgerock.audit.DependencyProviderBase;
 import org.forgerock.audit.events.EventTopicsMetaData;
 import org.forgerock.audit.events.handlers.AuditEventHandler;
-import org.forgerock.audit.events.handlers.buffering.BatchException;
 import org.forgerock.audit.events.handlers.buffering.BatchConsumer;
+import org.forgerock.audit.events.handlers.buffering.BatchException;
 import org.forgerock.audit.json.AuditJsonConfig;
 import org.forgerock.http.Client;
 import org.forgerock.http.Handler;
@@ -171,7 +172,9 @@ public class ElasticsearchAuditEventHandlerTest {
                 handler.queryEvents(mock(Context.class), "access", queryRequest, queryResourceHandler);
 
         // then
-        assertThat(result).failedWithException().isInstanceOf(InternalServerErrorException.class);
+        assertThatPromise(result)
+            .failedWithException()
+            .isInstanceOf(InternalServerErrorException.class);
     }
 
     @Test
@@ -214,7 +217,9 @@ public class ElasticsearchAuditEventHandlerTest {
                 handler.readEvent(context, "authentication", "fake-id-that-does-not-exist");
 
         // then
-        assertThat(responsePromise).failedWithException().isInstanceOf(NotFoundException.class);
+        assertThatPromise(responsePromise)
+            .failedWithException()
+            .isInstanceOf(NotFoundException.class);
     }
 
     @Test

@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.json.resource;
@@ -23,7 +24,7 @@ import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
 import static org.forgerock.http.routing.UriRouterContext.uriRouterContext;
 import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
 import static org.forgerock.json.resource.Router.uriTemplate;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -347,7 +348,8 @@ public class RouterTest {
         Promise<ResourceResponse, ResourceException> promise = router.handleCreate(context, request);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
@@ -370,7 +372,8 @@ public class RouterTest {
         Promise<ResourceResponse, ResourceException> promise = router.handleRead(context, request);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
@@ -393,7 +396,8 @@ public class RouterTest {
         Promise<ResourceResponse, ResourceException> promise = router.handleUpdate(context, request);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
@@ -416,7 +420,8 @@ public class RouterTest {
         Promise<ResourceResponse, ResourceException> promise = router.handleDelete(context, request);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
@@ -439,7 +444,8 @@ public class RouterTest {
         Promise<ResourceResponse, ResourceException> promise = router.handlePatch(context, request);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
@@ -462,7 +468,8 @@ public class RouterTest {
         Promise<ActionResponse, ResourceException> promise = router.handleAction(context, request);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
@@ -486,7 +493,8 @@ public class RouterTest {
         Promise<QueryResponse, ResourceException> promise = router.handleQuery(context, request, resultHandler);
 
         //Then
-        assertThat(promise).failedWithException();
+        assertThatPromise(promise).failedWithException();
+
         try {
             promise.getOrThrowUninterruptibly();
             failBecauseExceptionWasNotThrown(ResourceException.class);
