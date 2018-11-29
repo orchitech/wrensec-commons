@@ -51,6 +51,7 @@
         <apache-httpcore.version>4.4.5</apache-httpcore.version>
         <apache-httpclient.version>4.5.2</apache-httpclient.version>
         <apache-httpasyncclient.version>4.1.2</apache-httpasyncclient.version>
+        <jsr305.version>3.0.2</jsr305.version>
     </properties>
 
     <repositories>
@@ -235,6 +236,12 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-joda</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
             </dependency>
 
             <!-- ForgeRock Guava dependency -->

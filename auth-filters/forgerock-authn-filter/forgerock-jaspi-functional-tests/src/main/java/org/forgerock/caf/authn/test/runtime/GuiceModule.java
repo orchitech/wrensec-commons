@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.caf.authn.test.runtime;
@@ -22,27 +23,29 @@ import static org.forgerock.json.resource.Requests.newReadRequest;
 import static org.forgerock.json.resource.Resources.newInternalConnection;
 import static org.forgerock.json.resource.Resources.newSingleton;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.forgerock.caf.authentication.api.AsyncServerAuthModule;
 import org.forgerock.caf.authentication.api.AuthenticationException;
 import org.forgerock.caf.authentication.framework.AuditApi;
 import org.forgerock.caf.authentication.framework.AuthenticationFilter;
 import org.forgerock.caf.authn.test.configuration.ConfigurationResource;
-import org.forgerock.services.context.RootContext;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
+import org.forgerock.services.context.RootContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
 
 /**
  * Guice module for wiring the JASPI runtime.
@@ -67,7 +70,7 @@ public class GuiceModule extends AbstractModule {
 
     @Provides
     AuthenticationFilter getAuthenticationFilter(Logger logger, AuditApi auditApi,
-            @Named("SessionAuthModule") AsyncServerAuthModule sessionAuthModule,
+            @Nullable @Named("SessionAuthModule") AsyncServerAuthModule sessionAuthModule,
             @Named("AuthModules") List<AsyncServerAuthModule> authModules) throws AuthenticationException {
         List<AuthenticationModuleBuilder> authModuleBuilders = new ArrayList<>();
         for (AsyncServerAuthModule authModule : authModules) {
