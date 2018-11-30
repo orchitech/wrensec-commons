@@ -37,6 +37,8 @@
     <url>https://www.wrensecurity.org</url>
 
     <properties>
+        <pgpWhitelistArtifact>org.wrensecurity:wrensec-pgp-whitelist:1.4.0</pgpWhitelistArtifact>
+
         <!-- Third party components versions -->
         <i18nFrameworkVersion>1.4.3</i18nFrameworkVersion>
         <jodaTime.version>2.10.1</jodaTime.version>
