@@ -12,7 +12,8 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2016-2017 ForgeRock AS.
-  -->
+  ~ Portions Copyright 2018 Wren Security.
+-->
 <differences>
     <!--
     For specifying ignored differences, see:
@@ -54,5 +55,18 @@
         <className>org/forgerock/json/jose/jwt/Algorithm</className>
         <differenceType>7012</differenceType>
         <method>java.lang.String getJwaAlgorithmName()</method>
+    </difference>
+    <difference>
+        <className>org/forgerock/json/jose/builders/SignedEncryptedJwsHeaderBuilder</className>
+        <differenceType>7005</differenceType>
+        <method>SignedEncryptedJwsHeaderBuilder(org.forgerock.json.jose.builders.SignedEncryptedJwtBuilder)</method>
+        <to>SignedEncryptedJwsHeaderBuilder(org.forgerock.json.jose.builders.EncryptedThenSignedJwtBuilder)</to>
+        <justification>COMMONS-99 Re-factored and deprecated this class</justification>
+    </difference>
+    <difference>
+        <className>org/forgerock/json/jose/builders/SignedEncryptedJwtBuilder</className>
+        <differenceType>7002</differenceType>
+        <method>org.forgerock.json.jose.builders.SignedEncryptedJwsHeaderBuilder headers()</method>
+        <justification>COMMONS-99 Re-factored and deprecated this class</justification>
     </difference>
 </differences>
