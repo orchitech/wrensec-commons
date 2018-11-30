@@ -460,12 +460,6 @@
 
             <dependency>
                 <groupId>org.forgerock.commons</groupId>
-                <artifactId>backstage-connect</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.forgerock.commons</groupId>
                 <artifactId>i18n-core</artifactId>
                 <version>${i18nFrameworkVersion}</version>
             </dependency>
