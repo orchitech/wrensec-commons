@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.api;
@@ -46,10 +47,6 @@ public class ExamplesTest {
         // - https://github.com/FasterXML/jackson-module-jsonSchema/pull/100
         // - https://github.com/FasterXML/jackson-databind/pull/1177
         schema = schemaFor(ApiDescription.class);
-        new ObjectMapper().writer()
-                .withDefaultPrettyPrinter()
-                .without(JsonGenerator.Feature.AUTO_CLOSE_TARGET)
-                .writeValue(System.out, schema);
     }
 
     @DataProvider
