@@ -16,20 +16,22 @@
 
 package org.forgerock.jaspi.modules.openid.resolvers.service;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolver;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.forgerock.jaspi.modules.openid.resolvers.OpenIdResolver;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

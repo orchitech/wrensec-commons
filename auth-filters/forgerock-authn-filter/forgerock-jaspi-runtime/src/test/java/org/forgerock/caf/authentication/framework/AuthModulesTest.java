@@ -19,21 +19,25 @@ package org.forgerock.caf.authentication.framework;
 import static org.assertj.core.api.Fail.failBecauseExceptionWasNotThrown;
 import static org.forgerock.caf.authentication.framework.AuthStatusUtils.asString;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.contains;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.message.AuthStatus;
 import javax.security.auth.message.MessagePolicy;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.caf.authentication.api.AsyncServerAuthModule;
@@ -446,7 +450,7 @@ public class AuthModulesTest {
         if (shouldBeAudited && isSuccessful) {
             verify(auditTrail).auditSuccess("MODULE_ID", moduleAuditInfo);
         } else if (shouldBeAudited) {
-            verify(auditTrail).auditFailure(eq("MODULE_ID"), anyMapOf(String.class, Object.class), eq(moduleAuditInfo));
+            verify(auditTrail).auditFailure(eq("MODULE_ID"), anyMap(), eq(moduleAuditInfo));
         }
         verify(auditTrail).setSessionId("SESSION_ID");
         Assertions.assertThat(requestContextMap)
@@ -483,7 +487,7 @@ public class AuthModulesTest {
 
         //Then
         assertThat(promise).failedWithException().hasMessage("ERROR");
-        verify(auditTrail).auditFailure(eq("MODULE_ID"), anyMapOf(String.class, Object.class), eq(moduleAuditInfo));
+        verify(auditTrail).auditFailure(eq("MODULE_ID"), anyMap(), eq(moduleAuditInfo));
         verify(auditTrail).setSessionId("SESSION_ID");
         Assertions.assertThat(requestContextMap)
                 .doesNotContainKey(AuditTrail.AUDIT_INFO_KEY)
@@ -595,9 +599,9 @@ public class AuthModulesTest {
 
 
         if (logLevelEnabled) {
-            verify(logger).debug(anyString(), anyObject(), anyObject(), anyObject(), anyObject());
+            verify(logger).debug(anyString(), any(), any(), any(), any());
         } else {
-            verify(logger, never()).debug(anyString(), anyObject(), anyObject(), anyObject(), anyObject());
+            verify(logger, never()).debug(anyString(), any(), any(), any(), any());
         }
     }
 
@@ -627,9 +631,9 @@ public class AuthModulesTest {
         }
 
         if (logLevelEnabled) {
-            verify(logger).error(anyString(), anyObject(), anyObject(), anyObject(), anyObject(), eq(exception));
+            verify(logger).error(anyString(), any(), any(), any(), any(), eq(exception));
         } else {
-            verify(logger, never()).error(anyString(), anyObject(), anyObject(), anyObject(), anyObject(),
+            verify(logger, never()).error(anyString(), any(), any(), any(), any(),
                     eq(exception));
         }
     }
