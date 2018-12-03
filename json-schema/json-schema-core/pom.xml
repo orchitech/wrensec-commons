@@ -44,6 +44,12 @@
             <version>1.1</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons.guava</groupId>
+            <artifactId>forgerock-guava-collect</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
