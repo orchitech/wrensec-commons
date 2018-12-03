@@ -17,7 +17,8 @@
 package org.forgerock.http.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.forgerock.http.filter.TransactionIdInboundFilter.SYSPROP_TRUST_TRANSACTION_HEADER;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -25,17 +26,15 @@ import org.forgerock.http.Handler;
 import org.forgerock.http.header.TransactionIdHeader;
 import org.forgerock.http.protocol.Headers;
 import org.forgerock.http.protocol.Request;
+import org.forgerock.services.TransactionId;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
-import org.forgerock.services.TransactionId;
 import org.forgerock.services.context.TransactionIdContext;
 import org.mockito.ArgumentCaptor;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterTest;
-
-import static org.forgerock.http.filter.TransactionIdInboundFilter.SYSPROP_TRUST_TRANSACTION_HEADER;
 
 
 public class TransactionIdInboundFilterTest {

@@ -15,15 +15,17 @@
 */
 package org.forgerock.jaspi.modules.openid.resolvers;
 
-import java.io.IOException;
-import java.net.URL;
-import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
-import org.forgerock.util.SimpleHTTPClient;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.IOException;
+import java.net.URL;
+
+import org.forgerock.json.jose.exceptions.FailedToLoadJWKException;
+import org.forgerock.util.SimpleHTTPClient;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

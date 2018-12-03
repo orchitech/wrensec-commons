@@ -15,11 +15,12 @@
  */
 package org.forgerock.util.thread;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import org.forgerock.util.thread.listener.ShutdownListener;
 import org.forgerock.util.thread.listener.ShutdownManager;
-import static org.mockito.Matchers.any;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.verify;
 import org.testng.annotations.Test;
 
 public class ExecutorServiceFactoryTest {

@@ -19,9 +19,18 @@ package org.forgerock.jaspi.modules.session.jwt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.jaspi.modules.session.jwt.AbstractJwtSessionModule.LOGOUT_SESSION_REQUEST_ATTRIBUTE_NAME;
 import static org.forgerock.json.JsonValue.json;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -58,12 +67,10 @@ import org.forgerock.json.jose.jwe.JweAlgorithm;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.jws.SignedEncryptedJwt;
 import org.forgerock.json.jose.jws.handlers.HmacSigningHandler;
-import org.forgerock.json.jose.jwt.Algorithm;
 import org.forgerock.json.jose.jwt.Jwt;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.util.encode.Base64;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -635,7 +642,7 @@ public class ServletJwtSessionModuleTest {
 
         //Then
         assertEquals(authStatus, AuthStatus.SUCCESS);
-        verify(claimsSet).setIssuedAtTime(Matchers.<Date>anyObject());
+        verify(claimsSet).setIssuedAtTime(any());
         ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
         verify(response).addCookie(cookieCaptor.capture());
         Cookie newCookie = cookieCaptor.getValue();
@@ -741,18 +748,18 @@ public class ServletJwtSessionModuleTest {
         JwtClaimsSetBuilder jwtClaimsSetBuilder = mock(JwtClaimsSetBuilder.class);
         JwtClaimsSet claimsSet = mock(JwtClaimsSet.class);
 
-        given(jwtBuilderFactory.jwe(Matchers.<Key>anyObject())).willReturn(encryptedJwtBuilder);
+        given(jwtBuilderFactory.jwe(any())).willReturn(encryptedJwtBuilder);
         given(encryptedJwtBuilder.headers()).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.alg(Matchers.<Algorithm>anyObject())).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.enc(Matchers.<EncryptionMethod>anyObject())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.alg(any())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.enc(any())).willReturn(jweHeaderBuilder);
         given(jweHeaderBuilder.done()).willReturn(encryptedJwtBuilder);
 
         given(jwtBuilderFactory.claims()).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.jti(anyString())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.exp(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.nbf(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.iat(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.claim(anyString(), anyObject())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.exp(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.nbf(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.iat(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.claim(anyString(), any())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.claims(anyMap())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.build()).willReturn(claimsSet);
         given(encryptedJwtBuilder.claims(claimsSet)).willReturn(encryptedJwtBuilder);
@@ -830,22 +837,22 @@ public class ServletJwtSessionModuleTest {
         JwtClaimsSetBuilder jwtClaimsSetBuilder = mock(JwtClaimsSetBuilder.class);
         JwtClaimsSet claimsSet = mock(JwtClaimsSet.class);
 
-        given(jwtBuilderFactory.jwe(Matchers.<Key>anyObject())).willReturn(encryptedJwtBuilder);
+        given(jwtBuilderFactory.jwe(any())).willReturn(encryptedJwtBuilder);
         given(encryptedJwtBuilder.headers()).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.alg(Matchers.<Algorithm>anyObject())).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.enc(Matchers.<EncryptionMethod>anyObject())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.alg(any())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.enc(any())).willReturn(jweHeaderBuilder);
         given(jweHeaderBuilder.done()).willReturn(encryptedJwtBuilder);
 
         given(jwtBuilderFactory.claims()).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.jti(anyString())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.exp(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.nbf(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.iat(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.claim(anyString(), anyObject())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.exp(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.nbf(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.iat(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.claim(anyString(), any())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.claims(anyMap())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.build()).willReturn(claimsSet);
         given(encryptedJwtBuilder.claims(claimsSet)).willReturn(encryptedJwtBuilder);
-        given(encryptedJwtBuilder.sign(any(HmacSigningHandler.class), eq(JwsAlgorithm.HS256)))
+        given(encryptedJwtBuilder.sign(any(), eq(JwsAlgorithm.HS256)))
                 .willReturn(signedEncryptedJwtBuilder);
         given(signedEncryptedJwtBuilder.build()).willReturn("ENCRYPTED_JWT");
 
@@ -958,22 +965,22 @@ public class ServletJwtSessionModuleTest {
         JwtClaimsSetBuilder jwtClaimsSetBuilder = mock(JwtClaimsSetBuilder.class);
         JwtClaimsSet claimsSet = mock(JwtClaimsSet.class);
 
-        given(jwtBuilderFactory.jwe(Matchers.<Key>anyObject())).willReturn(encryptedJwtBuilder);
+        given(jwtBuilderFactory.jwe(any())).willReturn(encryptedJwtBuilder);
         given(encryptedJwtBuilder.headers()).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.alg(Matchers.<Algorithm>anyObject())).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.enc(Matchers.<EncryptionMethod>anyObject())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.alg(any())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.enc(any())).willReturn(jweHeaderBuilder);
         given(jweHeaderBuilder.done()).willReturn(encryptedJwtBuilder);
 
         given(jwtBuilderFactory.claims()).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.jti(anyString())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.exp(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.nbf(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.iat(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.claim(anyString(), anyObject())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.exp(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.nbf(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.iat(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.claim(any(), any())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.claims(anyMap())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.build()).willReturn(claimsSet);
         given(encryptedJwtBuilder.claims(claimsSet)).willReturn(encryptedJwtBuilder);
-        given(encryptedJwtBuilder.sign(any(HmacSigningHandler.class), eq(JwsAlgorithm.HS256)))
+        given(encryptedJwtBuilder.sign(any(), eq(JwsAlgorithm.HS256)))
                 .willReturn(signedEncryptedJwtBuilder);
         given(signedEncryptedJwtBuilder.build()).willReturn("ENCRYPTED_JWT");
 
@@ -1047,22 +1054,22 @@ public class ServletJwtSessionModuleTest {
         JwtClaimsSetBuilder jwtClaimsSetBuilder = mock(JwtClaimsSetBuilder.class);
         JwtClaimsSet claimsSet = mock(JwtClaimsSet.class);
 
-        given(jwtBuilderFactory.jwe(Matchers.<Key>anyObject())).willReturn(encryptedJwtBuilder);
+        given(jwtBuilderFactory.jwe(any())).willReturn(encryptedJwtBuilder);
         given(encryptedJwtBuilder.headers()).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.alg(Matchers.<Algorithm>anyObject())).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.enc(Matchers.<EncryptionMethod>anyObject())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.alg(any())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.enc(any())).willReturn(jweHeaderBuilder);
         given(jweHeaderBuilder.done()).willReturn(encryptedJwtBuilder);
 
         given(jwtBuilderFactory.claims()).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.jti(anyString())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.exp(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.nbf(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.iat(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.claim(anyString(), anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.claims(anyMapOf(String.class, Object.class))).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.exp(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.nbf(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.iat(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.claim(anyString(), any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.claims(anyMap())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.build()).willReturn(claimsSet);
         given(encryptedJwtBuilder.claims(claimsSet)).willReturn(encryptedJwtBuilder);
-        given(encryptedJwtBuilder.sign(any(HmacSigningHandler.class), eq(JwsAlgorithm.HS256)))
+        given(encryptedJwtBuilder.sign(any(), eq(JwsAlgorithm.HS256)))
                 .willReturn(signedEncryptedJwtBuilder);
         given(signedEncryptedJwtBuilder.build()).willReturn("ENCRYPTED_JWT");
 
@@ -1135,22 +1142,22 @@ public class ServletJwtSessionModuleTest {
         JwtClaimsSetBuilder jwtClaimsSetBuilder = mock(JwtClaimsSetBuilder.class);
         JwtClaimsSet claimsSet = mock(JwtClaimsSet.class);
 
-        given(jwtBuilderFactory.jwe(Matchers.<Key>anyObject())).willReturn(encryptedJwtBuilder);
+        given(jwtBuilderFactory.jwe(any())).willReturn(encryptedJwtBuilder);
         given(encryptedJwtBuilder.headers()).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.alg(Matchers.<Algorithm>anyObject())).willReturn(jweHeaderBuilder);
-        given(jweHeaderBuilder.enc(Matchers.<EncryptionMethod>anyObject())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.alg(any())).willReturn(jweHeaderBuilder);
+        given(jweHeaderBuilder.enc(any())).willReturn(jweHeaderBuilder);
         given(jweHeaderBuilder.done()).willReturn(encryptedJwtBuilder);
 
         given(jwtBuilderFactory.claims()).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.jti(anyString())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.exp(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.nbf(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.iat(Matchers.<Date>anyObject())).willReturn(jwtClaimsSetBuilder);
-        given(jwtClaimsSetBuilder.claim(anyString(), anyObject())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.exp(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.nbf(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.iat(any())).willReturn(jwtClaimsSetBuilder);
+        given(jwtClaimsSetBuilder.claim(anyString(), any())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.claims(anyMap())).willReturn(jwtClaimsSetBuilder);
         given(jwtClaimsSetBuilder.build()).willReturn(claimsSet);
         given(encryptedJwtBuilder.claims(claimsSet)).willReturn(encryptedJwtBuilder);
-        given(encryptedJwtBuilder.sign(any(HmacSigningHandler.class), eq(JwsAlgorithm.HS256)))
+        given(encryptedJwtBuilder.sign(any(), eq(JwsAlgorithm.HS256)))
                 .willReturn(signedEncryptedJwtBuilder);
         given(signedEncryptedJwtBuilder.build()).willReturn("ENCRYPTED_JWT");
 

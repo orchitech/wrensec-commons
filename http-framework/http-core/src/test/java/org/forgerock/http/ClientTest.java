@@ -19,19 +19,19 @@ package org.forgerock.http;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.http.protocol.Response.newResponsePromise;
 import static org.forgerock.util.Utils.joinAsString;
-import static org.mockito.Matchers.notNull;
+import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
-import org.forgerock.services.context.RootContext;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
+import org.forgerock.services.context.RootContext;
 import org.forgerock.util.promise.Promise;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -51,7 +51,7 @@ public final class ClientTest {
     @BeforeMethod
     public void beforeMethod() {
         initMocks(this);
-        when(handler.handle(notNull(RootContext.class), Matchers.notNull(Request.class)))
+        when(handler.handle(notNull(), isNotNull()))
                 .thenReturn(newResponsePromise(new Response(Status.OK)));
         client = new Client(handler);
     }

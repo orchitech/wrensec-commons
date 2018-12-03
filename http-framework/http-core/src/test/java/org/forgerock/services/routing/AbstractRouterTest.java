@@ -17,32 +17,34 @@
 
 package org.forgerock.services.routing;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.http.routing.RouteMatchers.selfApiMatcher;
-import static org.mockito.BDDMockito.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
 
+import org.forgerock.http.ApiProducer;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.routing.RouteMatchers;
 import org.forgerock.http.routing.RoutingMode;
 import org.forgerock.http.routing.Version;
-import org.forgerock.http.ApiProducer;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.descriptor.Describable;
 import org.forgerock.util.Pair;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -76,7 +78,6 @@ public class AbstractRouterTest {
         }
     };
 
-    @SuppressWarnings("unchecked")
     @BeforeMethod
     public void setup() throws Exception {
         router = new TestAbstractRouter();
@@ -308,7 +309,6 @@ public class AbstractRouterTest {
         assertThat(router.getDefaultRoute()).isEqualTo(defaultRouteHandler);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldRemoveRoute() {
 
@@ -325,7 +325,6 @@ public class AbstractRouterTest {
                 entry(routeTwoMatcher, routeTwoHandler));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldNotRemoveRouteIfNotRegistered() {
 
@@ -394,7 +393,6 @@ public class AbstractRouterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldFetchDescriptorsOnceContextProvided() {
         // Given
         router.addRoute(routeOneMatcher, routeOneHandler);
@@ -412,7 +410,6 @@ public class AbstractRouterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldRouteApiRequest() throws Exception {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
@@ -438,7 +435,6 @@ public class AbstractRouterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldHandleApiRequest() throws Exception {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
@@ -457,7 +453,6 @@ public class AbstractRouterTest {
         assertThat(api).isEqualTo("[[one], two]");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldRouteApiRequestToDefaultIfNoneMatch() throws Exception {
         // Given
@@ -478,7 +473,6 @@ public class AbstractRouterTest {
         assertThat(api).isEqualTo("two");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldHandleApiRequestIfRouterTargeted() throws Exception {
         // Given
@@ -501,7 +495,6 @@ public class AbstractRouterTest {
         assertThat(api).isEqualTo("[[one], [two]]");
     }
 
-    @SuppressWarnings("unchecked")
     @Test(expectedExceptions = IllegalStateException.class)
     public void shouldThrowExceptionWhenNoRouteMatchTheApiRequest() throws Exception {
         // Given

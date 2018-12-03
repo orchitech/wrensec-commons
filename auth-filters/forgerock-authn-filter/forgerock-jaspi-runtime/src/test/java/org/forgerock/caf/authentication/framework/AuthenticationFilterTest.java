@@ -18,24 +18,31 @@ package org.forgerock.caf.authentication.framework;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
-import static org.forgerock.caf.authentication.framework.AuthenticationFilter.AuthenticationFilterBuilder;
 import static org.forgerock.caf.authentication.framework.AuthenticationFilter.AuthenticationModuleBuilder.configureModule;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
-import javax.security.auth.Subject;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.message.MessagePolicy;
-import javax.security.auth.message.module.ServerAuthModule;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.security.auth.Subject;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.message.MessagePolicy;
+import javax.security.auth.message.module.ServerAuthModule;
+
 import org.forgerock.caf.authentication.api.AsyncServerAuthModule;
 import org.forgerock.caf.authentication.api.AuthenticationException;
+import org.forgerock.caf.authentication.framework.AuthenticationFilter.AuthenticationFilterBuilder;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.mockito.ArgumentCaptor;
@@ -105,7 +112,7 @@ public class AuthenticationFilterTest {
         ArgumentCaptor<Logger> loggerCaptor = ArgumentCaptor.forClass(Logger.class);
 
         verify(builder).createFilter(loggerCaptor.capture(), eq(auditApi), any(ResponseHandler.class),
-                any(Subject.class), eq(sessionAuthModule), anyListOf(AsyncServerAuthModule.class));
+                any(Subject.class), eq(sessionAuthModule), anyList());
 
         assertThat(loggerCaptor.getValue()).isNotNull();
     }
@@ -185,7 +192,6 @@ public class AuthenticationFilterTest {
                 authModuleTwoSettings);
     }
 
-    @SuppressWarnings("rawtypes")
     @Test
     public void shouldBuildFilterWithAdaptedServerAuthContext() throws Exception {
 
@@ -213,7 +219,7 @@ public class AuthenticationFilterTest {
 
         //Then
         verify(builder).createFilter(any(Logger.class), eq(auditApi), any(ResponseHandler.class), any(Subject.class),
-                isNull(), anyListOf(AsyncServerAuthModule.class));
+                isNull(), anyList());
 
         verify(authModule).initialize(authModuleRequestPolicy, authModuleResponsePolicy,
                 authModuleHandler, authModuleSettings);
@@ -228,7 +234,7 @@ public class AuthenticationFilterTest {
         given(authModule.getSupportedMessageTypes()).willReturn(supportedMessageTypes);
 
         authModule.initialize(any(MessagePolicy.class), any(MessagePolicy.class), any(CallbackHandler.class),
-                anyMapOf(String.class, Object.class));
+                anyMap());
 
         return authModule;
     }
