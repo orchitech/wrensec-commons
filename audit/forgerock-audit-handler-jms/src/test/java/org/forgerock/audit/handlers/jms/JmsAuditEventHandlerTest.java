@@ -172,7 +172,7 @@ public class JmsAuditEventHandlerTest {
                 Thread.sleep(100L); // small delay to simulate time to send message.
                 logger.info("message sent by session {}: {}",
                         sessionCount,
-                        invocation.getArgumentAt(0, TextMessage.class).getText());
+                        ((TextMessage)invocation.getArgument(0)).getText());
                 return null;
             }
         }).when(producer).send(textMessage);

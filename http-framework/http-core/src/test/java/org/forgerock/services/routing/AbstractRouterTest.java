@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.services.routing;
@@ -19,6 +20,7 @@ package org.forgerock.services.routing;
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.http.routing.RouteMatchers.selfApiMatcher;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -40,6 +42,7 @@ import org.forgerock.services.descriptor.Describable;
 import org.forgerock.util.Pair;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -80,8 +83,8 @@ public class AbstractRouterTest {
 
         request = new Request().setUri("http://localhost/path?query");
         MockitoAnnotations.initMocks(this);
-        when(routeOneMatcher.transformApi(any(), any(ApiProducer.class))).thenAnswer(transformApiAnswer);
-        when(routeTwoMatcher.transformApi(any(), any(ApiProducer.class))).thenAnswer(transformApiAnswer);
+        when(routeOneMatcher.transformApi(any(), any())).thenAnswer(transformApiAnswer);
+        when(routeTwoMatcher.transformApi(any(), any())).thenAnswer(transformApiAnswer);
     }
 
     @Test
@@ -396,15 +399,15 @@ public class AbstractRouterTest {
         // Given
         router.addRoute(routeOneMatcher, routeOneHandler);
         router.addRoute(routeTwoMatcher, routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeOneHandler.api(any())).willReturn("one");
+        given(routeTwoHandler.api(any())).willReturn("two");
 
         // When
         String api = router.api(new StringApiProducer());
 
         // Then
-        verify(routeOneHandler).api(any(ApiProducer.class));
-        verify(routeTwoHandler).api(any(ApiProducer.class));
+        verify(routeOneHandler).api(any());
+        verify(routeTwoHandler).api(any());
         assertThat(api).isEqualTo("[one, two]");
     }
 
@@ -414,13 +417,15 @@ public class AbstractRouterTest {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.addRoute(routeTwoMatcher, routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
-        given(routeOneHandler.handleApiRequest(any(Context.class), eq(request))).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+
+        given(routeOneHandler.api(any())).willReturn("one");
+        given(routeOneHandler.handleApiRequest(any(), eq(request))).willReturn("one");
+        given(routeTwoHandler.api(any())).willReturn("two");
+
         router.api(new StringApiProducer());
 
-        given(routeOneMatcher.evaluate(any(Context.class), eq(request))).willReturn(routeOneRouteMatch);
-        given(routeTwoMatcher.evaluate(any(Context.class), eq(request))).willReturn(routeTwoRouteMatch);
+        given(routeOneMatcher.evaluate(any(), eq(request))).willReturn(routeOneRouteMatch);
+        given(routeTwoMatcher.evaluate(any(), eq(request))).willReturn(routeTwoRouteMatch);
 
         setupRouteMatch(routeOneRouteMatch, routeTwoRouteMatch, true);
         setupRouteMatch(routeTwoRouteMatch, routeOneRouteMatch, false);
@@ -438,8 +443,8 @@ public class AbstractRouterTest {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.addRoute(routeTwoMatcher, routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeOneHandler.api(any())).willReturn("one");
+        given(routeTwoHandler.api(any())).willReturn("two");
         router.api(new StringApiProducer());
 
         given(routeOneMatcher.evaluate(context, request)).willReturn(null);
@@ -458,9 +463,9 @@ public class AbstractRouterTest {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.setDefaultRoute(routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
+        given(routeOneHandler.api(any())).willReturn("one");
         given(routeOneHandler.handleApiRequest(context, request)).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeTwoHandler.api(any())).willReturn("two");
         given(routeTwoHandler.handleApiRequest(context, request)).willReturn("two");
         router.api(new StringApiProducer());
 
@@ -479,9 +484,9 @@ public class AbstractRouterTest {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.addRoute(routeTwoMatcher, new TestAbstractRouter().setDefaultRoute(routeTwoHandler));
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
+        given(routeOneHandler.api(any())).willReturn("one");
         given(routeOneHandler.handleApiRequest(context, request)).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeTwoHandler.api(any())).willReturn("two");
         given(routeTwoHandler.handleApiRequest(context, request)).willReturn("two");
         router.api(new StringApiProducer());
 
