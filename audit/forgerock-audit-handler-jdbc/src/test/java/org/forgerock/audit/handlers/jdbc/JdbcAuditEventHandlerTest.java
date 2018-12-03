@@ -165,7 +165,6 @@ public class JdbcAuditEventHandlerTest {
     public void testPublish() throws Exception {
         // given
         final JdbcAuditEventHandlerConfiguration configuration = createConfiguration(false);
-        System.out.println(new ObjectMapper().writeValueAsString(configuration));
         final JdbcAuditEventHandler handler = createJdbcAuditEventHandler(configuration);
         final JsonValue event = makeEvent();
         final Context context = new RootContext();
@@ -416,7 +415,6 @@ public class JdbcAuditEventHandlerTest {
     public void testPublishWithBuffering() throws Exception {
         // given
         final JdbcAuditEventHandlerConfiguration configuration = createConfiguration(true);
-        System.out.println(new ObjectMapper().writeValueAsString(configuration));
         final JdbcAuditEventHandler handler = createJdbcAuditEventHandler(configuration);
         final JsonValue event = makeEvent();
         final Context context = new RootContext();
