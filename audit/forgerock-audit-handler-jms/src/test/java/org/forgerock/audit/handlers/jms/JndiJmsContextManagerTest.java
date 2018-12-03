@@ -84,8 +84,7 @@ public class JndiJmsContextManagerTest {
         // Setup known mocked classloader and context builder to be used for validation.
         InitialContextFactoryBuilder builder = mock(InitialContextFactoryBuilder.class);
         setInitialContextFactoryBuilder(builder);
-        ClassLoader contextClassLoader = mock(ClassLoader.class);
-        Thread.currentThread().setContextClassLoader(contextClassLoader);
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Context context = mock(Context.class);
         InitialContextFactory initialContextFactory = mock(InitialContextFactory.class);
         when(initialContextFactory.getInitialContext(any(Hashtable.class))).thenReturn(context);
