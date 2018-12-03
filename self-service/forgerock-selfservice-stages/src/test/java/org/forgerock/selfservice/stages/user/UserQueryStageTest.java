@@ -16,23 +16,25 @@
 package org.forgerock.selfservice.stages.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
-import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
-import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
-import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
-import static org.forgerock.selfservice.stages.CommonStateFields.USERNAME_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.ACCOUNTSTATUS_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.USERNAME_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.BadRequestException;
@@ -42,7 +44,6 @@ import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.selfservice.core.ProcessContext;
-import org.forgerock.services.context.Context;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -200,7 +201,7 @@ public final class UserQueryStageTest {
                 ((QueryResourceHandler) invocation.getArguments()[2]).handleResource(resourceResponse);
                 return null;
             }
-        }).when(connection).query(any(Context.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+        }).when(connection).query(any(), any(QueryRequest.class), any(QueryResourceHandler.class));
 
         // When
         userQueryStage.advance(context, config);
@@ -218,7 +219,7 @@ public final class UserQueryStageTest {
                 ((QueryResourceHandler) invocation.getArguments()[2]).handleResource(resourceResponse);
                 return null;
             }
-        }).when(connection).query(any(Context.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+        }).when(connection).query(any(), any(QueryRequest.class), any(QueryResourceHandler.class));
 
         // When
         userQueryStage.advance(context, config);
@@ -236,7 +237,7 @@ public final class UserQueryStageTest {
                 ((QueryResourceHandler) invocation.getArguments()[2]).handleResource(resourceResponse);
                 return null;
             }
-        }).when(connection).query(any(Context.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+        }).when(connection).query(any(), any(QueryRequest.class), any(QueryResourceHandler.class));
 
         // When
         userQueryStage.advance(context, config);
@@ -269,7 +270,7 @@ public final class UserQueryStageTest {
                 ((QueryResourceHandler) invocation.getArguments()[2]).handleResource(resourceResponse);
                 return null;
             }
-        }).when(connection).query(any(Context.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+        }).when(connection).query(any(), any(QueryRequest.class), any(QueryResourceHandler.class));
 
         // When
         userQueryStage.advance(context, config);
@@ -294,7 +295,7 @@ public final class UserQueryStageTest {
                 ((QueryResourceHandler) invocation.getArguments()[2]).handleResource(resourceResponse);
                 return null;
             }
-        }).when(connection).query(any(Context.class), any(QueryRequest.class), any(QueryResourceHandler.class));
+        }).when(connection).query(any(), any(QueryRequest.class), any(QueryResourceHandler.class));
 
         // When
         userQueryStage.advance(context, config);
