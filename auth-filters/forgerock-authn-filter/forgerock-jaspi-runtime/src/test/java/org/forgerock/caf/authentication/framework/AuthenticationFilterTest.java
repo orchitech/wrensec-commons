@@ -213,7 +213,7 @@ public class AuthenticationFilterTest {
 
         //Then
         verify(builder).createFilter(any(Logger.class), eq(auditApi), any(ResponseHandler.class), any(Subject.class),
-                any(AsyncServerAuthModule.class), anyListOf(AsyncServerAuthModule.class));
+                isNull(), anyListOf(AsyncServerAuthModule.class));
 
         verify(authModule).initialize(authModuleRequestPolicy, authModuleResponsePolicy,
                 authModuleHandler, authModuleSettings);

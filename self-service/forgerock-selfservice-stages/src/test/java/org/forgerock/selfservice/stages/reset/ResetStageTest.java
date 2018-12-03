@@ -16,11 +16,13 @@
 package org.forgerock.selfservice.stages.reset;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 import org.forgerock.json.JsonValue;
@@ -30,7 +32,6 @@ import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.PatchRequest;
 import org.forgerock.selfservice.core.ProcessContext;
-import org.forgerock.services.context.Context;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -103,7 +104,7 @@ public final class ResetStageTest {
 
         // Then
         ArgumentCaptor<PatchRequest> patchRequestArgumentCaptor =  ArgumentCaptor.forClass(PatchRequest.class);
-        verify(connection).patch(any(Context.class), patchRequestArgumentCaptor.capture());
+        verify(connection).patch(isNull(), patchRequestArgumentCaptor.capture());
         PatchRequest createRequest = patchRequestArgumentCaptor.getValue();
 
         PatchOperation patchOperation = createRequest.getPatchOperations().get(0);
