@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.caf.authentication.framework;
@@ -19,7 +20,7 @@ package org.forgerock.caf.authentication.framework;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.failBecauseExceptionWasNotThrown;
 import static org.forgerock.caf.authentication.framework.JaspiAdapters.MESSAGE_INFO_CONTEXT_KEY;
-import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
@@ -72,7 +73,7 @@ public class JaspiAdaptersTest {
                 asyncAuthContext.validateRequest(messageContext, clientSubject, serviceSubject);
 
         //Then
-        assertThat(promise).succeeded().withObject().isEqualTo(AuthStatus.SUCCESS);
+        assertThatPromise(promise).succeeded().withObject().isEqualTo(AuthStatus.SUCCESS);
     }
 
     @Test
@@ -93,7 +94,9 @@ public class JaspiAdaptersTest {
                 asyncAuthContext.validateRequest(messageContext, clientSubject, serviceSubject);
 
         //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        assertThatPromise(promise)
+            .failedWithException()
+            .isInstanceOf(AuthenticationException.class);
     }
 
     @Test
@@ -113,7 +116,7 @@ public class JaspiAdaptersTest {
                 asyncAuthContext.secureResponse(messageContext, serviceSubject);
 
         //Then
-        assertThat(promise).succeeded().withObject().isEqualTo(AuthStatus.SEND_SUCCESS);
+        assertThatPromise(promise).succeeded().withObject().isEqualTo(AuthStatus.SEND_SUCCESS);
     }
 
     @Test
@@ -133,7 +136,9 @@ public class JaspiAdaptersTest {
                 asyncAuthContext.secureResponse(messageContext, serviceSubject);
 
         //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        assertThatPromise(promise)
+            .failedWithException()
+            .isInstanceOf(AuthenticationException.class);
     }
 
     @Test
@@ -149,7 +154,7 @@ public class JaspiAdaptersTest {
         Promise<Void, AuthenticationException> promise = asyncAuthContext.cleanSubject(messageContext, clientSubject);
 
         //Then
-        assertThat(promise).succeeded().withObject().isNull();
+        assertThatPromise(promise).succeeded().withObject().isNull();
         verify(authContext).cleanSubject(any(MessageInfo.class), eq(clientSubject));
     }
 
@@ -169,7 +174,9 @@ public class JaspiAdaptersTest {
         Promise<Void, AuthenticationException> promise = asyncAuthContext.cleanSubject(messageContext, clientSubject);
 
         //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        assertThatPromise(promise)
+            .failedWithException()
+            .isInstanceOf(AuthenticationException.class);
     }
 
     @Test
@@ -260,7 +267,7 @@ public class JaspiAdaptersTest {
                 asyncAuthModule.validateRequest(messageInfo, clientSubject, serviceSubject);
 
         //Then
-        assertThat(promise).succeeded().withObject().isEqualTo(AuthStatus.SUCCESS);
+        assertThatPromise(promise).succeeded().withObject().isEqualTo(AuthStatus.SUCCESS);
     }
 
     @Test
@@ -281,7 +288,9 @@ public class JaspiAdaptersTest {
                 asyncAuthModule.validateRequest(messageInfo, clientSubject, serviceSubject);
 
         //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        assertThatPromise(promise)
+            .failedWithException()
+            .isInstanceOf(AuthenticationException.class);
     }
 
     @Test
@@ -301,7 +310,7 @@ public class JaspiAdaptersTest {
                 asyncAuthModule.secureResponse(messageInfo, serviceSubject);
 
         //Then
-        assertThat(promise).succeeded().withObject().isEqualTo(AuthStatus.SEND_SUCCESS);
+        assertThatPromise(promise).succeeded().withObject().isEqualTo(AuthStatus.SEND_SUCCESS);
     }
 
     @Test
@@ -321,7 +330,9 @@ public class JaspiAdaptersTest {
                 asyncAuthModule.secureResponse(messageInfo, serviceSubject);
 
         //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        assertThatPromise(promise)
+            .failedWithException()
+            .isInstanceOf(AuthenticationException.class);
     }
 
     @Test
@@ -337,7 +348,7 @@ public class JaspiAdaptersTest {
         Promise<Void, AuthenticationException> promise = asyncAuthModule.cleanSubject(messageInfo, clientSubject);
 
         //Then
-        assertThat(promise).succeeded().withObject().isNull();
+        assertThatPromise(promise).succeeded().withObject().isNull();
         verify(authModule).cleanSubject(any(MessageInfo.class), eq(clientSubject));
     }
 
@@ -357,7 +368,9 @@ public class JaspiAdaptersTest {
         Promise<Void, AuthenticationException> promise = asyncAuthModule.cleanSubject(messageInfo, clientSubject);
 
         //Then
-        assertThat(promise).failedWithException().isInstanceOf(AuthenticationException.class);
+        assertThatPromise(promise)
+            .failedWithException()
+            .isInstanceOf(AuthenticationException.class);
     }
 
     @Test

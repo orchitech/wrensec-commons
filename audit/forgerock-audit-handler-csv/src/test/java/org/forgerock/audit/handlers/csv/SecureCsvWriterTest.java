@@ -45,6 +45,7 @@ import org.forgerock.audit.secure.KeyStoreHandlerDecorator;
 import org.forgerock.audit.secure.KeyStoreSecureStorage;
 import org.forgerock.audit.secure.SecureStorage;
 import org.forgerock.util.encode.Base64;
+import org.forgerock.util.test.MavenResourceUtil;
 import org.forgerock.util.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,9 @@ public class SecureCsvWriterTest {
     private static final Logger logger = LoggerFactory.getLogger(SecureCsvWriterTest.class);
     private static final String NEW_LINE = System.lineSeparator();
 
-    static final String KEYSTORE_FILENAME = "target/test-classes/keystore-signature.jks";
+    static final String KEYSTORE_FILENAME =
+        MavenResourceUtil.getFileForPath("target/test-classes/keystore-signature.jks").getPath();
+
     static final String KEYSTORE_PASSWORD = "password";
 
     private KeyStoreHandlerDecorator keyStoreHandler;
@@ -147,8 +150,12 @@ public class SecureCsvWriterTest {
 
     @Test
     public void shouldGenerateHMACColumn() throws Exception {
-        final File actual = new File("target/test-classes/shouldGenerateHMACColumn-actual.txt");
+        final File actual =
+            MavenResourceUtil.getFileForPath(
+                "target/test-classes/shouldGenerateHMACColumn-actual.txt");
+
         actual.delete();
+
         final String header = "FOO";
         CsvAuditEventHandlerConfiguration config = createBasicSecureConfig();
 
@@ -167,8 +174,12 @@ public class SecureCsvWriterTest {
             secureCsvWriter.writeEvent(values);
         }
 
-        assertThat(contentOf(actual)).isEqualTo(contentOf(
-                new File("target/test-classes/shouldGenerateHMACColumn-expected.txt")));
+        assertThat(contentOf(actual))
+            .isEqualTo(
+                contentOf(
+                    MavenResourceUtil.getFileForPath("target/test-classes/shouldGenerateHMACColumn-expected.txt")
+                )
+            );
     }
 
     @Test
@@ -182,8 +193,12 @@ public class SecureCsvWriterTest {
         // - close
         // - assert that the file contains header, row, signature
 
-        final File actual = new File("target/test-classes/shouldGeneratePeriodicallySignature-actual.txt");
+        final File actual =
+            MavenResourceUtil.getFileForPath(
+                "target/test-classes/shouldGeneratePeriodicallySignature-actual.txt");
+
         actual.delete();
+
         final String header = "FOO";
         try (SecureCsvWriter secureCsvWriter = new SecureCsvWriter(
                 actual, new String[]{header}, CsvPreference.EXCEL_PREFERENCE, createBasicSecureConfig(),
@@ -198,9 +213,14 @@ public class SecureCsvWriterTest {
             // - header
             // - data row with bar + HMAC
             // - signature
-            assertThat(contentOf(actual)).isEqualTo(contentOf(
-                    new File("target/test-classes/shouldGeneratePeriodicallySignature-partial.txt")));
-
+            assertThat(contentOf(actual))
+                .isEqualTo(
+                    contentOf(
+                        MavenResourceUtil.getFileForPath(
+                            "target/test-classes/shouldGeneratePeriodicallySignature-partial.txt"
+                        )
+                    )
+                );
 
             secureCsvWriter.writeEvent(singletonMap(header, "quix"));
         }
@@ -211,8 +231,14 @@ public class SecureCsvWriterTest {
         // - signature
         // - data row with bar + HMAC
         // - signature // because of closing the CsvWriter
-        assertThat(contentOf(actual)).isEqualTo(contentOf(
-                new File("target/test-classes/shouldGeneratePeriodicallySignature-expected.txt")));
+        assertThat(contentOf(actual))
+            .isEqualTo(
+                contentOf(
+                    MavenResourceUtil.getFileForPath(
+                        "target/test-classes/shouldGeneratePeriodicallySignature-expected.txt"
+                    )
+                )
+            );
     }
 
     private CsvAuditEventHandlerConfiguration createBasicSecureConfig() {

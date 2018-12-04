@@ -33,7 +33,7 @@
     </description>
 
     <properties>
-        <h2database.version>1.4.188</h2database.version>
+        <h2database.version>1.4.197</h2database.version>
     </properties>
 
     <dependencies>

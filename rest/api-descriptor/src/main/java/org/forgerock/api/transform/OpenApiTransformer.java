@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.api.transform;
 
@@ -25,9 +26,26 @@ import static org.forgerock.api.util.PathUtil.buildPath;
 import static org.forgerock.api.util.PathUtil.buildPathParameters;
 import static org.forgerock.api.util.PathUtil.mergeParameters;
 import static org.forgerock.api.util.ValidationUtil.isEmpty;
-import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.JsonValue.array;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.fieldIfNotNull;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.JsonValueFunctions.listOf;
-import static org.forgerock.json.schema.validator.Constants.*;
+import static org.forgerock.json.schema.validator.Constants.DEFAULT;
+import static org.forgerock.json.schema.validator.Constants.DESCRIPTION;
+import static org.forgerock.json.schema.validator.Constants.ENUM;
+import static org.forgerock.json.schema.validator.Constants.ID;
+import static org.forgerock.json.schema.validator.Constants.ITEMS;
+import static org.forgerock.json.schema.validator.Constants.PROPERTIES;
+import static org.forgerock.json.schema.validator.Constants.REQUIRED;
+import static org.forgerock.json.schema.validator.Constants.TITLE;
+import static org.forgerock.json.schema.validator.Constants.TYPE;
+import static org.forgerock.json.schema.validator.Constants.TYPE_ARRAY;
+import static org.forgerock.json.schema.validator.Constants.TYPE_INTEGER;
+import static org.forgerock.json.schema.validator.Constants.TYPE_NULL;
+import static org.forgerock.json.schema.validator.Constants.TYPE_OBJECT;
+import static org.forgerock.json.schema.validator.Constants.TYPE_STRING;
 import static org.forgerock.util.Reject.checkNotNull;
 
 import java.util.ArrayList;
@@ -65,6 +83,7 @@ import org.forgerock.api.models.Schema;
 import org.forgerock.api.models.SubResources;
 import org.forgerock.api.models.Update;
 import org.forgerock.api.models.VersionedPath;
+import org.forgerock.api.util.BigDecimalUtil;
 import org.forgerock.api.util.PathUtil;
 import org.forgerock.api.util.ReferenceResolver;
 import org.forgerock.api.util.ValidationUtil;
@@ -1587,8 +1606,8 @@ public class OpenApiTransformer {
             } else {
                 property = new LocalizableIntegerProperty();
             }
-            property.setMinimum(schema.get("minimum").asDouble());
-            property.setMaximum(schema.get("maximum").asDouble());
+            property.setMinimum(BigDecimalUtil.safeValueOf(schema.get("minimum").asDouble()));
+            property.setMaximum(BigDecimalUtil.safeValueOf(schema.get("maximum").asDouble()));
             property.setExclusiveMinimum(schema.get("exclusiveMinimum").asBoolean());
             property.setExclusiveMaximum(schema.get("exclusiveMaximum").asBoolean());
             return (LocalizableProperty) property;
@@ -1615,8 +1634,8 @@ public class OpenApiTransformer {
                     break;
                 }
             }
-            property.setMinimum(schema.get("minimum").asDouble());
-            property.setMaximum(schema.get("maximum").asDouble());
+            property.setMinimum(BigDecimalUtil.safeValueOf(schema.get("minimum").asDouble()));
+            property.setMaximum(BigDecimalUtil.safeValueOf(schema.get("maximum").asDouble()));
             property.setExclusiveMinimum(schema.get("exclusiveMinimum").asBoolean());
             property.setExclusiveMaximum(schema.get("exclusiveMaximum").asBoolean());
             return (LocalizableProperty) property;

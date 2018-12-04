@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.api.transform;
 
@@ -28,6 +29,7 @@ import org.forgerock.api.jackson.PathsModule;
 import org.forgerock.api.models.ApiDescription;
 import org.forgerock.api.models.Resource;
 import org.forgerock.api.models.Schema;
+import org.forgerock.util.test.MavenResourceUtil;
 import org.forgerock.http.util.Json;
 import org.forgerock.json.JsonValue;
 import org.forgerock.util.i18n.LocalizableString;
@@ -44,7 +46,8 @@ public class JsonToApiDescriptorObjectTest {
     private static final LocalizableString DESCRIPTION = new LocalizableString(
             "Users can have devices, but the devices are their own resources.");
 
-    private static final File[] EXAMPLE_FILES = new File("docs/examples").listFiles();
+    private static final File[] EXAMPLE_FILES =
+            MavenResourceUtil.getFileForPath("docs/examples").listFiles();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModules(
             new Json.JsonValueModule(),
@@ -53,7 +56,7 @@ public class JsonToApiDescriptorObjectTest {
 
     @Test
     public void subResourcesJsonToApiDescriptorPropertiesTest() throws IOException {
-        File file = java.nio.file.Paths.get("docs/examples/sub-resources.json").toFile();
+        File file = MavenResourceUtil.getFileForPath("docs/examples/sub-resources.json");
 
         ApiDescription apiDescription = OBJECT_MAPPER.readValue(file, ApiDescription.class);
 

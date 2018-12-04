@@ -35,7 +35,7 @@
     </description>
 
     <properties>
-        <rhino.version>1.7.7.1</rhino.version>
+        <rhino.version>1.7.10</rhino.version>
     </properties>
 
     <build>
@@ -77,6 +77,17 @@
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-models</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- test -->

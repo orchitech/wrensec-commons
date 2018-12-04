@@ -12,6 +12,7 @@
   ~ information: "Portions copyright [year] [name of copyright owner]".
   ~
   ~ Copyright 2015-2016 ForgeRock AS.
+  ~ Portions Copyright 2018 Wren Security.
   -->
 <differences>
 <!--
@@ -242,5 +243,11 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   <differenceType>7002</differenceType>
   <method>java.util.List getTransformers()</method>
   <justification>Removal of the JsonTransformer feature</justification>
+ </difference>
+ <difference>
+  <className>org/forgerock/util/AsyncFunction</className>
+  <differenceType>7012</differenceType>
+  <method>java.lang.Object apply(java.lang.Object)</method>
+  <justification>This method has not changed since Commons 20.x (false positive?).</justification>
  </difference>
 </differences>

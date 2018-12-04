@@ -12,12 +12,15 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 package org.forgerock.api.transform;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.atIndex;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.api.models.Paths.paths;
 import static org.forgerock.api.models.Query.query;
@@ -31,14 +34,13 @@ import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import io.swagger.models.refs.RefType;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.iterable.Extractor;
 import org.forgerock.api.ApiTestUtil;
@@ -61,6 +63,9 @@ import org.forgerock.util.i18n.PreferredLocales;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
 import io.swagger.models.ArrayModel;
 import io.swagger.models.ComposedModel;
 import io.swagger.models.Info;
@@ -73,6 +78,7 @@ import io.swagger.models.parameters.HeaderParameter;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.SerializableParameter;
 import io.swagger.models.properties.Property;
+import io.swagger.models.refs.RefType;
 
 @SuppressWarnings("javadoc")
 public class OpenApiTransformerTest {
@@ -438,16 +444,17 @@ public class OpenApiTransformerTest {
     public void testBuildModel(final JsonValue schema, final Model expectedReturnValue,
             final Class<? extends Throwable> expectedException) {
         final OpenApiTransformer transformer = new OpenApiTransformer();
-        try {
+
+        if (expectedException != null) {
+            assertThatExceptionOfType(expectedException).isThrownBy(() -> {
+                transformer.buildModel(schema);
+            });
+        } else {
             final Model actualReturnValue = transformer.buildModel(schema);
-            if (expectedException != null) {
-                failBecauseExceptionWasNotThrown(expectedException);
-            }
-            assertThat(actualReturnValue).isEqualTo(expectedReturnValue);
-        } catch (final Exception e) {
-            if (expectedException != null) {
-                assertThat(e).isInstanceOf(expectedException);
-            }
+
+            // Compare the two models as JSON to avoid equality issues with "originalRef" values
+            // being different between the two instances after Swagger 1.5.21.
+            assertEqualAsJson(expectedReturnValue, actualReturnValue);
         }
     }
 
@@ -561,8 +568,8 @@ public class OpenApiTransformerTest {
                             @Override
                             public Property get() {
                                 final LocalizableLongProperty o = new LocalizableLongProperty();
-                                o.setMinimum(1.0);
-                                o.setMaximum(2.0);
+                                o.setMinimum(BigDecimal.valueOf(1.0d));
+                                o.setMaximum(BigDecimal.valueOf(2.0d));
                                 o.setExclusiveMinimum(true);
                                 o.setExclusiveMaximum(true);
                                 o.setReadOnly(true);
@@ -591,8 +598,8 @@ public class OpenApiTransformerTest {
                             @Override
                             public Property get() {
                                 final LocalizableDoubleProperty o = new LocalizableDoubleProperty();
-                                o.setMinimum(1.0);
-                                o.setMaximum(2.0);
+                                o.setMinimum(BigDecimal.valueOf(1.0d));
+                                o.setMaximum(BigDecimal.valueOf(2.0d));
                                 o.setExclusiveMinimum(true);
                                 o.setExclusiveMaximum(true);
                                 o.setDefault(1.1);
@@ -823,6 +830,25 @@ public class OpenApiTransformerTest {
 
         assertThat(apiErrorWithCauseSchema.get("id").asString()).startsWith(id).isNotEqualTo(id);
         assertThat(apiErrorWithCauseSchema.get(causePointer)).isNotNull();
+    }
+
+    private static void assertEqualAsJson(final Model expected, final Model actual) {
+        final String    expectedJson    = objectToJsonString(expected),
+                        actualJson      = objectToJsonString(actual);
+
+        assertThat(actualJson).isEqualTo(expectedJson);
+    }
+
+    private static String objectToJsonString(final Model object) {
+        String json = null;
+
+        try {
+            json = JacksonUtils.createGenericMapper().writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            fail("Could not serialize object to JSON", e);
+        }
+
+        return json;
     }
 
     private static JsonValue jsonValueForSchema(final Class<?> type) {

@@ -12,17 +12,23 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.api.markup;
 
-import static java.util.Collections.*;
-import static org.forgerock.api.markup.asciidoc.AsciiDoc.*;
-import static org.forgerock.api.markup.asciidoc.AsciiDocTable.*;
-import static org.forgerock.api.markup.asciidoc.AsciiDocTableColumnStyles.*;
-import static org.forgerock.api.util.PathUtil.*;
-import static org.forgerock.api.util.ValidationUtil.*;
-import static org.forgerock.util.Reject.*;
+import static java.util.Collections.unmodifiableList;
+import static org.forgerock.api.markup.asciidoc.AsciiDoc.asciiDoc;
+import static org.forgerock.api.markup.asciidoc.AsciiDoc.normalizeName;
+import static org.forgerock.api.markup.asciidoc.AsciiDocTable.COLUMN_WIDTH_MEDIUM;
+import static org.forgerock.api.markup.asciidoc.AsciiDocTable.COLUMN_WIDTH_SMALL;
+import static org.forgerock.api.markup.asciidoc.AsciiDocTableColumnStyles.ASCII_DOC_CELL;
+import static org.forgerock.api.markup.asciidoc.AsciiDocTableColumnStyles.MONO_CELL;
+import static org.forgerock.api.util.PathUtil.buildPath;
+import static org.forgerock.api.util.PathUtil.buildPathParameters;
+import static org.forgerock.api.util.PathUtil.mergeParameters;
+import static org.forgerock.api.util.ValidationUtil.isEmpty;
+import static org.forgerock.util.Reject.checkNotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,6 +50,7 @@ import org.forgerock.api.enums.CreateMode;
 import org.forgerock.api.enums.PagingMode;
 import org.forgerock.api.enums.PatchOperation;
 import org.forgerock.api.enums.Stability;
+import org.forgerock.api.jackson.JacksonUtils;
 import org.forgerock.api.markup.asciidoc.AsciiDoc;
 import org.forgerock.api.markup.asciidoc.AsciiDocTable;
 import org.forgerock.api.models.Action;
@@ -65,24 +72,17 @@ import org.forgerock.api.models.VersionedPath;
 import org.forgerock.api.util.ReferenceResolver;
 import org.forgerock.api.util.ValidationUtil;
 import org.forgerock.http.routing.Version;
-import org.forgerock.http.util.Json;
 import org.forgerock.util.i18n.LocalizableString;
 import org.forgerock.util.i18n.PreferredLocales;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Generates static AsciiDoc documentation for CREST API Descriptors.
  */
 public final class ApiDocGenerator {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-            .enable(SerializationFeature.INDENT_OUTPUT)
-            .registerModules(new Json.LocalizableStringModule(), new Json.JsonValueModule());
+    private static final ObjectMapper OBJECT_MAPPER = JacksonUtils.createGenericMapper();
 
     private static final PreferredLocales PREFERRED_LOCALES = new PreferredLocales();
 

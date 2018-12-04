@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.util.test.assertj;
@@ -40,17 +41,40 @@ import org.forgerock.util.promise.Promise;
 /**
  * Assertion class for a promise. Allows verification of the value that was completed with.
  */
-//@Checkstyle:ignoreFor 2
+//@Checkstyle:ignoreFor 4
 public final class AssertJPromiseAssert
-        extends AbstractAssertJPromiseAssert<Object, AssertJPromiseAssert, AssertJPromiseAssert.SuccessfulPromiseAssert> {
+    extends AbstractAssertJPromiseAssert<Object,
+                                         AssertJPromiseAssert,
+                                         AssertJPromiseAssert.SuccessfulPromiseAssert> {
 
     /**
      * Creates an {@code AssertJPromiseAssert} instance for making assertions on a {@link Promise}.
-     * @param promise The actual promise instance.
-     * @return The {@code AssertJPromiseAssert} instance.
+     *
+     * @param promise
+     *   The promise for which assertions are being made.
+     *
+     * @return
+     *   A promise assertion object upon which assertions can be chained.
      */
     public static AssertJPromiseAssert assertThat(Promise<?, ?> promise) {
         return new AssertJPromiseAssert(promise);
+    }
+
+    /**
+     * Alias for {@code assertThat(Promise)}.
+     *
+     * <p>This can be used in cases where the same test statically imports both this class and
+     * {@link org.assertj.core.api.Assertions} since {@link #assertThat(Promise)} clashes with
+     * {@link org.assertj.core.api.Assertions#assertThat(java.util.concurrent.Future)}.
+     *
+     * @param promise
+     *   The promise for which assertions are being made.
+     *
+     * @return
+     *   A promise assertion object upon which assertions can be chained.
+     */
+    public static AssertJPromiseAssert assertThatPromise(Promise<?, ?> promise) {
+        return assertThat(promise);
     }
 
     @SuppressWarnings("unchecked")
@@ -90,7 +114,7 @@ public final class AssertJPromiseAssert
          * @return A {@link AbstractIterableAssert} instance for making assertions on the value.
          */
         @SuppressWarnings("unchecked")
-        public <T> AbstractIterableAssert<?, ? extends Iterable<? extends T>, T> withIterable() {
+        public <T> AbstractIterableAssert<?, ? extends Iterable<? extends T>, T, ?> withIterable() {
             isInstanceOf(Iterable.class);
             return Assertions.assertThat((Iterable<T>) actual);
         }
@@ -102,7 +126,7 @@ public final class AssertJPromiseAssert
          * @return A {@link AbstractListAssert} instance for making assertions on the value.
          */
         @SuppressWarnings("unchecked")
-        public <T> AbstractListAssert<?, ? extends List<? extends T>, T> withList() {
+        public <T> AbstractListAssert<?, ? extends List<? extends T>, T, ?> withList() {
             isInstanceOf(List.class);
             return Assertions.assertThat((List<T>) actual);
         }
