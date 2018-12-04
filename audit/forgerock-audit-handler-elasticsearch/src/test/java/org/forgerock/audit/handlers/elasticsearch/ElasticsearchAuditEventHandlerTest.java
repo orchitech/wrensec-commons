@@ -14,6 +14,7 @@
  * Copyright 2016 ForgeRock AS.
  * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.audit.handlers.elasticsearch;
 
 import static org.assertj.core.api.Assertions.assertThat;
