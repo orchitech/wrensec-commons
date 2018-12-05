@@ -12,23 +12,27 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.authz.filter.crest;
 
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
-import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import org.forgerock.authz.filter.api.AuthorizationResult;
 import org.forgerock.authz.filter.crest.api.CrestAuthorizationModule;
-import org.forgerock.services.context.Context;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.CollectionResourceProvider;
@@ -46,9 +50,9 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.SingletonResourceProvider;
 import org.forgerock.json.resource.UpdateRequest;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
-import org.mockito.Matchers;
 import org.testng.annotations.Test;
 
 public class AuthorizationFiltersTest {
@@ -182,7 +186,6 @@ public class AuthorizationFiltersTest {
         assertNotNull(chain);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterActionWhenAuthorized() {
 
@@ -204,10 +207,9 @@ public class AuthorizationFiltersTest {
         chain.handleAction(context, request);
 
         //Then
-        verify(target).actionInstance(eq(context), eq("RESOURCE_NAME"), Matchers.<ActionRequest>anyObject());
+        verify(target).actionInstance(eq(context), eq("RESOURCE_NAME"), any());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterActionWhenUnauthorized() {
 
@@ -242,7 +244,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterActionWhenAuthorizationFails() {
 
@@ -274,7 +275,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterCreateWhenAuthorized() {
 
@@ -296,10 +296,9 @@ public class AuthorizationFiltersTest {
         chain.handleCreate(context, request);
 
         //Then
-        verify(target).createInstance(eq(context), Matchers.<CreateRequest>anyObject());
+        verify(target).createInstance(eq(context), any());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterCreateWhenUnauthorized() {
 
@@ -334,7 +333,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterCreateWhenAuthorizationFails() {
 
@@ -366,7 +364,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterDeleteWhenAuthorized() {
 
@@ -388,10 +385,9 @@ public class AuthorizationFiltersTest {
         chain.handleDelete(context, request);
 
         //Then
-        verify(target).deleteInstance(eq(context), eq("RESOURCE_NAME"), Matchers.<DeleteRequest>anyObject());
+        verify(target).deleteInstance(eq(context), eq("RESOURCE_NAME"), any());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterDeleteWhenUnauthorized() {
 
@@ -426,7 +422,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterDeleteWhenAuthorizationFails() {
 
@@ -458,7 +453,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterPatchWhenAuthorized() {
 
@@ -480,10 +474,9 @@ public class AuthorizationFiltersTest {
         chain.handlePatch(context, request);
 
         //Then
-        verify(target).patchInstance(eq(context), eq("RESOURCE_NAME"), Matchers.<PatchRequest>anyObject());
+        verify(target).patchInstance(eq(context), eq("RESOURCE_NAME"), any());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterPatchWhenUnauthorized() {
 
@@ -518,7 +511,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterPatchWhenAuthorizationFails() {
 
@@ -642,7 +634,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterReadWhenAuthorized() {
 
@@ -664,10 +655,9 @@ public class AuthorizationFiltersTest {
         chain.handleRead(context, request);
 
         //Then
-        verify(target).readInstance(eq(context), eq("RESOURCE_NAME"), Matchers.<ReadRequest>anyObject());
+        verify(target).readInstance(eq(context), eq("RESOURCE_NAME"), any());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterReadWhenUnauthorized() {
 
@@ -702,7 +692,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterReadWhenAuthorizationFails() {
 
@@ -734,7 +723,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterUpdateWhenAuthorized() {
 
@@ -756,10 +744,9 @@ public class AuthorizationFiltersTest {
         chain.handleUpdate(context, request);
 
         //Then
-        verify(target).updateInstance(eq(context), eq("RESOURCE_NAME"), Matchers.<UpdateRequest>anyObject());
+        verify(target).updateInstance(eq(context), eq("RESOURCE_NAME"), any());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterUpdateWhenUnauthorized() {
 
@@ -794,7 +781,6 @@ public class AuthorizationFiltersTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldFilterUpdateWhenAuthorizationFails() {
 

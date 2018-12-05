@@ -12,15 +12,27 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.selfservice.stages.kba;
 
-import static org.forgerock.json.JsonValue.*;
-import static org.forgerock.util.crypto.CryptoConstants.*;
+import static org.forgerock.json.JsonValue.array;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
+import static org.forgerock.util.crypto.CryptoConstants.ALGORITHM_SHA_256;
+import static org.forgerock.util.crypto.CryptoConstants.CRYPTO;
+import static org.forgerock.util.crypto.CryptoConstants.CRYPTO_ALGORITHM;
+import static org.forgerock.util.crypto.CryptoConstants.CRYPTO_DATA;
+import static org.forgerock.util.crypto.CryptoConstants.CRYPTO_TYPE;
+import static org.forgerock.util.crypto.CryptoConstants.CRYPTO_VALUE;
+import static org.forgerock.util.crypto.CryptoConstants.STORAGE_TYPE_HASH;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +44,6 @@ import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.ReadRequest;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.selfservice.core.ProcessContext;
-import org.forgerock.services.context.Context;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
@@ -130,7 +141,7 @@ public final class SecurityAnswerVerificationStageTest {
 
         given(factory.getConnection()).willReturn(connection);
         given(queryResponse.getContent()).willReturn(newEmptyJsonValue());
-        given(connection.read(any(Context.class), any(ReadRequest.class))).willReturn(queryResponse);
+        given(connection.read(any(), any(ReadRequest.class))).willReturn(queryResponse);
 
         // When
         JsonValue jsonValue = securityAnswerVerificationStage.gatherInitialRequirements(context, config);
@@ -150,7 +161,7 @@ public final class SecurityAnswerVerificationStageTest {
 
         given(factory.getConnection()).willReturn(connection);
         given(queryResponse.getContent()).willReturn(newJsonValueUserWithOnlyOneCustomQuestion());
-        given(connection.read(any(Context.class), any(ReadRequest.class))).willReturn(queryResponse);
+        given(connection.read(any(), any(ReadRequest.class))).willReturn(queryResponse);
 
         // When
         JsonValue jsonValue = securityAnswerVerificationStage.gatherInitialRequirements(context, config);
@@ -170,7 +181,7 @@ public final class SecurityAnswerVerificationStageTest {
 
         given(factory.getConnection()).willReturn(connection);
         given(queryResponse.getContent()).willReturn(newJsonValueUserWithOnlyOneSystemQuestion());
-        given(connection.read(any(Context.class), any(ReadRequest.class))).willReturn(queryResponse);
+        given(connection.read(any(), any(ReadRequest.class))).willReturn(queryResponse);
 
         // When
         JsonValue jsonValue = securityAnswerVerificationStage.gatherInitialRequirements(context, config);
@@ -190,7 +201,7 @@ public final class SecurityAnswerVerificationStageTest {
 
         given(factory.getConnection()).willReturn(connection);
         given(queryResponse.getContent()).willReturn(newJsonValueUser());
-        given(connection.read(any(Context.class), any(ReadRequest.class))).willReturn(queryResponse);
+        given(connection.read(any(), any(ReadRequest.class))).willReturn(queryResponse);
 
         // When
         JsonValue jsonValue = securityAnswerVerificationStage.gatherInitialRequirements(context, config);
@@ -214,7 +225,7 @@ public final class SecurityAnswerVerificationStageTest {
 
         given(factory.getConnection()).willReturn(connection);
         given(queryResponse.getContent()).willReturn(newJsonValueUser());
-        given(connection.read(any(Context.class), any(ReadRequest.class))).willReturn(queryResponse);
+        given(connection.read(any(), any(ReadRequest.class))).willReturn(queryResponse);
 
         // When
         securityAnswerVerificationStage.advance(context, config);
@@ -233,7 +244,7 @@ public final class SecurityAnswerVerificationStageTest {
 
         given(factory.getConnection()).willReturn(connection);
         given(queryResponse.getContent()).willReturn(newJsonValueUser());
-        given(connection.read(any(Context.class), any(ReadRequest.class))).willReturn(queryResponse);
+        given(connection.read(any(), any(ReadRequest.class))).willReturn(queryResponse);
 
         // When
         securityAnswerVerificationStage.advance(context, config);

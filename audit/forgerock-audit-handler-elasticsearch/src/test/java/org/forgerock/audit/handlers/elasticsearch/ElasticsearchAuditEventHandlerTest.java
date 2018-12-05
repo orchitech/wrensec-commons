@@ -14,6 +14,7 @@
  * Copyright 2016 ForgeRock AS.
  * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.audit.handlers.elasticsearch;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,7 @@ import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

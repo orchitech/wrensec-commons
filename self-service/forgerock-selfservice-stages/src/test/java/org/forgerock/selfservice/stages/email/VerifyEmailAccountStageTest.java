@@ -12,7 +12,9 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.selfservice.stages.email;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,11 +26,17 @@ import static org.forgerock.selfservice.core.ServiceUtils.INITIAL_TAG;
 import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
 import static org.forgerock.selfservice.stages.CommonStateFields.USER_FIELD;
 import static org.forgerock.selfservice.stages.email.VerifyEmailAccountStage.REQUIREMENT_KEY_CODE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.json.JsonValue;
@@ -40,19 +48,12 @@ import org.forgerock.json.resource.Request;
 import org.forgerock.selfservice.core.ProcessContext;
 import org.forgerock.selfservice.core.StageResponse;
 import org.forgerock.selfservice.core.snapshot.SnapshotTokenCallback;
-import org.forgerock.services.context.Context;
 import org.forgerock.util.i18n.PreferredLocales;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * Unit test for {@link VerifyEmailAccountStage}.
@@ -178,7 +179,7 @@ public final class VerifyEmailAccountStageTest {
 
         // Then
         ArgumentCaptor<ActionRequest> actionRequestArgumentCaptor =  ArgumentCaptor.forClass(ActionRequest.class);
-        verify(connection).action(any(Context.class), actionRequestArgumentCaptor.capture());
+        verify(connection).action(any(), actionRequestArgumentCaptor.capture());
         ActionRequest actionRequest = actionRequestArgumentCaptor.getValue();
 
         assertThat(actionRequest.getAction()).isSameAs("send");

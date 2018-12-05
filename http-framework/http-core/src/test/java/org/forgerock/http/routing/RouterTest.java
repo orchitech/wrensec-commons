@@ -12,23 +12,24 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.http.routing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import org.forgerock.services.context.Context;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
+import org.forgerock.services.context.Context;
 import org.forgerock.services.routing.IncomparableRouteMatchException;
 import org.forgerock.services.routing.RouteMatch;
 import org.forgerock.services.routing.RouteMatcher;
@@ -96,8 +97,8 @@ public class RouterTest {
         router.addRoute(routeMatcher, routeHandler);
         request.setUri("http://example.com:8080/json/users");
 
-        given(routeMatcher.evaluate(any(Context.class), any(Request.class))).willReturn(routeMatch);
-        doThrow(IncomparableRouteMatchException.class).when(routeMatch).isBetterMatchThan(any(RouteMatch.class));
+        given(routeMatcher.evaluate(any(Context.class), any())).willReturn(routeMatch);
+        doThrow(IncomparableRouteMatchException.class).when(routeMatch).isBetterMatchThan(any());
 
         //When
         Promise<Response, NeverThrowsException> promise = router.handle(context, request);

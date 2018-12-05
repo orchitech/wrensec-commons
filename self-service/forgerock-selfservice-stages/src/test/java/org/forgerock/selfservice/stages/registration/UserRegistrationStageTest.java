@@ -12,15 +12,22 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.selfservice.stages.registration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.JsonValue.array;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
-import static org.forgerock.selfservice.stages.CommonStateFields.*;
+import static org.forgerock.selfservice.stages.CommonStateFields.EMAIL_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.USER_FIELD;
+import static org.forgerock.selfservice.stages.CommonStateFields.USER_ID_FIELD;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 import org.forgerock.json.JsonValue;
@@ -29,7 +36,6 @@ import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.selfservice.core.ProcessContext;
-import org.forgerock.services.context.Context;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -107,7 +113,7 @@ public final class UserRegistrationStageTest {
 
         // Then
         ArgumentCaptor<CreateRequest> createRequestArgumentCaptor =  ArgumentCaptor.forClass(CreateRequest.class);
-        verify(connection).create(any(Context.class), createRequestArgumentCaptor.capture());
+        verify(connection).create(any(), createRequestArgumentCaptor.capture());
         CreateRequest createRequest = createRequestArgumentCaptor.getValue();
 
         assertThat(createRequest.getContent()).stringAt("givenName").isEqualTo("testUser");

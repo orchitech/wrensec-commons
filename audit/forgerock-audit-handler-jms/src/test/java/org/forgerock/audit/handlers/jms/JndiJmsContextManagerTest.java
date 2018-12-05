@@ -12,13 +12,21 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.audit.handlers.jms;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Hashtable;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Topic;
@@ -26,9 +34,6 @@ import javax.naming.Context;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
 import javax.naming.spi.NamingManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Hashtable;
 
 import org.assertj.core.api.ThrowableAssert;
 import org.forgerock.audit.handlers.jms.JmsAuditEventHandlerConfiguration.JndiConfiguration;
@@ -80,8 +85,7 @@ public class JndiJmsContextManagerTest {
         // Setup known mocked classloader and context builder to be used for validation.
         InitialContextFactoryBuilder builder = mock(InitialContextFactoryBuilder.class);
         setInitialContextFactoryBuilder(builder);
-        ClassLoader contextClassLoader = mock(ClassLoader.class);
-        Thread.currentThread().setContextClassLoader(contextClassLoader);
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Context context = mock(Context.class);
         InitialContextFactory initialContextFactory = mock(InitialContextFactory.class);
         when(initialContextFactory.getInitialContext(any(Hashtable.class))).thenReturn(context);

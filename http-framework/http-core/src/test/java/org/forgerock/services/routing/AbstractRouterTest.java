@@ -12,29 +12,34 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.services.routing;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.http.routing.RouteMatchers.selfApiMatcher;
-import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
 
+import org.forgerock.http.ApiProducer;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.routing.RouteMatchers;
 import org.forgerock.http.routing.RoutingMode;
 import org.forgerock.http.routing.Version;
-import org.forgerock.http.ApiProducer;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.descriptor.Describable;
 import org.forgerock.util.Pair;
@@ -73,15 +78,14 @@ public class AbstractRouterTest {
         }
     };
 
-    @SuppressWarnings("unchecked")
     @BeforeMethod
     public void setup() throws Exception {
         router = new TestAbstractRouter();
 
         request = new Request().setUri("http://localhost/path?query");
         MockitoAnnotations.initMocks(this);
-        when(routeOneMatcher.transformApi(any(), any(ApiProducer.class))).thenAnswer(transformApiAnswer);
-        when(routeTwoMatcher.transformApi(any(), any(ApiProducer.class))).thenAnswer(transformApiAnswer);
+        when(routeOneMatcher.transformApi(any(), any())).thenAnswer(transformApiAnswer);
+        when(routeTwoMatcher.transformApi(any(), any())).thenAnswer(transformApiAnswer);
     }
 
     @Test
@@ -305,7 +309,6 @@ public class AbstractRouterTest {
         assertThat(router.getDefaultRoute()).isEqualTo(defaultRouteHandler);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldRemoveRoute() {
 
@@ -322,7 +325,6 @@ public class AbstractRouterTest {
                 entry(routeTwoMatcher, routeTwoHandler));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldNotRemoveRouteIfNotRegistered() {
 
@@ -391,36 +393,36 @@ public class AbstractRouterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldFetchDescriptorsOnceContextProvided() {
         // Given
         router.addRoute(routeOneMatcher, routeOneHandler);
         router.addRoute(routeTwoMatcher, routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeOneHandler.api(any())).willReturn("one");
+        given(routeTwoHandler.api(any())).willReturn("two");
 
         // When
         String api = router.api(new StringApiProducer());
 
         // Then
-        verify(routeOneHandler).api(any(ApiProducer.class));
-        verify(routeTwoHandler).api(any(ApiProducer.class));
+        verify(routeOneHandler).api(any());
+        verify(routeTwoHandler).api(any());
         assertThat(api).isEqualTo("[one, two]");
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldRouteApiRequest() throws Exception {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.addRoute(routeTwoMatcher, routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
-        given(routeOneHandler.handleApiRequest(any(Context.class), eq(request))).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+
+        given(routeOneHandler.api(any())).willReturn("one");
+        given(routeOneHandler.handleApiRequest(any(), eq(request))).willReturn("one");
+        given(routeTwoHandler.api(any())).willReturn("two");
+
         router.api(new StringApiProducer());
 
-        given(routeOneMatcher.evaluate(any(Context.class), eq(request))).willReturn(routeOneRouteMatch);
-        given(routeTwoMatcher.evaluate(any(Context.class), eq(request))).willReturn(routeTwoRouteMatch);
+        given(routeOneMatcher.evaluate(any(), eq(request))).willReturn(routeOneRouteMatch);
+        given(routeTwoMatcher.evaluate(any(), eq(request))).willReturn(routeTwoRouteMatch);
 
         setupRouteMatch(routeOneRouteMatch, routeTwoRouteMatch, true);
         setupRouteMatch(routeTwoRouteMatch, routeOneRouteMatch, false);
@@ -433,13 +435,12 @@ public class AbstractRouterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldHandleApiRequest() throws Exception {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.addRoute(routeTwoMatcher, routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeOneHandler.api(any())).willReturn("one");
+        given(routeTwoHandler.api(any())).willReturn("two");
         router.api(new StringApiProducer());
 
         given(routeOneMatcher.evaluate(context, request)).willReturn(null);
@@ -452,15 +453,14 @@ public class AbstractRouterTest {
         assertThat(api).isEqualTo("[[one], two]");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldRouteApiRequestToDefaultIfNoneMatch() throws Exception {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.setDefaultRoute(routeTwoHandler);
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
+        given(routeOneHandler.api(any())).willReturn("one");
         given(routeOneHandler.handleApiRequest(context, request)).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeTwoHandler.api(any())).willReturn("two");
         given(routeTwoHandler.handleApiRequest(context, request)).willReturn("two");
         router.api(new StringApiProducer());
 
@@ -473,15 +473,14 @@ public class AbstractRouterTest {
         assertThat(api).isEqualTo("two");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldHandleApiRequestIfRouterTargeted() throws Exception {
         // Given
         router.addRoute(routeOneMatcher, new TestAbstractRouter().setDefaultRoute(routeOneHandler));
         router.addRoute(routeTwoMatcher, new TestAbstractRouter().setDefaultRoute(routeTwoHandler));
-        given(routeOneHandler.api(any(ApiProducer.class))).willReturn("one");
+        given(routeOneHandler.api(any())).willReturn("one");
         given(routeOneHandler.handleApiRequest(context, request)).willReturn("one");
-        given(routeTwoHandler.api(any(ApiProducer.class))).willReturn("two");
+        given(routeTwoHandler.api(any())).willReturn("two");
         given(routeTwoHandler.handleApiRequest(context, request)).willReturn("two");
         router.api(new StringApiProducer());
 
@@ -496,7 +495,6 @@ public class AbstractRouterTest {
         assertThat(api).isEqualTo("[[one], [two]]");
     }
 
-    @SuppressWarnings("unchecked")
     @Test(expectedExceptions = IllegalStateException.class)
     public void shouldThrowExceptionWhenNoRouteMatchTheApiRequest() throws Exception {
         // Given

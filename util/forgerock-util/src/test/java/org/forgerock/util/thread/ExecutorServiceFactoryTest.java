@@ -12,14 +12,17 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.util.thread;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 import org.forgerock.util.thread.listener.ShutdownListener;
 import org.forgerock.util.thread.listener.ShutdownManager;
-import static org.mockito.Matchers.any;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.verify;
 import org.testng.annotations.Test;
 
 public class ExecutorServiceFactoryTest {

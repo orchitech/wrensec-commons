@@ -12,25 +12,26 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.http.routing;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.http.routing.RouteMatchers.*;
+import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
+import static org.forgerock.http.routing.RouteMatchers.requestResourceApiVersionMatcher;
+import static org.forgerock.http.routing.RouteMatchers.requestUriMatcher;
+import static org.forgerock.http.routing.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
 import static org.forgerock.http.routing.Version.version;
 import static org.forgerock.util.promise.Promises.newResultPromise;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
 import java.net.URI;
 
-import org.forgerock.services.context.Context;
 import org.forgerock.http.Handler;
-import org.forgerock.http.session.Session;
-import org.forgerock.http.session.SessionContext;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.header.AcceptApiVersionHeader;
 import org.forgerock.http.header.ContentApiVersionHeader;
@@ -38,6 +39,9 @@ import org.forgerock.http.header.WarningHeader;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
+import org.forgerock.http.session.Session;
+import org.forgerock.http.session.SessionContext;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.testng.annotations.BeforeMethod;

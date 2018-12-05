@@ -12,16 +12,18 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
+
 package org.forgerock.selfservice.stages.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.selfservice.stages.CommonStateFields.USERNAME_FIELD;
-import static org.forgerock.selfservice.stages.user.RetrieveUsernameStage.*;
+import static org.forgerock.selfservice.stages.user.RetrieveUsernameStage.KEY_ADDITIONS_USERNAME;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 import org.forgerock.json.JsonValue;

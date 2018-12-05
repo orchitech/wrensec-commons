@@ -12,17 +12,19 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.authz.modules.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.authz.modules.oauth2.OAuth2Module.AccessTokenValidationCacheFactory;
 import static org.forgerock.authz.modules.oauth2.OAuth2Module.OAUTH2_PROFILE_INFO_CONTEXT_KEY;
 import static org.forgerock.util.promise.Promises.newResultPromise;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.testng.Assert.assertTrue;
 
@@ -35,6 +37,7 @@ import java.util.Map;
 import org.forgerock.authz.filter.api.AuthorizationContext;
 import org.forgerock.authz.filter.api.AuthorizationException;
 import org.forgerock.authz.filter.api.AuthorizationResult;
+import org.forgerock.authz.modules.oauth2.OAuth2Module.AccessTokenValidationCacheFactory;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 import org.testng.annotations.BeforeMethod;

@@ -12,23 +12,24 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.caf.authentication.framework;
 
 import static org.forgerock.caf.authentication.framework.AuthStatusUtils.asString;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.contains;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import java.security.Principal;
+
 import javax.security.auth.Subject;
 import javax.security.auth.message.AuthStatus;
-
-import java.security.Principal;
 
 import org.forgerock.caf.authentication.api.AsyncServerAuthContext;
 import org.forgerock.caf.authentication.api.AuthenticationException;

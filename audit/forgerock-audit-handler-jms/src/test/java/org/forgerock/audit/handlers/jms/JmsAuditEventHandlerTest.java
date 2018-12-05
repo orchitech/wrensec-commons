@@ -25,10 +25,10 @@ import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.test.assertj.AssertJJsonValueAssert.assertThat;
 import static org.forgerock.util.test.assertj.AssertJPromiseAssert.assertThatPromise;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -172,7 +172,7 @@ public class JmsAuditEventHandlerTest {
                 Thread.sleep(100L); // small delay to simulate time to send message.
                 logger.info("message sent by session {}: {}",
                         sessionCount,
-                        invocation.getArgumentAt(0, TextMessage.class).getText());
+                        ((TextMessage)invocation.getArgument(0)).getText());
                 return null;
             }
         }).when(producer).send(textMessage);
