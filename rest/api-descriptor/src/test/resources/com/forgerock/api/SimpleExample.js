@@ -12,12 +12,14 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 var imports = JavaImporter(
     Packages.org.forgerock.api.models,
     org.forgerock.json.JsonValue,
     com.fasterxml.jackson.databind.ObjectMapper,
+    com.fasterxml.jackson.databind.MapperFeature,
     com.fasterxml.jackson.annotation.JsonInclude,
     org.forgerock.http.routing.Version);
 
@@ -62,10 +64,11 @@ with (imports) {
         .paths(paths)
         .build();
 
-    // print JSON to standard-out
+    // return JSON as a string
     var objectMapper = new ObjectMapper()
         .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+        .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
 
-    java.lang.System.out.println(objectMapper.writeValueAsString(apiDescription));
+    objectMapper.writeValueAsString(apiDescription);
 }

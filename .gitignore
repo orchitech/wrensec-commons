@@ -98,3 +98,6 @@ test-output/
 
 # NodeJS modules
 node_modules/
+
+# Logs
+*.log

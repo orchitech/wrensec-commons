@@ -12,15 +12,19 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2018 Wren Security.
  */
 
 package org.forgerock.api;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
 import org.testng.annotations.Test;
@@ -32,24 +36,56 @@ public class JavascriptTest {
 
     @Test
     public void testSimpleExample() throws Exception {
-        executeScript("SimpleExample", "/com/forgerock/api/SimpleExample.js");
+        final Object result = executeScript("SimpleExample", "/com/forgerock/api/SimpleExample.js");
+
+        assertThat(result).isEqualTo(
+            "{\"id\":\"frapi:test\",\"paths\":{\"/testPath\":{\"1"
+            + ".0\":{\"actions\":[{\"name\":\"action1\",\"response\":{\"boolean\":false,"
+            + "\"collection\":false,\"list\":false,\"map\":true,\"notNull\":true,"
+            + "\"null\":false,\"number\":false,\"pointer\":{\"empty\":true},"
+            + "\"string\":false}}],\"mvccSupported\":true},\"2"
+            + ".0\":{\"actions\":[{\"name\":\"action1\",\"response\":{\"boolean\":false,"
+            + "\"collection\":false,\"list\":false,\"map\":true,\"notNull\":true,"
+            + "\"null\":false,\"number\":false,\"pointer\":{\"empty\":true},"
+            + "\"string\":false}},{\"name\":\"action2\",\"response\":{\"boolean\":false,"
+            + "\"collection\":false,\"list\":false,\"map\":true,\"notNull\":true,"
+            + "\"null\":false,\"number\":false,\"pointer\":{\"empty\":true},"
+            + "\"string\":false}}],\"mvccSupported\":true}}},\"version\":\"1.0\"}"
+        );
     }
 
-    private void executeScript(String name, final String resourcePath) throws Exception {
+    private Object executeScript(String name, final String resourcePath)
+    throws Exception {
         final InputStream stream = JavascriptTest.class.getResourceAsStream(resourcePath);
+
         Context context = Context.enter();
+
         try {
-            Scriptable scope = context.initStandardObjects();
-            context.evaluateReader(scope, new InputStreamReader(stream), name, 1, null);
+            final Scriptable scope = context.initStandardObjects();
+
+            final Object result = context.evaluateReader(
+                scope,
+                new InputStreamReader(stream),
+                name,
+                1,
+                null
+            );
+
+            if (result instanceof NativeJavaObject) {
+                return ((NativeJavaObject)result).unwrap();
+            } else {
+                return result;
+            }
         } catch (JavaScriptException e) {
             String message = e.sourceName() + ":" + e.lineNumber();
+
             if (e.getValue() instanceof NativeObject) {
                 message += ": " + ((NativeObject) e.getValue()).get("message").toString();
             }
+
             throw new Exception(message);
         } finally {
             Context.exit();
         }
     }
-
 }

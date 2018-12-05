@@ -19,6 +19,7 @@ package org.forgerock.json.schema.validator;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import java.util.Map;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
+import org.forgerock.guava.common.collect.ArrayListMultimap;
+import org.forgerock.guava.common.collect.Multimap;
 import org.forgerock.json.schema.validator.validators.AnyTypeValidator;
 import org.forgerock.json.schema.validator.validators.ArrayTypeValidator;
 import org.forgerock.json.schema.validator.validators.BooleanTypeValidator;
@@ -83,9 +86,18 @@ public class ObjectValidatorFactoryTest {
     public void enginesTest() {
         ScriptEngineManager manager = new ScriptEngineManager();
         List<ScriptEngineFactory> factoryList = manager.getEngineFactories();
+        Multimap<String, String> engineLanguages = ArrayListMultimap.create();
+
         for (ScriptEngineFactory factory : factoryList) {
-            System.out.println(factory.getEngineName());
-            System.out.println(factory.getLanguageName());
+            final String engineName   = factory.getEngineName(),
+                         languageName = factory.getLanguageName();
+
+            engineLanguages.put(engineName, languageName);
         }
+
+        assertThat(engineLanguages.asMap()).containsExactly(
+          entry("Oracle Nashorn", Collections.singletonList("ECMAScript")),
+          entry("BeanShell Engine", Collections.singletonList("BeanShell"))
+        );
     }
 }
