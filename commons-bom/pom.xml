@@ -37,7 +37,7 @@
     <url>https://www.wrensecurity.org</url>
 
     <properties>
-        <pgpWhitelistArtifact>org.wrensecurity:wrensec-pgp-whitelist:1.4.1</pgpWhitelistArtifact>
+        <pgpWhitelistArtifact>org.wrensecurity:wrensec-pgp-whitelist:1.4.3</pgpWhitelistArtifact>
 
         <!-- Third party components versions -->
         <i18nFrameworkVersion>1.4.3</i18nFrameworkVersion>
@@ -46,8 +46,8 @@
         <forgerock-guava.version>18.0.4</forgerock-guava.version>
         <jackson.version>2.9.7</jackson.version>
         <mockito.version>2.23.4</mockito.version>
-        <servlet-api.version>4.0.1</servlet-api.version>
-        <slf4j.version>1.8.0-beta2</slf4j.version>
+        <servlet-api.version>3.1.0</servlet-api.version>
+        <slf4j.version>1.7.23</slf4j.version>
         <testng.version>6.14.3</testng.version>
         <swagger.version>1.5.21</swagger.version>
         <apache-httpcore.version>4.4.5</apache-httpcore.version>
@@ -645,13 +645,6 @@
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-models</artifactId>
                 <version>${swagger.version}</version>
-
-                <exclusions>
-                    <exclusion>
-                        <groupId>io.swagger</groupId>
-                        <artifactId>swagger-annotations</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
